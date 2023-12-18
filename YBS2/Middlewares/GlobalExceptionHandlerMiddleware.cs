@@ -27,11 +27,11 @@ namespace YBS2.Middlewares
             {
                 _logger.LogError($"An exception : {exception.Message}");
                 //Set up the response status code 
-                context.Response.StatusCode = exception.StatusCode;
+                context.Response.StatusCode = (int)exception.StatusCode;
                 //Set up the response type to Json
                 context.Response.ContentType = "application/json";
                 //Create API Exception and serialize to Json 
-                var apiResponse = new {StatusCode = context.Response.StatusCode,Message = exception.Message};
+                var apiResponse = new {message = exception.Message};
                 //
                 var jsonResponse = JsonSerializer.Serialize(apiResponse);
                 //Write error json to response body
@@ -45,7 +45,7 @@ namespace YBS2.Middlewares
                 //Set up the response type to Json
                 context.Response.ContentType = "application/json";
                 //Create API Exception and serialize to Json 
-                var apiResponse = new {StatusCode = context.Response.StatusCode,Message = exception.Message};
+                var apiResponse = new {message = exception.Message};
                 //
                 var jsonResponse = JsonSerializer.Serialize(apiResponse);
                 //Write error json to response body

@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using YBS2.Service.Dtos.Input;
 using YBS2.Service.Services;
 using YBS2.Service.Utils;
-using static YBS2.Service.Dtos.PageResponses.DefaultAPIResponse;
 
 namespace YBS2.Controllers
 {
@@ -24,15 +23,15 @@ namespace YBS2.Controllers
         }
         [Route(APIEndPoint.LOGIN_WITH_GOOGLE)]
         [HttpPost]
-        public async Task<Response> LoginWithGoogle ([FromForm]string idToken)
+        public async Task<IActionResult> LoginWithGoogle ([FromForm]string idToken)
         {
-            return await _authService.LoginWithGoogle(idToken);
+            return Ok(await _authService.LoginWithGoogle(idToken));
         }
         [Route(APIEndPoint.LOGIN_WITH_EMAIL_PASSWORD)]
         [HttpPost]
-        public async Task<Response> LoginWithEmailAndPassword ([FromForm] AuthenticateInputDto authenticateInputDto)
+        public async Task<IActionResult> LoginWithEmailAndPassword ([FromForm] AuthenticateInputDto authenticateInputDto)
         {
-            return await _authService.LoginWithEmailAndPassword(authenticateInputDto);
+            return Ok(await _authService.LoginWithEmailAndPassword(authenticateInputDto));
         }
         // [Route("genpass")]
         // [HttpGet]

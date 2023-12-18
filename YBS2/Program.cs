@@ -47,7 +47,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddAutoMapper(typeof(AutoMapperProfileUtil).Assembly);
+builder.Services.AddAutoMapper(typeof(AutoMapperProfileUtils).Assembly);
 builder.Services.AddDbContext<YBS2Context>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("YBS2Context")));
 builder.Services.AddScoped<IAuthService,AuthService>();
@@ -79,7 +79,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

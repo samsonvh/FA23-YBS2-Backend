@@ -7,9 +7,9 @@ using YBS2.Data.Models;
 
 namespace YBS2.Service.Utils
 {
-    public class AutoMapperProfileUtil : Profile
+    public class AutoMapperProfileUtils : Profile
     {
-        public AutoMapperProfileUtil()
+        public AutoMapperProfileUtils()
         {
             CreateMap<Account, AccountDto>();
         }

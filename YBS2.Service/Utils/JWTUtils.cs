@@ -15,7 +15,7 @@ using YBS2.Service.Exceptions;
 
 namespace YBS2.Service.Utils
 {
-    public static class JWTUtil
+    public static class JWTUtils
     {
         public static string GenerateJWTToken(Account account, IConfiguration configuration)
         {
@@ -28,7 +28,7 @@ namespace YBS2.Service.Utils
             {
                 if (account.Member == null)
                 {
-                    throw new APIException((int)HttpStatusCode.BadRequest, "Account doesn't have detail member information");
+                    throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information");
                 }
                 claims.Add(new Claim("MemberId", account.Member.Id.ToString()));
                 //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
@@ -37,7 +37,7 @@ namespace YBS2.Service.Utils
             {
                 if (account.Company == null)
                 {
-                    throw new APIException((int)HttpStatusCode.BadRequest, "Account doesn't have detail company information");
+                    throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail company information");
                 }
                 claims.Add(new Claim("CompanyId", account.Company.Id.ToString()));
             }
@@ -64,7 +64,7 @@ namespace YBS2.Service.Utils
             var accessTokenPrefix = "Bearer ";
             if (accessToken == null)
             {
-                throw new APIException((int)HttpStatusCode.Unauthorized, "Unauthorized");
+                throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized");
             }
             if (accessToken.Contains(accessTokenPrefix))
             {
@@ -92,7 +92,7 @@ namespace YBS2.Service.Utils
             claimsPrincipal = tokenHandler.ValidateToken(accessToken.Trim(), tokenValidationParameters, out _);
             if (claimsPrincipal == null)
             {
-                throw new APIException((int)HttpStatusCode.BadRequest, "Failed to decrypt/validate the JWT token");
+                throw new APIException(HttpStatusCode.BadRequest, "Failed to decrypt/validate the JWT token");
             }
             return claimsPrincipal;
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace YBS2.Service.Utils
 {
-    public static class PasswordUtil
+    public static class PasswordUtils
     {
         public static string HashPassword(string password)
         {

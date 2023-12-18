@@ -12,8 +12,8 @@ using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
 using YBS2.Service.Dtos.Input;
 using YBS2.Service.Dtos.PageResponses;
+using YBS2.Service.Exceptions;
 using YBS2.Service.Utils;
-using static YBS2.Service.Dtos.PageResponses.DefaultAPIResponse;
 
 namespace YBS2.Service.Services.Implements
 {
@@ -29,7 +29,7 @@ namespace YBS2.Service.Services.Implements
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<Response> LoginWithEmailAndPassword(AuthenticateInputDto authenticateInputDto)
+        public async Task<AuthResponse> LoginWithEmailAndPassword(AuthenticateInputDto authenticateInputDto)
         {
             //validate email and password
             var existAccount = await _unitOfWork.AccountRepository.Find(account => account.Email == authenticateInputDto.Email)
@@ -37,14 +37,14 @@ namespace YBS2.Service.Services.Implements
                                                                     .FirstOrDefaultAsync();
             if (existAccount == null)
             {
-                ErrorApiResult("Invalid email or password", HttpStatusCode.BadRequest);
+                throw new APIException( HttpStatusCode.BadRequest, "Invalid email or password");
             }
-            var checkPassword = PasswordUtil.VerifyHashedPassword(existAccount.Password,authenticateInputDto.Password);
+            var checkPassword = PasswordUtils.VerifyHashedPassword(existAccount.Password,authenticateInputDto.Password);
             if (!checkPassword)
             {
-                ErrorApiResult("Invalid email or password",HttpStatusCode.BadRequest);
+                throw new APIException( HttpStatusCode.BadRequest, "Invalid email or password");
             }
-            var accessToken = JWTUtil.GenerateJWTToken(existAccount,_configuration);
+            var accessToken = JWTUtils.GenerateJWTToken(existAccount,_configuration);
             var authResponse = new AuthResponse()
             {
                 AccessToken = accessToken,
@@ -53,28 +53,28 @@ namespace YBS2.Service.Services.Implements
                 Role = existAccount.Role.Name,
                 Username = existAccount.Username
             };
-            return Ok(authResponse,"Login Successfully");
+            return authResponse;
         }
 
-        public async Task<Response> LoginWithGoogle(string idToken)
+        public async Task<AuthResponse> LoginWithGoogle(string idToken)
         {
-            GoogleJsonWebSignature.Payload? payload = await JWTUtil.GetPayload(idToken, _configuration);
+            GoogleJsonWebSignature.Payload? payload = await JWTUtils.GetPayload(idToken, _configuration);
             if (payload == null)
             {
-                ErrorApiResult("Can not get Google payload",HttpStatusCode.BadRequest);
+                throw new APIException( HttpStatusCode.BadRequest, "Can not get Google payload");
             }
             var existAccount = await _unitOfWork.AccountRepository.Find(account => account.Email.Trim().ToUpper() == payload.Email.Trim().ToUpper())
                                                                         .Include(account => account.Role)
                                                                         .FirstOrDefaultAsync();
             if (existAccount == null)
             {
-                ErrorApiResult("You have not registered",HttpStatusCode.BadRequest);
+                throw new APIException( HttpStatusCode.BadRequest, "You have not registered");
             }
             if (existAccount.Status == EnumAccountStatus.Ban)
             {
-                ErrorApiResult("You can not login, your account is banned",HttpStatusCode.BadRequest);
+                throw new APIException( HttpStatusCode.BadRequest, "You can not login, your account is banned");
             }
-            var accessToken = JWTUtil.GenerateJWTToken(existAccount,_configuration);
+            var accessToken = JWTUtils.GenerateJWTToken(existAccount,_configuration);
             var authResponse = new AuthResponse()
             {
                 AccessToken = accessToken,
@@ -83,7 +83,7 @@ namespace YBS2.Service.Services.Implements
                 Role = existAccount.Role.Name,
                 Username = existAccount.Username
             };
-            return Ok(authResponse,"Login Successfully");
+            return authResponse;
         }
 
     }
