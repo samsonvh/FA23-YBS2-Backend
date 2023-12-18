@@ -8,6 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\YBS2.Data\YBS2.Data.csproj" />
+    <ProjectReference Include="..\YBS2.Service\YBS2.Service.csproj" />
   </ItemGroup>
 
 </Project>

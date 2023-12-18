@@ -1,4 +1,11 @@
+using System.Net;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using YBS2.Data.Context;
+using YBS2.Data.UnitOfWork;
+using YBS2.Service;
+using YBS2.Service.Exceptions;
 
 namespace YBS2.Controllers
 {
@@ -12,10 +19,14 @@ namespace YBS2.Controllers
     };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _logger = logger;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
@@ -28,6 +39,17 @@ namespace YBS2.Controllers
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+        [HttpGet("TestAPI")]
+        public async Task<IActionResult> TestAPI ()
+        {
+            var accountList = await _unitOfWork.AccountRepository.GetAll().ToListAsync();
+            if (accountList.Count == 0)
+            {
+                throw new APIException((int)HttpStatusCode.BadRequest,"Account List Null");
+            }
+            var result = _mapper.Map<List<AccountDto>>(accountList);
+            return Ok(result);
         }
     }
 }
