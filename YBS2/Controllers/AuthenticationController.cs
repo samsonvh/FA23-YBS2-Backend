@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using YBS2.Service.Dtos.Input;
+using Swashbuckle.AspNetCore.Annotations;
+using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Services;
-using YBS2.Service.Utils;
 
 namespace YBS2.Controllers
 {
@@ -16,29 +11,49 @@ namespace YBS2.Controllers
     {
         private readonly ILogger<AuthenticationController> _logger;
         private readonly IAuthService _authService;
+
         public AuthenticationController(ILogger<AuthenticationController> logger, IAuthService authService)
         {
             _logger = logger;
             _authService = authService;
         }
-        [Route(APIEndPoint.LOGIN_WITH_GOOGLE)]
+
+        [SwaggerOperation(Summary = "Authenticate using IdToken from Google Service")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Successfully Authenticated", typeof(AuthResponse))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid IdToken", typeof(string))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.AUTHENTICATION_GOOGLE_V1)]
         [HttpPost]
-        public async Task<IActionResult> LoginWithGoogle ([FromForm]string idToken)
+        public async Task<IActionResult> LoginWithGoogle([FromBody] string idToken)
         {
-            return Ok(await _authService.LoginWithGoogle(idToken));
+            AuthResponse? authResponse = await _authService.LoginWithGoogle(idToken);
+            if (authResponse == null)
+            {
+                return Ok();
+            }
+            else
+            {
+                return Ok(authResponse);
+            }
         }
-        [Route(APIEndPoint.LOGIN_WITH_EMAIL_PASSWORD)]
+
+        [SwaggerOperation(Summary = "Authenticate using Email & Password")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Successfully Authenticated", typeof(AuthResponse))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid Email", typeof(string))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.AUTHENTICATION_CREDENTIALS_V1)]
         [HttpPost]
-        public async Task<IActionResult> LoginWithEmailAndPassword ([FromForm] AuthenticateInputDto authenticateInputDto)
+        public async Task<IActionResult> LoginWithEmailAndPassword([FromForm] CredentialsInputDto credentials)
         {
-            return Ok(await _authService.LoginWithEmailAndPassword(authenticateInputDto));
+            AuthResponse? authResponse = await _authService.LoginWithCredentials(credentials);
+            if (authResponse == null)
+            {
+                return Ok();
+            }
+            else
+            {
+                return Ok(authResponse);
+            }
         }
-        // [Route("genpass")]
-        // [HttpGet]
-        // public async Task<IActionResult> GeneratePass (string genpass)
-        // {
-        //     var hashedPassword = PasswordUtil.HashPassword(genpass);
-        //     return Ok(hashedPassword);
-        // }
     }
 }

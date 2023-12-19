@@ -1,21 +1,22 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 using YBS2.Data.Context;
 using YBS2.Data.UnitOfWork;
 using YBS2.Data.UnitOfWork.Implement;
 using YBS2.Middlewares;
 using YBS2.Service.Services;
 using YBS2.Service.Services.Implements;
+using YBS2.Service.Swaggers;
 using YBS2.Service.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -45,13 +46,16 @@ builder.Services.AddSwaggerGen(options =>
             new List<string>()
         }
     });
+    options.EnableAnnotations();
+    options.SchemaFilter<SwaggerSchemaExampleFilter>();
 });
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfileUtils).Assembly);
-builder.Services.AddDbContext<YBS2Context>(options => 
+builder.Services.AddDbContext<YBS2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("YBS2Context")));
-builder.Services.AddScoped<IAuthService,AuthService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddHttpContextAccessor();
+
 //Add Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -69,6 +73,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromSeconds(0)
         };
     });
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -86,5 +91,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+app.MapHealthChecks("/health");
 
 app.Run();

@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Net;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
 using YBS2.Data.Models;
 using YBS2.Service.Exceptions;
 
@@ -58,6 +54,7 @@ namespace YBS2.Service.Utils
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
             return accessToken;
         }
+
         public static ClaimsPrincipal GetClaim(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             string accessToken = httpContextAccessor.HttpContext.Request.Headers["Authorization"];

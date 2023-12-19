@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text.Json;
-using System.Threading.Tasks;
 using YBS2.Service.Exceptions;
 
 namespace YBS2.Middlewares
@@ -30,10 +26,8 @@ namespace YBS2.Middlewares
                 context.Response.StatusCode = (int)exception.StatusCode;
                 //Set up the response type to Json
                 context.Response.ContentType = "application/json";
-                //Create API Exception and serialize to Json 
-                var apiResponse = new {message = exception.Message};
-                //
-                var jsonResponse = JsonSerializer.Serialize(apiResponse);
+                
+                var jsonResponse = JsonSerializer.Serialize(exception.Message);
                 //Write error json to response body
                 await context.Response.WriteAsync(jsonResponse);
             }
@@ -45,7 +39,7 @@ namespace YBS2.Middlewares
                 //Set up the response type to Json
                 context.Response.ContentType = "application/json";
                 //Create API Exception and serialize to Json 
-                var apiResponse = new {message = exception.Message};
+                var apiResponse = new { message = exception.Message };
                 //
                 var jsonResponse = JsonSerializer.Serialize(apiResponse);
                 //Write error json to response body
@@ -53,4 +47,4 @@ namespace YBS2.Middlewares
             }
         }
     }
-}   
+}

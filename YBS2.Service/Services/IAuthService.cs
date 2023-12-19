@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using YBS2.Service.Dtos.Input;
-using YBS2.Service.Dtos.PageResponses;
+using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Inputs;
 
 namespace YBS2.Service.Services
 {
     public interface IAuthService
     {
-        Task<AuthResponse> LoginWithGoogle(string idToken);
-        Task<AuthResponse> LoginWithEmailAndPassword(AuthenticateInputDto authenticateInputDto);
+        Task<AuthResponse?> LoginWithGoogle(string idToken);
+        Task<AuthResponse?> LoginWithCredentials(CredentialsInputDto credentials);
     }
 }

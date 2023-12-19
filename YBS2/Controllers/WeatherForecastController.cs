@@ -1,8 +1,7 @@
-using System.Net;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using YBS2.Data.Context;
+using System.Net;
 using YBS2.Data.UnitOfWork;
 using YBS2.Service;
 using YBS2.Service.Exceptions;
@@ -41,12 +40,12 @@ namespace YBS2.Controllers
             .ToArray();
         }
         [HttpGet("TestAPI")]
-        public async Task<IActionResult> TestAPI ()
+        public async Task<IActionResult> TestAPI()
         {
             var accountList = await _unitOfWork.AccountRepository.GetAll().ToListAsync();
             if (accountList.Count > 0)
             {
-                throw new APIException(HttpStatusCode.BadRequest,"Account List Null");
+                throw new APIException(HttpStatusCode.BadRequest, "Account List Null");
             }
             var result = _mapper.Map<List<AccountDto>>(accountList);
             return Ok(result);
