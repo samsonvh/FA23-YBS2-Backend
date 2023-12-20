@@ -54,6 +54,7 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfileUtils).Assembly);
 builder.Services.AddDbContext<YBS2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("YBS2Context")));
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddHttpContextAccessor();
 
 //Add Authentication

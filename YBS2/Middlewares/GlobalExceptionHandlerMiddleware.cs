@@ -26,7 +26,7 @@ namespace YBS2.Middlewares
                 context.Response.StatusCode = (int)exception.StatusCode;
                 //Set up the response type to Json
                 context.Response.ContentType = "application/json";
-                
+
                 var jsonResponse = JsonSerializer.Serialize(exception.Message);
                 //Write error json to response body
                 await context.Response.WriteAsync(jsonResponse);

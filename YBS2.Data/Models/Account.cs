@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using YBS2.Data.Enums;
 
 namespace YBS2.Data.Models

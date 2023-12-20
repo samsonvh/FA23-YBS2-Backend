@@ -17,7 +17,6 @@ namespace YBS2.Controllers
             _logger = logger;
             _authService = authService;
         }
-
         [SwaggerOperation(Summary = "Authenticate using IdToken from Google Service")]
         [SwaggerResponse(StatusCodes.Status200OK, "Successfully Authenticated", typeof(AuthResponse))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid IdToken", typeof(string))]
