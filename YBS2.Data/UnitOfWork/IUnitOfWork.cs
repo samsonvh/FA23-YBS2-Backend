@@ -6,8 +6,6 @@ namespace YBS2.Data.UnitOfWork
     public interface IUnitOfWork
     {
         IGenericRepositoty<Account> AccountRepository { get; }
-        IGenericRepositoty<Member> MemberRepository { get; }
-        IGenericRepositoty<Role> RoleRepository { get; }
         IGenericRepositoty<Company> CompanyRepository { get; }
         Task<int> SaveChangesAsync();
     }

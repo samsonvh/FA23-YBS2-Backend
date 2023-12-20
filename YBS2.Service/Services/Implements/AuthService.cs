@@ -47,7 +47,7 @@ namespace YBS2.Service.Services.Implements
                         AccessToken = accessToken,
                         AccountId = existAccount.Id,
                         Email = existAccount.Email,
-                        Role = existAccount.Role.Name,
+                        Role = existAccount.Role,
                         Username = existAccount.Username
                     };
                 }
@@ -78,7 +78,7 @@ namespace YBS2.Service.Services.Implements
                     AccessToken = accessToken,
                     AccountId = existAccount.Id,
                     Email = existAccount.Email,
-                    Role = existAccount.Role.Name,
+                    Role = existAccount.Role,
                     Username = existAccount.Username
                 };
             }

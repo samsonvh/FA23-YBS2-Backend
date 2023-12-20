@@ -18,18 +18,18 @@ namespace YBS2.Service.Utils
             var claims = new List<Claim>()
             {
                 new Claim("Id", account.Id.ToString()),
-                new Claim(ClaimTypes.Role, account.Role.Name),
+                new Claim(ClaimTypes.Role, account.Role),
             };
-            if (account.Role.Name == "Member")
-            {
-                if (account.Member == null)
-                {
-                    throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information");
-                }
-                claims.Add(new Claim("MemberId", account.Member.Id.ToString()));
-                //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
-            }
-            if (account.Role.Name == "Company")
+            //if (account.Role.Name == "Member")
+            //{
+            //    if (account.Member == null)
+            //    {
+            //        throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information");
+            //    }
+            //    claims.Add(new Claim("MemberId", account.Member.Id.ToString()));
+            //    //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
+            //}
+            if (account.Role == "Company")
             {
                 if (account.Company == null)
                 {

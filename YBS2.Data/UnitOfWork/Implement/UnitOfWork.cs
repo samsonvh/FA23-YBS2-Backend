@@ -9,8 +9,6 @@ namespace YBS2.Data.UnitOfWork.Implement
     {
         private readonly YBS2Context _context;
         private readonly IGenericRepositoty<Account> _accountRepository;
-        private readonly IGenericRepositoty<Member> _memberRepository;
-        private readonly IGenericRepositoty<Role> _roleRepository;
         private readonly IGenericRepositoty<Company> _companyRepository;
         public UnitOfWork(YBS2Context context)
         {
@@ -25,32 +23,6 @@ namespace YBS2.Data.UnitOfWork.Implement
                     return _accountRepository;
                 }
                 return new GenericRepository<Account>(_context);
-            }
-        }
-
-        public IGenericRepositoty<Role> RoleRepository
-        {
-            get
-            {
-                if (_roleRepository is not null)
-                {
-                    return _roleRepository;
-                }
-                return new GenericRepository<Role>(_context);
-            }
-        }
-
-
-
-        public IGenericRepositoty<Member> MemberRepository
-        {
-            get
-            {
-                if (_memberRepository is not null)
-                {
-                    return _memberRepository;
-                }
-                return new GenericRepository<Member>(_context);
             }
         }
 

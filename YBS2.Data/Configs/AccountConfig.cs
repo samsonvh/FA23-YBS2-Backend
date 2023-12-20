@@ -13,7 +13,8 @@ namespace YBS2.Data.Configs
             builder.Property(account => account.Id).ValueGeneratedOnAdd();
             builder.Property(account => account.Username).HasColumnType("nvarchar(50)");
             builder.Property(account => account.Email).HasColumnType("nvarchar(100)");
-            builder.Property(account => account.Password).HasColumnType("nvarchar(100)");
+            builder.Property(account => account.Password).HasColumnType("nvarchar(max)");
+            builder.Property(account => account.Role).HasColumnType("nvarchar(20)");
         }
     }
 }

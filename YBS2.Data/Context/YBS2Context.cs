@@ -9,8 +9,6 @@ namespace YBS2.Data.Context
         {
         }
         public DbSet<Account> Accounts { get; set; }
-        public DbSet<Role> Roles { get; set; }
-        public DbSet<Member> Members { get; set; }
         public DbSet<Company> Companies { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

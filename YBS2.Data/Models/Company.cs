@@ -11,9 +11,10 @@ namespace YBS2.Data.Models
         public string Name { get; set; }
         public string Address { get; set; }
         public string HotLine { get; set; }
-        public string FacebookURL { get; set; }
-        public string LinkedlnURL { get; set; }
-        public string InstagramURL { get; set; }
-        public string LogoURL { get; set; }
+        public string? FacebookURL { get; set; } = null;
+        public string? LinkedInURL { get; set; } = null;
+        public string? InstagramURL { get; set; } = null;
+        public string? LogoURL { get; set; } = null;
+        public DateTime LastUpdatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
     }
 }
