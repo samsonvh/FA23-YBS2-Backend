@@ -1,7 +1,9 @@
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using YBS2.Service.Dtos;
 using YBS2.Service.Dtos.Inputs;
+using YBS2.Service.Exceptions;
 using YBS2.Service.Services;
 
 namespace YBS2.Controllers
@@ -28,7 +30,7 @@ namespace YBS2.Controllers
             AuthResponse? authResponse = await _authService.LoginWithGoogle(idToken);
             if (authResponse == null)
             {
-                return Ok();
+                throw new APIException(HttpStatusCode.BadRequest,"Invalid email or password");
             }
             else
             {
@@ -47,7 +49,7 @@ namespace YBS2.Controllers
             AuthResponse? authResponse = await _authService.LoginWithCredentials(credentials);
             if (authResponse == null)
             {
-                return Ok();
+                throw new APIException(HttpStatusCode.BadRequest,"Invalid email or password");
             }
             else
             {

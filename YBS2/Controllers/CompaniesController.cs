@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using YBS.Middlewares;
 using YBS2.Service.Services;
 
 namespace YBS2.Controllers
@@ -15,13 +16,13 @@ namespace YBS2.Controllers
             _logger = logger;
             _companyService = companyService;
         }
-
+        [RoleAuthorization("Admin")]
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             return Ok();
         }
-
+        [RoleAuthorization("Admin,Company")]
         [Route(APIEndPoints.COMPANIES_ID_V1)]
         [HttpGet]
         public async Task<IActionResult> GetDetails()
@@ -30,6 +31,7 @@ namespace YBS2.Controllers
         }
 
         [HttpPost]
+        [RoleAuthorization("Admin")]
         public async Task<IActionResult> Create()
         {
             return Ok();
@@ -42,12 +44,14 @@ namespace YBS2.Controllers
         }
 
         [HttpPatch]
+        [RoleAuthorization("Admin")]
         public async Task<IActionResult> ChangeStatus()
         {
             return Ok();
         }
 
         [HttpDelete]
+        [RoleAuthorization("Admin")]
         public async Task<IActionResult> Delete()
         {
             return Ok();
