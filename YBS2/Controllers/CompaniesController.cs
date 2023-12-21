@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using YBS.Middlewares;
+﻿﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
+using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Dtos.PageResponses;
@@ -19,44 +22,61 @@ namespace YBS2.Controllers
             _logger = logger;
             _companyService = companyService;
         }
-        [RoleAuthorization("Admin")]
+
+        [SwaggerOperation("Get list of companies, paging information")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<CompanyListingDto>))]
+        [Produces("application/json")]
         [HttpGet]
-        public async Task<IActionResult> Get(CompanyPageRequest companyPageRequest)
+        public async Task<IActionResult> GetAll([FromQuery] CompanyPageRequest pageRequest)
         {
-            DefaultPageResponse<CompanyListingDto> pageResponse = await _companyService.GetAll(companyPageRequest); 
-            return Ok();
+            return Ok(await _companyService.GetAll(pageRequest));
         }
-        [RoleAuthorization("Admin,Company")]
+
+        [SwaggerOperation("Get details of a company according to ID")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(CompanyDto))]
+        [Produces("application/json")]
         [Route(APIEndPoints.COMPANIES_ID_V1)]
         [HttpGet]
-        public async Task<IActionResult> GetDetails()
+        public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
             return Ok();
         }
 
+        [SwaggerOperation("Create new company")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(CompanyDto))]
+        [Produces("application/json")]
         [HttpPost]
-        [RoleAuthorization("Admin")]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create([FromForm] CompanyInputDto inputDto)
+        {
+            return Ok(await _companyService.Create(inputDto));
+        }
+
+        [SwaggerOperation("Update company details according to ID")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(CompanyDto))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.COMPANIES_ID_V1)]
+        [NonAction]
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] CompanyInputDto inputDto)
         {
             return Ok();
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Update()
-        {
-            return Ok();
-        }
-
+        [SwaggerOperation("Change status of company according to ID")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.COMPANIES_ID_V1)]
         [HttpPatch]
-        [RoleAuthorization("Admin")]
-        public async Task<IActionResult> ChangeStatus()
+        public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] string status)
         {
             return Ok();
         }
 
+        [SwaggerOperation("Delete company according to ID")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.COMPANIES_ID_V1)]
         [HttpDelete]
-        [RoleAuthorization("Admin")]
-        public async Task<IActionResult> Delete()
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             return Ok();
         }

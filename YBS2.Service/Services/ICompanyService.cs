@@ -5,7 +5,7 @@ using YBS2.Service.Dtos.PageRequests;
 
 namespace YBS2.Service.Services
 {
-    public interface ICompanyService : IDefaultService<CompanyPageRequest, CompanyListingDto, CompanyDto, CompanyIndutDto>
+    public interface ICompanyService : IDefaultService<CompanyPageRequest, CompanyListingDto, CompanyDto, CompanyInputDto>
     {
     }
 }

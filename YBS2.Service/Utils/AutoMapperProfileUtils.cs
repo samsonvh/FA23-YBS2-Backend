@@ -1,5 +1,7 @@
 using AutoMapper;
 using YBS2.Data.Models;
+using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 
 namespace YBS2.Service.Utils
@@ -8,8 +10,13 @@ namespace YBS2.Service.Utils
     {
         public AutoMapperProfileUtils()
         {
+            //  Account
             CreateMap<Account, AccountDto>();
             //company
+
+            //  Company
+            CreateMap<CompanyInputDto, Company>();
+            CreateMap<Company, CompanyDto>();
             CreateMap<Company, CompanyListingDto>();
         }
     }

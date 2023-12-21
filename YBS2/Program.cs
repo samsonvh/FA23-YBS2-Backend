@@ -1,3 +1,4 @@
+using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,6 +14,8 @@ using YBS2.Service.Swaggers;
 using YBS2.Service.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"./yacht-booking-system-2-firebase-adminsdk-mom0t-4843c07945.json");
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -55,6 +58,7 @@ builder.Services.AddDbContext<YBS2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("YBS2Context")));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddSingleton<IFirebaseStorageService>(service => new FirebaseStorageService(StorageClient.Create()));
 builder.Services.AddHttpContextAccessor();
 
 //Add Authentication

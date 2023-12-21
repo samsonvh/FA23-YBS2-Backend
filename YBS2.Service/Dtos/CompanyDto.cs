@@ -2,5 +2,6 @@
 {
     public class CompanyDto
     {
+        public string LogoURL { get; set; }
     }
 }
