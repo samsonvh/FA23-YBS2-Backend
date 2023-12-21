@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using YBS.Middlewares;
+using YBS2.Service.Dtos.Listings;
+using YBS2.Service.Dtos.PageRequests;
+using YBS2.Service.Dtos.PageResponses;
 using YBS2.Service.Services;
 
 namespace YBS2.Controllers
@@ -18,8 +21,9 @@ namespace YBS2.Controllers
         }
         [RoleAuthorization("Admin")]
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(CompanyPageRequest companyPageRequest)
         {
+            DefaultPageResponse<CompanyListingDto> pageResponse = await _companyService.GetAll(companyPageRequest); 
             return Ok();
         }
         [RoleAuthorization("Admin,Company")]
