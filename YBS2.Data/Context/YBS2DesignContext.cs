@@ -9,6 +9,7 @@ namespace YBS2.Data.Context
         YBS2Context IDesignTimeDbContextFactory<YBS2Context>.CreateDbContext(string[] args)
         {
             string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+            //env = "Production";
             string dir = Directory.GetParent(Directory.GetCurrentDirectory()).ToString() + "/YBS2";
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(dir)

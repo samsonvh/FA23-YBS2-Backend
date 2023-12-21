@@ -4,8 +4,9 @@ namespace YBS2.Data.Models
 {
     public class Company
     {
-        public int Id { get; set; }
-        public int AccountId { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public Guid Id { get; set; }
+        public Guid AccountId { get; set; }
         [ForeignKey("AccountId")]
         public Account Account { get; set; }
         public string Name { get; set; }

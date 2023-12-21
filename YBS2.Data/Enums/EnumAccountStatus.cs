@@ -4,5 +4,6 @@ namespace YBS2.Data.Enums
     {
         Ban = 0,
         Active = 1,
+        Inactive = 2,
     }
 }

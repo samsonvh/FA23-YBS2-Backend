@@ -1,10 +1,12 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using YBS2.Data.Enums;
 
 namespace YBS2.Data.Models
 {
     public class Account
     {
-        public int Id { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public Guid Id { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
