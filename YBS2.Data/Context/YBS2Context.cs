@@ -10,6 +10,10 @@ namespace YBS2.Data.Context
         }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Company> Companies { get; set; }
+        public DbSet<MembershipPackage> MembershipPackages { get; set; }
+        public DbSet<Member> Members { get; set; }
+        public DbSet<MembershipRegistration> MembershipRegistrations { get; set; }
+        public DbSet<UpdateRequest> UpdateRequests { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(YBS2Context).Assembly);

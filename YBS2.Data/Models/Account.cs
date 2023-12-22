@@ -13,6 +13,8 @@ namespace YBS2.Data.Models
         public string Role { get; set; } = "MEMBER";
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
         public Company? Company { get; set; }
+        public Member? Member { get; set; }
         public EnumAccountStatus Status { get; set; }
+        public ICollection<UpdateRequest>? UpdateRequests { get; set; } = null;
     }
 }

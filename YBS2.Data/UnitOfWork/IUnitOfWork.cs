@@ -7,6 +7,10 @@ namespace YBS2.Data.UnitOfWork
     {
         IGenericRepositoty<Account> AccountRepository { get; }
         IGenericRepositoty<Company> CompanyRepository { get; }
+        IGenericRepositoty<Member> MemberRepository { get; }
+        IGenericRepositoty<MembershipPackage> MembershipPackageRepository { get; }
+        IGenericRepositoty<MembershipRegistration> MembershipRegistrationRepository { get; }
+        IGenericRepositoty<UpdateRequest> UpdateRequestRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }
