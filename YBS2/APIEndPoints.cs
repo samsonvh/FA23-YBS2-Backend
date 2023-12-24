@@ -14,5 +14,11 @@ namespace YBS2
         //  Companies
         public const string COMPANIES_V1 = API_VERSION_V1 + "/companies";
         public const string COMPANIES_ID_V1 = COMPANIES_V1 + "/{id}";
+
+        //  Update Requests
+        public const string UPDATE_REQUESTS_V1 = API_VERSION_V1 + "/update-requests";
+        public const string UPDATE_REQUESTS_ID_V1 = UPDATE_REQUESTS_V1 + "/{id}";
+        public const string UPDATE_REQUESTS_OF_COMPANY_ID_V1 = COMPANIES_ID_V1 + "/update-requests";
+        public const string UPDATE_REQUESTS_ID_OF_COMPANY_ID_V1 = UPDATE_REQUESTS_OF_COMPANY_ID_V1 + "/{updateRequestId}";
     }
 }

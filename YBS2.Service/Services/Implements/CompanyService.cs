@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using System.Net;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
@@ -27,9 +28,38 @@ namespace YBS2.Service.Services.Implements
             _mapper = mapper;
         }
 
-        public Task<bool> ChangeStatus(Guid id, string name)
+        public async Task<bool> ChangeStatus(Guid id, string status)
         {
-            throw new NotImplementedException();
+            Company? existingCompany = await _unitOfWork.CompanyRepository
+                .Find(company => company.Id == id)
+                .Include(company => company.Account)
+                .FirstOrDefaultAsync();
+            if (existingCompany == null)
+            {
+                throw new APIException(HttpStatusCode.OK, "Not found");
+            }
+            if (existingCompany.Account.Status.ToString().ToUpper() == status.ToUpper())
+            {
+                return false;
+            }
+
+            switch (TextUtils.Capitalize(status))
+            {
+                case nameof(EnumAccountStatus.Ban):
+                    existingCompany.Account.Status = EnumAccountStatus.Ban;
+                    break;
+                case nameof(EnumAccountStatus.Active):
+                    existingCompany.Account.Status = EnumAccountStatus.Active;
+                    break;
+                case nameof(EnumAccountStatus.Inactive):
+                    existingCompany.Account.Status = EnumAccountStatus.Inactive;
+                    break;
+                default:
+                    throw new APIException(HttpStatusCode.BadRequest, "Invalid status");
+            }
+            _unitOfWork.AccountRepository.Update(existingCompany.Account);
+            await _unitOfWork.SaveChangesAsync();
+            return true;
         }
 
         public async Task<CompanyDto?> Create(CompanyInputDto inputDto)
@@ -42,7 +72,7 @@ namespace YBS2.Service.Services.Implements
                 Email = inputDto.Email,
                 Username = inputDto.Username,
                 Password = PasswordUtils.HashPassword(newPassword),
-                Role = nameof(EnumRole.Company),
+                Role = nameof(EnumRole.Company).ToUpper(),
                 Status = EnumAccountStatus.Inactive
             };
             Company company = _mapper.Map<Company>(inputDto);
@@ -59,7 +89,7 @@ namespace YBS2.Service.Services.Implements
             return _mapper.Map<CompanyDto>(company);
         }
 
-        public Task<bool> Delete(Guid id, string name)
+        public Task<bool> Delete(Guid id)
         {
             throw new NotImplementedException();
         }
@@ -68,22 +98,27 @@ namespace YBS2.Service.Services.Implements
         {
             List<CompanyListingDto> list = await _unitOfWork.CompanyRepository
                 .GetAll()
+                .Include(company => company.Account)
                 .Select(company => _mapper.Map<CompanyListingDto>(company))
                 .ToListAsync();
             DefaultPageResponse<CompanyListingDto> pageResponse = new DefaultPageResponse<CompanyListingDto>
             {
                 Data = list,
-                PageCount = list.Count,
-                PageIndex = 0,
-                PageSize = list.Count,
+                PageCount = list.Count / pageRequest.PageSize + 1,
+                PageIndex = pageRequest.PageIndex,
+                PageSize = pageRequest.PageSize,
                 TotalItem = list.Count
             };
             return pageResponse;
         }
 
-        public Task<CompanyDto?> GetDetails(Guid id, string name)
+        public async Task<CompanyDto?> GetDetails(Guid id)
         {
-            throw new NotImplementedException();
+            return await _unitOfWork.CompanyRepository
+                .Find(company => company.Id == id)
+                .Include(company => company.Account)
+                .Select(company => _mapper.Map<CompanyDto>(company))
+                .FirstOrDefaultAsync();
         }
 
         public Task<CompanyDto?> Update(Guid id, CompanyInputDto inputDto)

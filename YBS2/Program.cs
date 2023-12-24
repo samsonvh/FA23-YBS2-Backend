@@ -58,6 +58,7 @@ builder.Services.AddDbContext<YBS2Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("YBS2Context")));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IUpdateRequestService, UpdateRequestService>();
 builder.Services.AddSingleton<IFirebaseStorageService>(service => new FirebaseStorageService(StorageClient.Create()));
 builder.Services.AddHttpContextAccessor();
 
