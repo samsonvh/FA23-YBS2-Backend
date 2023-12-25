@@ -81,7 +81,7 @@ namespace YBS2.Service.Services.Implements
             return pageResponse;
         }
 
-        public Task<CompanyDto?> GetDetails(Guid id, string name)
+        public Task<CompanyDto?> GetDetails(Guid id)
         {
             throw new NotImplementedException();
         }

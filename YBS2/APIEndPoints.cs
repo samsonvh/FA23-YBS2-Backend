@@ -14,5 +14,12 @@ namespace YBS2
         //  Companies
         public const string COMPANIES_V1 = API_VERSION_V1 + "/companies";
         public const string COMPANIES_ID_V1 = COMPANIES_V1 + "/{id}";
+        // Membership Packages
+        public const string MEMBERSHIP_PACKAGES_V1 = API_VERSION_V1 + "/membership-packages";
+        public const string MEMBERSHIP_PACKAGES_ID_V1 = MEMBERSHIP_PACKAGES_V1 + "/{id}";
+        //Members
+        public const string MEMBER_V1 = API_VERSION_V1 + "/members";
+        public const string MEMBER_ID_V1 = MEMBER_V1 + "/{id}";
+
     }
 }

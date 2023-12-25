@@ -55,43 +55,48 @@ namespace YBS2.Service.Utils
             return accessToken;
         }
 
-        public static ClaimsPrincipal GetClaim(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+        public static ClaimsPrincipal? GetClaim(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             string accessToken = httpContextAccessor.HttpContext.Request.Headers["Authorization"];
             var accessTokenPrefix = "Bearer ";
-            if (accessToken == null)
+            // if (accessToken == null)
+            // {
+            //     throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized");
+            // }
+            if (accessToken != null)
             {
-                throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized");
-            }
-            if (accessToken.Contains(accessTokenPrefix))
-            {
-                accessToken = accessToken.Substring(accessTokenPrefix.Length);
-            }
+                if (accessToken.Contains(accessTokenPrefix))
+                {
+                    accessToken = accessToken.Substring(accessTokenPrefix.Length);
+                }
 
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration["JWT:SecretKey"]));
-            var issuer = configuration["JWT:Issuer"];
-            var audience = configuration["JWT:Audience"];
-            // Configure token validation parameters
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = key,
-                ValidIssuer = issuer,
-                ValidAudience = audience,
-            };
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration["JWT:SecretKey"]));
+                var issuer = configuration["JWT:Issuer"];
+                var audience = configuration["JWT:Audience"];
+                // Configure token validation parameters
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                };
 
-            // Decrypt the token and retrieve the claims
-            ClaimsPrincipal claimsPrincipal;
-            claimsPrincipal = tokenHandler.ValidateToken(accessToken.Trim(), tokenValidationParameters, out _);
-            if (claimsPrincipal == null)
-            {
-                throw new APIException(HttpStatusCode.BadRequest, "Failed to decrypt/validate the JWT token");
+                // Decrypt the token and retrieve the claims
+                ClaimsPrincipal claimsPrincipal;
+                claimsPrincipal = tokenHandler.ValidateToken(accessToken.Trim(), tokenValidationParameters, out _);
+                if (claimsPrincipal == null)
+                {
+                    throw new APIException(HttpStatusCode.BadRequest, "Failed to decrypt/validate the JWT token");
+                }
+                return claimsPrincipal;
             }
-            return claimsPrincipal;
+            else return null;
+
         }
         public static async Task<GoogleJsonWebSignature.Payload?> GetPayload(string idToken, IConfiguration configuration)
         {

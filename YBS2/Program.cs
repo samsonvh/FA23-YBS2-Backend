@@ -59,6 +59,7 @@ builder.Services.AddDbContext<YBS2Context>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddSingleton<IFirebaseStorageService>(service => new FirebaseStorageService(StorageClient.Create()));
+builder.Services.AddScoped<IMembershipPackageService,MembershipPackageService>();
 builder.Services.AddHttpContextAccessor();
 
 //Add Authentication

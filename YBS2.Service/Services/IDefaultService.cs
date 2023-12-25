@@ -5,7 +5,7 @@ namespace YBS2.Service.Services
     public interface IDefaultService<P, L, T, I>
     {
         Task<DefaultPageResponse<L>> GetAll(P pageRequest);
-        Task<T?> GetDetails(Guid id, string name);
+        Task<T?> GetDetails(Guid id);
         Task<T?> Create(I inputDto);
         Task<T?> Update(Guid id, I inputDto);
         Task<bool> ChangeStatus(Guid id, string name);

@@ -47,7 +47,7 @@ namespace YBS2.Controllers
             AuthResponse? authResponse = await _authService.LoginWithCredentials(credentials);
             if (authResponse == null)
             {
-                return Ok();
+                return BadRequest("Invalid Email or Password");
             }
             else
             {
