@@ -8,7 +8,7 @@ namespace YBS2.Service.Services
         Task<T?> GetDetails(Guid id);
         Task<T?> Create(I inputDto);
         Task<T?> Update(Guid id, I inputDto);
-        Task<bool> ChangeStatus(Guid id, string name);
-        Task<bool> Delete(Guid id, string name);
+        Task<bool> ChangeStatus(Guid id, string status);
+        Task<bool> Delete(Guid id);
     }
 }

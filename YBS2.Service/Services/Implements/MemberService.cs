@@ -31,6 +31,11 @@ namespace YBS2.Service.Services.Implements
             throw new NotImplementedException();
         }
 
+        public Task<bool> Delete(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<DefaultPageResponse<MemberListingDto>> GetAll(MemberPageRequest pageRequest)
         {
             throw new NotImplementedException();

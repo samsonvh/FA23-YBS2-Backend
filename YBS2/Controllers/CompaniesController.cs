@@ -14,10 +14,10 @@ namespace YBS2.Controllers
     [ApiController]
     public class CompaniesController : ControllerBase
     {
-        private readonly ILogger<AuthenticationController> _logger;
+        private readonly ILogger<CompaniesController> _logger;
         private readonly ICompanyService _companyService;
 
-        public CompaniesController(ILogger<AuthenticationController> logger, ICompanyService companyService)
+        public CompaniesController(ILogger<CompaniesController> logger, ICompanyService companyService)
         {
             _logger = logger;
             _companyService = companyService;
@@ -39,7 +39,7 @@ namespace YBS2.Controllers
         [HttpGet]
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
-            return Ok();
+            return Ok(await _companyService.GetDetails(id));
         }
 
         [SwaggerOperation("Create new company")]
@@ -75,7 +75,7 @@ namespace YBS2.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.COMPANIES_ID_V1)]
-        [HttpDelete]
+        [NonAction]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             return Ok();

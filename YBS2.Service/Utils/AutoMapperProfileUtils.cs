@@ -21,6 +21,22 @@ namespace YBS2.Service.Utils
             CreateMap<MembershipPackage,MembershipPackageListingDto>();
             CreateMap<MembershipPackage,MembershipPackageDto>();
             CreateMap<MembershipPackageInputDto,MembershipPackage>();
+            CreateMap<Company, CompanyDto>()
+                .ForMember(companyDto => companyDto.Username, options => options.MapFrom(company => company.Account.Username))
+                .ForMember(companyDto => companyDto.Email, options => options.MapFrom(company => company.Account.Email))
+                .ForMember(companyDto => companyDto.Status, options => options.MapFrom(company => MapDefaultStatus(company.Account.Status)));
+            CreateMap<Company, CompanyListingDto>()
+                .ForMember(companyListingDto => companyListingDto.Status, options => options.MapFrom(company => MapDefaultStatus(company.Account.Status)));
+        }
+
+        private static string MapDefaultStatus(Enum status)
+        {
+            if (status is null)
+            {
+                throw new ArgumentNullException(nameof(status));
+            }
+
+            return status.ToString().ToUpper();
         }
     }
 }

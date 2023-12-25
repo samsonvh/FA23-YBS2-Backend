@@ -70,6 +70,11 @@ namespace YBS2.Service.Services.Implements
             throw new NotImplementedException();
         }
 
+        public Task<bool> Delete(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<DefaultPageResponse<MembershipPackageListingDto>> GetAll(MembershipPackagePageRequest pageRequest)
         {
             IQueryable<MembershipPackage> query = _unitOfWork.MembershipPackageRepository.GetAll();

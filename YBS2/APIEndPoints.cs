@@ -21,5 +21,11 @@ namespace YBS2
         public const string MEMBER_V1 = API_VERSION_V1 + "/members";
         public const string MEMBER_ID_V1 = MEMBER_V1 + "/{id}";
 
+
+        //  Update Requests
+        public const string UPDATE_REQUESTS_V1 = API_VERSION_V1 + "/update-requests";
+        public const string UPDATE_REQUESTS_ID_V1 = UPDATE_REQUESTS_V1 + "/{id}";
+        public const string UPDATE_REQUESTS_OF_COMPANY_ID_V1 = COMPANIES_ID_V1 + "/update-requests";
+        public const string UPDATE_REQUESTS_ID_OF_COMPANY_ID_V1 = UPDATE_REQUESTS_OF_COMPANY_ID_V1 + "/{updateRequestId}";
     }
 }
