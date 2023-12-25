@@ -15,6 +15,12 @@ namespace YBS2.Service.Utils
 
             //  Company
             CreateMap<CompanyInputDto, Company>();
+            CreateMap<Company, CompanyDto>();
+            CreateMap<Company, CompanyListingDto>();
+            //Membership Package
+            CreateMap<MembershipPackage,MembershipPackageListingDto>();
+            CreateMap<MembershipPackage,MembershipPackageDto>();
+            CreateMap<MembershipPackageInputDto,MembershipPackage>();
             CreateMap<Company, CompanyDto>()
                 .ForMember(companyDto => companyDto.Username, options => options.MapFrom(company => company.Account.Username))
                 .ForMember(companyDto => companyDto.Email, options => options.MapFrom(company => company.Account.Email))
