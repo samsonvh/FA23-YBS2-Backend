@@ -18,7 +18,7 @@ namespace YBS2.Data.Models
         public string IdentityNumber { get; set; } 
         public EnumGender Gender { get; set; }
         public string Nationality { get; set; } 
-        public DateTime MemberSinceDate { get; set; }
+        public DateTime? MemberSinceDate { get; set; } 
         public EnumMemberStatus Status { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
         public ICollection<MembershipRegistration> MembershipRegistrations { get; set; }

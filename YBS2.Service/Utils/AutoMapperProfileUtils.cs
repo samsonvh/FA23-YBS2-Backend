@@ -27,6 +27,12 @@ namespace YBS2.Service.Utils
                 .ForMember(companyDto => companyDto.Status, options => options.MapFrom(company => MapDefaultStatus(company.Account.Status)));
             CreateMap<Company, CompanyListingDto>()
                 .ForMember(companyListingDto => companyListingDto.Status, options => options.MapFrom(company => MapDefaultStatus(company.Account.Status)));
+            // Member 
+            CreateMap<Member,MemberListingDto>();
+            CreateMap<Member,MemberDto>();
+            CreateMap<MemberInputDto,Member>()
+                .ForMember(member => member.AvatarURL,options => options.Ignore());
+            CreateMap<MemberInputDto,Account>();
         }
 
         private static string MapDefaultStatus(Enum status)

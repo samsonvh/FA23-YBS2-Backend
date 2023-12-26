@@ -1,4 +1,5 @@
-﻿using YBS2.Service.Dtos.PageResponses;
+﻿using YBS2.Service.Dtos.Inputs;
+using YBS2.Service.Dtos.PageResponses;
 
 namespace YBS2.Service.Services
 {
@@ -10,5 +11,6 @@ namespace YBS2.Service.Services
         Task<T?> Update(Guid id, I inputDto);
         Task<bool> ChangeStatus(Guid id, string status);
         Task<bool> Delete(Guid id);
+        
     }
 }

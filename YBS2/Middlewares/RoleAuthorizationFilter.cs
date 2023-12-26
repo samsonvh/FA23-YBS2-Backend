@@ -32,6 +32,7 @@ namespace YBS.Middlewares
                 throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized");
             }
             var roleClaim = claimsPrincipal.FindFirstValue(ClaimTypes.Role);
+            roleClaim = TextUtils.Capitalize(roleClaim);
             if (!_role.Contains(roleClaim))
             {
                 throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized");

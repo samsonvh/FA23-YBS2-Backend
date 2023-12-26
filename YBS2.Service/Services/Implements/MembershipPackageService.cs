@@ -35,20 +35,23 @@ namespace YBS2.Service.Services.Implements
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<bool> ChangeStatus(Guid id, string name)
+        public async Task<bool> ChangeStatus(Guid id, string status)
         {
             var existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
                                                     .Find(membershipPackage => membershipPackage.Id == id)
                                                     .FirstOrDefaultAsync();
-            if (existingMembershipPackage == null)
+            string? message;
+            if (existingMembershipPackage != null)
             {
-                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found.");
+                message = "Not found.";
+                throw new APIException(HttpStatusCode.NotFound, message);
             }
-            if (!Enum.IsDefined(typeof(EnumMembershipPackageStatus), name))
+            if (!Enum.IsDefined(typeof(EnumMembershipPackageStatus), status))
             {
-                throw new APIException(HttpStatusCode.BadRequest, "Membership Package status is not defined");
+                message = "Membership Package status is not defined";
+                throw new APIException(HttpStatusCode.BadRequest, message);
             }
-            existingMembershipPackage.Status = (EnumMembershipPackageStatus)Enum.Parse(typeof(EnumMembershipPackageStatus), name);
+            existingMembershipPackage.Status = (EnumMembershipPackageStatus)Enum.Parse(typeof(EnumMembershipPackageStatus), status);
             _unitOfWork.MembershipPackageRepository.Update(existingMembershipPackage);
             await _unitOfWork.SaveChangesAsync();
             return true;
@@ -65,10 +68,6 @@ namespace YBS2.Service.Services.Implements
             return _mapper.Map<MembershipPackageDto>(membershipPackage);
         }
 
-        public Task<bool> Delete(Guid id, string name)
-        {
-            throw new NotImplementedException();
-        }
 
         public Task<bool> Delete(Guid id)
         {
@@ -89,9 +88,9 @@ namespace YBS2.Service.Services.Implements
             }
             query = FilterGetAll(query, pageRequest);
 
-            var totalCount = query.Count();
+            int totalCount = query.Count();
 
-            var pageCount = totalCount / pageRequest.PageSize + 1;
+            int pageCount = totalCount / pageRequest.PageSize + 1;
             List<MembershipPackageListingDto> list = await query
                                                     .Skip((pageRequest.PageIndex - 1) * pageRequest.PageSize)
                                                     .Take(pageRequest.PageSize)
@@ -125,7 +124,8 @@ namespace YBS2.Service.Services.Implements
                     {
                         if (membershipPackage.Status == EnumMembershipPackageStatus.Inactive)
                         {
-                            throw new APIException(HttpStatusCode.BadRequest, "This membership package is currently inactive, please choose another membership package.");
+                            string message = "This membership package is currently inactive, please choose another membership package.";
+                            throw new APIException(HttpStatusCode.BadRequest, message);
                         }
                     }
                 }
@@ -142,7 +142,8 @@ namespace YBS2.Service.Services.Implements
                                                                     .FirstOrDefaultAsync();
             if (membershipPackage == null)
             {
-                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found");
+                string message = "Membership Package not found";
+                throw new APIException(HttpStatusCode.NotFound, message);
             }
             membershipPackage.Name = inputDto.Name;
             membershipPackage.Price = inputDto.Price;

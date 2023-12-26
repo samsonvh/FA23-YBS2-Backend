@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using YBS2.Data.Models;
 using YBS2.Service.Dtos.Inputs;
+using YBS2.Service.Dtos.PageResponses;
 
 namespace YBS2.Service.Services
 {
     public interface IVNPayService
     {
-        public Task<string> CreateRegisterRequestURL(MemberInputDto inputDto, MembershipPackage membershipPackage, HttpContext context, string baseUrl, string vnpHashSecret);
+        Task<string> CreateRegisterRequestURL(Guid membershipPackageId, HttpContext context);
+        Task<VNPayResponseModel> CallBackRegisterPayment(IQueryCollection collections);
     }
 }

@@ -12,6 +12,7 @@ namespace YBS2.Service.Services
 {
     public interface IMemberService : IDefaultService<MemberPageRequest,MemberListingDto,MemberDto,MemberInputDto>
     {
-        
+        Task<bool> ActivateMember(ActivateMemberInputDto inputDto);
+        Task<MemberDto> Update (MemberInputDto inputDto);
     }
 }
