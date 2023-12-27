@@ -32,7 +32,7 @@ namespace YBS.Service.Utils
             var resultExpression = Expression.Call(typeof(Queryable), command, new Type[]
             {
                 type,property.PropertyType
-            }, source.Expression, Expression.Quote(orderByExpression)); //OrderBy/OrderByDescending(entity => entity.property)
+            }, source.Expression, Expression.Quote(orderByExpression));
             return source.Provider.CreateQuery<TEntity>(resultExpression);
         }
     }

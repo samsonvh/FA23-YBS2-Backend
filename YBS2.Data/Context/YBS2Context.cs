@@ -14,6 +14,9 @@ namespace YBS2.Data.Context
         public DbSet<Member> Members { get; set; }
         public DbSet<MembershipRegistration> MembershipRegistrations { get; set; }
         public DbSet<UpdateRequest> UpdateRequests { get; set; }
+        public DbSet<Dock> Docks { get; set; }
+        public DbSet<Yacht> Yachts { get; set; }
+        public DbSet<Tour> Tours { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(YBS2Context).Assembly);

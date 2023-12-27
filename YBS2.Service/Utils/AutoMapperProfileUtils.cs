@@ -33,6 +33,14 @@ namespace YBS2.Service.Utils
             CreateMap<MemberInputDto,Member>()
                 .ForMember(member => member.AvatarURL,options => options.Ignore());
             CreateMap<MemberInputDto,Account>();
+            //Dock
+            CreateMap<Dock,DockListingDto>();
+            CreateMap<Dock,DockDto>();
+            CreateMap<DockInputDto,Dock>();
+            //Yacht
+            CreateMap<Yacht,YachtListingDto>();
+            CreateMap<Yacht,YachtDto>();
+            CreateMap<YachtInputDto,Yacht>();
         }
 
         private static string MapDefaultStatus(Enum status)

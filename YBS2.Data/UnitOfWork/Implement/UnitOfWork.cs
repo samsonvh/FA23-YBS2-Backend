@@ -14,6 +14,9 @@ namespace YBS2.Data.UnitOfWork.Implement
         private readonly IGenericRepositoty<MembershipPackage> _membershipPackageRepository;
         private readonly IGenericRepositoty<MembershipRegistration> _membershipRegistrationRepository;
         private readonly IGenericRepositoty<UpdateRequest> _updateRequestRepository;
+        private readonly IGenericRepositoty<Dock> _dockRepository;
+        private readonly IGenericRepositoty<Yacht> _yachtRepository;
+        private readonly IGenericRepositoty<Tour> _tourRepository;
         public UnitOfWork(YBS2Context context)
         {
             _context = context;
@@ -87,6 +90,42 @@ namespace YBS2.Data.UnitOfWork.Implement
                     return _updateRequestRepository;
                 }
                 return new GenericRepository<UpdateRequest>(_context);
+            }
+        }
+
+        public IGenericRepositoty<Dock> DockRepository
+        {
+            get
+            {
+                if (_dockRepository is not null)
+                {
+                    return _dockRepository;
+                }
+                return new GenericRepository<Dock>(_context);
+            }
+        }
+
+        public IGenericRepositoty<Yacht> YachtRepository
+        {
+            get
+            {
+                if (_yachtRepository is not null)
+                {
+                    return _yachtRepository;
+                }
+                return new GenericRepository<Yacht>(_context);
+            }
+        }
+
+        public IGenericRepositoty<Tour> TourRepository
+        {
+            get
+            {
+                if (_tourRepository is not null)
+                {
+                    return _tourRepository;
+                }
+                return new GenericRepository<Tour>(_context);
             }
         }
 

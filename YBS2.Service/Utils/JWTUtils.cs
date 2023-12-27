@@ -27,7 +27,7 @@ namespace YBS2.Service.Utils
                {
                    throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information");
                }
-               claims.Add(new Claim("MemberId", account.Member.Id.ToString()));
+               claims.Add(new Claim("MemberId", account.Member.Id.ToString())); 
                //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
             }
             if (account.Role == "Company")

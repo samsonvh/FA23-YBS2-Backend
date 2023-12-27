@@ -34,7 +34,7 @@ namespace YBS2.Controllers
         [SwaggerOperation("Get list of members, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<MemberListingDto>))]
         [Produces("application/json")]
-        [RoleAuthorization($"{nameof(EnumRole.Admin)}")]
+        [RoleAuthorization(nameof(EnumRole.Admin))]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] MemberPageRequest pageRequest)
         {

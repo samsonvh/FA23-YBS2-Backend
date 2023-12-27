@@ -33,5 +33,12 @@ namespace YBS2
         //VNPay
         public const string VNPAY_REGISTER_V1 = API_VERSION_V1 + "/vnpays/register";
 
+        //Docks
+        public const string DOCK_V1 = API_VERSION_V1 + "/docks";
+        public const string DOCK_ID_V1 = DOCK_V1 + "/{id}";
+        //Yachts
+        public const string YACHT_V1 = API_VERSION_V1 + "/yachts";
+        public const string YACHT_ID_V1 = YACHT_V1 + "/{id}";
+
     }
 }

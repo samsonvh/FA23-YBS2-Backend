@@ -18,5 +18,8 @@ namespace YBS2.Data.Models
         public string? LogoURL { get; set; } = null;
         public DateTime LastUpdatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
         public ICollection<UpdateRequest>? UpdateRequests { get; set; } = null;
+        public ICollection<Dock> Docks { get; set; } 
+        public ICollection<Tour> Tours { get; set; } 
+        public ICollection<Yacht> Yachts { get; set; }
     }
 }

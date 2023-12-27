@@ -78,8 +78,8 @@ namespace YBS2.Service.Services.Implements
             string newPassword = "password";
             Account account = new Account
             {
-                Email = inputDto.Email,
-                Username = inputDto.Username,
+                Email = inputDto.Email.Trim().ToLower(),
+                Username = inputDto.Username.Trim().ToLower(),
                 Password = PasswordUtils.HashPassword(newPassword),
                 Role = nameof(EnumRole.Member).ToUpper(),
                 Status = EnumAccountStatus.Inactive
