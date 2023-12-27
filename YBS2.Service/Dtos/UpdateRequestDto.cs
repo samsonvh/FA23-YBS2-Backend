@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace YBS2.Service.Dtos
+﻿namespace YBS2.Service.Dtos
 {
     public class UpdateRequestDto
     {
@@ -21,5 +15,6 @@ namespace YBS2.Service.Dtos
         public string? Comment { get; set; } = null;
         public DateTime CreatedDate { get; set; }
         public DateTime? ApprovedDate { get; set; }
+        public string Status { get; set; }
     }
 }

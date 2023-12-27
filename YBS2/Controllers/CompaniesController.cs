@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using YBS2.Service.Dtos;
 using YBS2.Service.Dtos.Inputs;
@@ -23,7 +22,7 @@ namespace YBS2.Controllers
             _companyService = companyService;
         }
 
-        [SwaggerOperation("Get list of companies, paging information")]
+        [SwaggerOperation("[ADMIN] Get list of companies, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<CompanyListingDto>))]
         [Produces("application/json")]
         [HttpGet]
@@ -32,7 +31,7 @@ namespace YBS2.Controllers
             return Ok(await _companyService.GetAll(pageRequest));
         }
 
-        [SwaggerOperation("Get details of a company according to ID")]
+        [SwaggerOperation("[ADMIN] Get details of a company according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(CompanyDto))]
         [Produces("application/json")]
         [Route(APIEndPoints.COMPANIES_ID_V1)]
@@ -42,7 +41,7 @@ namespace YBS2.Controllers
             return Ok(await _companyService.GetDetails(id));
         }
 
-        [SwaggerOperation("Create new company")]
+        [SwaggerOperation("[ADMIN] Create new company")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(CompanyDto))]
         [Produces("application/json")]
         [HttpPost]
@@ -61,17 +60,17 @@ namespace YBS2.Controllers
             return Ok();
         }
 
-        [SwaggerOperation("Change status of company according to ID")]
+        [SwaggerOperation("[ADMIN] Change status of company according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.COMPANIES_ID_V1)]
         [HttpPatch]
         public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] string status)
         {
-            return Ok();
+            return Ok(await _companyService.ChangeStatus(id, status));
         }
 
-        [SwaggerOperation("Delete company according to ID")]
+        [SwaggerOperation("[ADMIN] Delete company according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.COMPANIES_ID_V1)]

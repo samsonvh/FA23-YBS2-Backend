@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 using YBS2.Data.Enums;
 
 namespace YBS2.Data.Models
@@ -26,7 +22,7 @@ namespace YBS2.Data.Models
         public string? LogoURL { get; set; } = null;
         public string? Comment { get; set; } = null;
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
-        public DateTime? ApprovedDate { get; set; } 
+        public DateTime? ApprovedDate { get; set; }
         public EnumUpdateRequestStatus Status { get; set; } = EnumUpdateRequestStatus.Pending;
     }
 }

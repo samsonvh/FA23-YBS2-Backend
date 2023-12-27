@@ -65,6 +65,7 @@ builder.Services.AddScoped<IVNPayService,VNPayService>();
 builder.Services.AddScoped<IMemberService,MemberService>();
 builder.Services.AddScoped<IDockService,DockService>();
 builder.Services.AddScoped<IYachtService,YachtService>();
+builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
 builder.Services.AddHttpContextAccessor();
 
 //Add Authentication

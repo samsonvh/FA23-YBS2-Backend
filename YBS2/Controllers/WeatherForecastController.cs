@@ -45,7 +45,7 @@ namespace YBS2.Controllers
             var accountList = await _unitOfWork.AccountRepository.GetAll().ToListAsync();
             if (accountList.Count > 0)
             {
-                throw new APIException(HttpStatusCode.BadRequest, "Account List Null");
+                throw new APIException(HttpStatusCode.BadRequest, "Account List Null", null);
             }
             var result = _mapper.Map<List<AccountDto>>(accountList);
             return Ok(result);

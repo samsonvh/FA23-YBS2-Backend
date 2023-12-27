@@ -25,7 +25,7 @@ namespace YBS2.Service.Utils
             {
                if (account.Member == null)
                {
-                   throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information");
+                   throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information", null);
                }
                claims.Add(new Claim("MemberId", account.Member.Id.ToString())); 
                //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
@@ -34,7 +34,7 @@ namespace YBS2.Service.Utils
             {
                 if (account.Company == null)
                 {
-                    throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail company information");
+                    throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail company information", null);
                 }
                 claims.Add(new Claim("CompanyId", account.Company.Id.ToString()));
             }
@@ -92,7 +92,7 @@ namespace YBS2.Service.Utils
                 claimsPrincipal = tokenHandler.ValidateToken(accessToken.Trim(), tokenValidationParameters, out _);
                 if (claimsPrincipal == null)
                 {
-                    throw new APIException(HttpStatusCode.BadRequest, "Failed to decrypt/validate the JWT token");
+                    throw new APIException(HttpStatusCode.BadRequest, "Failed to decrypt/validate the JWT token", null);
                 }
                 return claimsPrincipal;
             }

@@ -1,3 +1,4 @@
+using System.Dynamic;
 using System.Net;
 
 namespace YBS2.Service.Exceptions
@@ -6,10 +7,12 @@ namespace YBS2.Service.Exceptions
     {
         public HttpStatusCode StatusCode { get; set; }
         public string Message { get; set; }
-        public APIException(HttpStatusCode StatusCode, string Message)
+        public ExpandoObject Errors { get; set; }
+        public APIException(HttpStatusCode StatusCode, string Message, ExpandoObject errors)
         {
             this.StatusCode = StatusCode;
             this.Message = Message;
+            Errors = errors;
         }
     }
 }

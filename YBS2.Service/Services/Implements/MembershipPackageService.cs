@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Net;
+using System.Security.Claims;
 using YBS.Service.Utils;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
@@ -43,13 +39,11 @@ namespace YBS2.Service.Services.Implements
             string? message;
             if (existingMembershipPackage != null)
             {
-                message = "Not found.";
-                throw new APIException(HttpStatusCode.NotFound, message);
+                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found.", null);
             }
             if (!Enum.IsDefined(typeof(EnumMembershipPackageStatus), status))
             {
-                message = "Membership Package status is not defined";
-                throw new APIException(HttpStatusCode.BadRequest, message);
+                throw new APIException(HttpStatusCode.BadRequest, "Membership Package status is not defined", null);
             }
             existingMembershipPackage.Status = (EnumMembershipPackageStatus)Enum.Parse(typeof(EnumMembershipPackageStatus), status);
             _unitOfWork.MembershipPackageRepository.Update(existingMembershipPackage);
@@ -124,8 +118,7 @@ namespace YBS2.Service.Services.Implements
                     {
                         if (membershipPackage.Status == EnumMembershipPackageStatus.Inactive)
                         {
-                            string message = "This membership package is currently inactive, please choose another membership package.";
-                            throw new APIException(HttpStatusCode.BadRequest, message);
+                            throw new APIException(HttpStatusCode.BadRequest, "This membership package is currently inactive, please choose another membership package.", null);
                         }
                     }
                 }
@@ -142,8 +135,7 @@ namespace YBS2.Service.Services.Implements
                                                                     .FirstOrDefaultAsync();
             if (membershipPackage == null)
             {
-                string message = "Membership Package not found";
-                throw new APIException(HttpStatusCode.NotFound, message);
+                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found", null);
             }
             membershipPackage.Name = inputDto.Name;
             membershipPackage.Price = inputDto.Price;
@@ -164,7 +156,7 @@ namespace YBS2.Service.Services.Implements
             if (existingMembershipPackage != null)
             {
                 string message = "MembershipPackage with name: " + inputDto.Name + " already exist, please choose another name.";
-                throw new APIException(HttpStatusCode.BadRequest, message);
+                throw new APIException(HttpStatusCode.BadRequest, message, null);
             }
         }
         private IQueryable<MembershipPackage> FilterGetAll(IQueryable<MembershipPackage> query, MembershipPackagePageRequest pageRequest)
@@ -183,9 +175,12 @@ namespace YBS2.Service.Services.Implements
             {
                 query = query.Where(membershipPackage => membershipPackage.Status == pageRequest.Status);
             }
+
+
+
             query = !string.IsNullOrWhiteSpace(pageRequest.OrderBy)
-                    ? query.SortBy(pageRequest.OrderBy, pageRequest.IsAscending)
-                    : pageRequest.IsAscending
+                    ? query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending)
+                    : pageRequest.IsDescending
                     ? query.OrderBy(membershipPackage => membershipPackage.Id)
                     : query.OrderByDescending(membershipPackage => membershipPackage.Id);
             return query;

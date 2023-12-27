@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
@@ -83,7 +78,7 @@ namespace YBS2.Service.Services.Implements
             if (activedMembershipPackage == null)
             {
                 string message = "This membership package is currently inactive, please choose another membership package.";
-                throw new APIException(HttpStatusCode.BadRequest, message);
+                throw new APIException(HttpStatusCode.BadRequest, message, null);
             }
             SortedList<string, string> _requestData = AddRegisterRequestData(activedMembershipPackage, context);
             var data = new StringBuilder();
@@ -154,7 +149,7 @@ namespace YBS2.Service.Services.Implements
             if (!checkSignature)
             {
                 string message = "Invalid Signature";
-                throw new APIException(HttpStatusCode.BadGateway, message);
+                throw new APIException(HttpStatusCode.BadGateway, message, null);
             }
 
             return new VNPayResponseModel

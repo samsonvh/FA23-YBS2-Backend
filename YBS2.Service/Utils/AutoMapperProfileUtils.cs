@@ -15,12 +15,6 @@ namespace YBS2.Service.Utils
 
             //  Company
             CreateMap<CompanyInputDto, Company>();
-            CreateMap<Company, CompanyDto>();
-            CreateMap<Company, CompanyListingDto>();
-            //Membership Package
-            CreateMap<MembershipPackage,MembershipPackageListingDto>();
-            CreateMap<MembershipPackage,MembershipPackageDto>();
-            CreateMap<MembershipPackageInputDto,MembershipPackage>();
             CreateMap<Company, CompanyDto>()
                 .ForMember(companyDto => companyDto.Username, options => options.MapFrom(company => company.Account.Username))
                 .ForMember(companyDto => companyDto.Email, options => options.MapFrom(company => company.Account.Email))
@@ -41,6 +35,19 @@ namespace YBS2.Service.Utils
             CreateMap<Yacht,YachtListingDto>();
             CreateMap<Yacht,YachtDto>();
             CreateMap<YachtInputDto,Yacht>();
+
+
+            //  Update Request
+            CreateMap<UpdateRequestInputDto, UpdateRequest>();
+            CreateMap<UpdateRequest, UpdateRequestDto>()
+                .ForMember(updateRequestDto => updateRequestDto.Status, options => options.MapFrom(updateRequest => MapDefaultStatus(updateRequest.Status)));
+            CreateMap<UpdateRequest, UpdateRequestListingDto>()
+                .ForMember(updateRequestDto => updateRequestDto.Status, options => options.MapFrom(updateRequest => MapDefaultStatus(updateRequest.Status)));
+
+            //Membership Package
+            CreateMap<MembershipPackage, MembershipPackageListingDto>();
+            CreateMap<MembershipPackage, MembershipPackageDto>();
+            CreateMap<MembershipPackageInputDto, MembershipPackage>();
         }
 
         private static string MapDefaultStatus(Enum status)

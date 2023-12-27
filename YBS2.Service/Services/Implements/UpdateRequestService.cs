@@ -1,11 +1,5 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
 using YBS2.Service.Dtos;
@@ -13,7 +7,6 @@ using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Dtos.PageResponses;
-using YBS2.Service.Exceptions;
 
 namespace YBS2.Service.Services.Implements
 {
@@ -69,7 +62,28 @@ namespace YBS2.Service.Services.Implements
             };
         }
 
+        public async Task<DefaultPageResponse<UpdateRequestListingDto>> GetAll(UpdateRequestPageRequest pageRequest, Guid companyId)
+        {
+            List<UpdateRequestListingDto> list = await _unitOfWork.UpdateRequestRepository
+                .Find(updateRequest => updateRequest.CompanyId == companyId)
+                .Select(updateRequest => _mapper.Map<UpdateRequestListingDto>(updateRequest))
+                .ToListAsync();
+            return new DefaultPageResponse<UpdateRequestListingDto>
+            {
+                Data = list,
+                TotalItem = list.Count,
+                PageCount = list.Count / pageRequest.PageSize,
+                PageSize = pageRequest.PageSize,
+                PageIndex = pageRequest.PageIndex
+            };
+        }
+
         public Task<UpdateRequestDto?> GetDetails(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<UpdateRequestDto?> GetDetails(Guid id, Guid companyId)
         {
             throw new NotImplementedException();
         }

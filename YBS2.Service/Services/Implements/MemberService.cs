@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +41,7 @@ namespace YBS2.Service.Services.Implements
             if (existingMember == null)
             {
                 string message = "Not Found";
-                throw new APIException(HttpStatusCode.BadRequest,message);
+                throw new APIException(HttpStatusCode.BadRequest,message, null);
             }
             if (existingMember.Account.Status.ToString().ToUpper() == status.ToUpper() )
             {
@@ -64,7 +59,7 @@ namespace YBS2.Service.Services.Implements
                     existingMember.Account.Status = EnumAccountStatus.Inactive;
                     break;
                 default:
-                    throw new APIException(HttpStatusCode.BadRequest, "Invalid status");
+                    throw new APIException(HttpStatusCode.BadRequest, "Invalid status", null);
             }
             _unitOfWork.AccountRepository.Update(existingMember.Account);
             await _unitOfWork.SaveChangesAsync();
@@ -202,8 +197,8 @@ namespace YBS2.Service.Services.Implements
                 query = query.Where(member => member.Status == pageRequest.Status);
             }
             query = !string.IsNullOrWhiteSpace(pageRequest.OrderBy)
-                    ? query.SortBy(pageRequest.OrderBy, pageRequest.IsAscending)
-                    : pageRequest.IsAscending
+                    ? query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending)
+                    : pageRequest.IsDescending
                     ? query.OrderBy(member => member.Id)
                     : query.OrderByDescending(member => member.Id);
             return query;
@@ -226,7 +221,7 @@ namespace YBS2.Service.Services.Implements
                 {
                     message = "Username " + message;
                 }
-                throw new APIException(HttpStatusCode.OK, message);
+                throw new APIException(HttpStatusCode.OK, message, null);
             }
             Member? existingMember = await _unitOfWork.MemberRepository
                 .Find(member => member.PhoneNumber == inputDto.PhoneNumber || member.IdentityNumber == inputDto.IdentityNumber)
@@ -242,7 +237,7 @@ namespace YBS2.Service.Services.Implements
                 {
                     message = "IdentityNumber " + message;
                 }
-                throw new APIException(HttpStatusCode.OK, message);
+                throw new APIException(HttpStatusCode.OK, message, null);
             }
         }
 
