@@ -61,7 +61,7 @@ namespace YBS2.Service.Services.Implements
             GoogleJsonWebSignature.Payload? payload = await JWTUtils.GetPayload(idToken, _configuration);
             if (payload == null)
             {
-                throw new APIException(HttpStatusCode.BadRequest, "Invalid IdToken");
+                throw new APIException(HttpStatusCode.BadRequest, "Invalid IdToken", null);
             }
             var existAccount = await _unitOfWork.AccountRepository
                 .Find(account => account.Email.Trim().ToUpper() == payload.Email.Trim().ToUpper())
@@ -72,7 +72,7 @@ namespace YBS2.Service.Services.Implements
             {
                 if (existAccount.Status == EnumAccountStatus.Ban)
                 {
-                    throw new APIException(HttpStatusCode.OK, "Your account is banned");
+                    throw new APIException(HttpStatusCode.OK, "Your account is banned", null);
                 }
                 var accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
                 return new AuthResponse()

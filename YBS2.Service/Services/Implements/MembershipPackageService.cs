@@ -42,11 +42,11 @@ namespace YBS2.Service.Services.Implements
                                                     .FirstOrDefaultAsync();
             if (existingMembershipPackage == null)
             {
-                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found.");
+                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found.", null);
             }
             if (!Enum.IsDefined(typeof(EnumMembershipPackageStatus), name))
             {
-                throw new APIException(HttpStatusCode.BadRequest, "Membership Package status is not defined");
+                throw new APIException(HttpStatusCode.BadRequest, "Membership Package status is not defined", null);
             }
             existingMembershipPackage.Status = (EnumMembershipPackageStatus)Enum.Parse(typeof(EnumMembershipPackageStatus), name);
             _unitOfWork.MembershipPackageRepository.Update(existingMembershipPackage);
@@ -125,7 +125,7 @@ namespace YBS2.Service.Services.Implements
                     {
                         if (membershipPackage.Status == EnumMembershipPackageStatus.Inactive)
                         {
-                            throw new APIException(HttpStatusCode.BadRequest, "This membership package is currently inactive, please choose another membership package.");
+                            throw new APIException(HttpStatusCode.BadRequest, "This membership package is currently inactive, please choose another membership package.", null);
                         }
                     }
                 }
@@ -142,7 +142,7 @@ namespace YBS2.Service.Services.Implements
                                                                     .FirstOrDefaultAsync();
             if (membershipPackage == null)
             {
-                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found");
+                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found", null);
             }
             membershipPackage.Name = inputDto.Name;
             membershipPackage.Price = inputDto.Price;
@@ -163,7 +163,7 @@ namespace YBS2.Service.Services.Implements
             if (existingMembershipPackage != null)
             {
                 string message = "MembershipPackage with name: " + inputDto.Name + " already exist, please choose another name.";
-                throw new APIException(HttpStatusCode.BadRequest, message);
+                throw new APIException(HttpStatusCode.BadRequest, message, null);
             }
         }
         private IQueryable<MembershipPackage> FilterGetAll(IQueryable<MembershipPackage> query, MembershipPackagePageRequest pageRequest)

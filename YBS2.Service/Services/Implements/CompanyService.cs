@@ -38,7 +38,7 @@ namespace YBS2.Service.Services.Implements
                 .FirstOrDefaultAsync();
             if (existingCompany == null)
             {
-                throw new APIException(HttpStatusCode.OK, "Not found");
+                throw new APIException(HttpStatusCode.OK, "Not found", null);
             }
             if (existingCompany.Account.Status.ToString().ToUpper() == status.ToUpper())
             {
@@ -57,7 +57,7 @@ namespace YBS2.Service.Services.Implements
                     existingCompany.Account.Status = EnumAccountStatus.Inactive;
                     break;
                 default:
-                    throw new APIException(HttpStatusCode.BadRequest, "Invalid status");
+                    throw new APIException(HttpStatusCode.BadRequest, "Invalid status", null);
             }
             _unitOfWork.AccountRepository.Update(existingCompany.Account);
             await _unitOfWork.SaveChangesAsync();
