@@ -33,7 +33,7 @@ namespace YBS2.Service.Utils
             {
                 if (account.Company == null)
                 {
-                    throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail company information",null);
+                    throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail company information", null);
                 }
                 claims.Add(new Claim("CompanyId", account.Company.Id.ToString()));
             }

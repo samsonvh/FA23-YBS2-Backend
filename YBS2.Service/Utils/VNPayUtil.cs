@@ -1,10 +1,7 @@
 using System.Globalization;
 using System.Net;
-using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
 public class VNPayUtil
 {
     private readonly SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());

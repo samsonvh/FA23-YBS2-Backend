@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace YBS2.Service.Utils
+﻿namespace YBS2.Service.Utils
 {
     public static class TextUtils
     {
@@ -18,7 +11,7 @@ namespace YBS2.Service.Utils
                 char c = char.ToUpper(stringArray[i][0]);
                 stringArray[i] = c.ToString() + stringArray[i].Remove(0, 1);
             }
-            return string.Join(' ',stringArray);
+            return string.Join(' ', stringArray);
         }
 
         public static bool ContainsCaseInsensitive(this string source, string substring)

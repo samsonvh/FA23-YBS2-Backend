@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Net;
+using System.Security.Claims;
 using YBS.Service.Utils;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
@@ -183,7 +179,7 @@ namespace YBS2.Service.Services.Implements
                 query = query.Where(membershipPackage => membershipPackage.Status == pageRequest.Status);
             }
 
-            
+
 
             query = !string.IsNullOrWhiteSpace(pageRequest.OrderBy)
                     ? query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending)

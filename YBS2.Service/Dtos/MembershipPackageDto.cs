@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace YBS2.Service.Dtos
 {
     public class MembershipPackageDto
@@ -16,6 +11,6 @@ namespace YBS2.Service.Dtos
         public float DiscountPercent { get; set; }
         public string Description { get; set; }
         public string Status { get; set; }
-        public DateTime CreatedDate { get; set; } 
+        public DateTime CreatedDate { get; set; }
     }
 }

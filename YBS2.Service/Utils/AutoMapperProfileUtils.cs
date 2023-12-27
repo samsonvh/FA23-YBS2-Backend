@@ -31,9 +31,9 @@ namespace YBS2.Service.Utils
                 .ForMember(updateRequestDto => updateRequestDto.Status, options => options.MapFrom(updateRequest => MapDefaultStatus(updateRequest.Status)));
 
             //Membership Package
-            CreateMap<MembershipPackage,MembershipPackageListingDto>();
-            CreateMap<MembershipPackage,MembershipPackageDto>();
-            CreateMap<MembershipPackageInputDto,MembershipPackage>();
+            CreateMap<MembershipPackage, MembershipPackageListingDto>();
+            CreateMap<MembershipPackage, MembershipPackageDto>();
+            CreateMap<MembershipPackageInputDto, MembershipPackage>();
         }
 
         private static string MapDefaultStatus(Enum status)

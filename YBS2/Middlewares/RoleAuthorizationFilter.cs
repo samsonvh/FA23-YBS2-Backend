@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Mvc.Filters;
 using System.Net;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using YBS2.Service.Exceptions;
 using YBS2.Service.Utils;
 
@@ -25,11 +20,11 @@ namespace YBS.Middlewares
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var claimsPrincipal = JWTUtils.GetClaim(_httpContextAccessor,_configuration);
+            var claimsPrincipal = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
             // Retrieve the Role claim value
             if (claimsPrincipal == null)
             {
-                throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized",null);
+                throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized", null);
             }
             var roleClaim = claimsPrincipal.FindFirstValue(ClaimTypes.Role);
             if (!_role.Contains(roleClaim))
