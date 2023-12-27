@@ -40,7 +40,7 @@ namespace YBS2.Service.Services.Implements
                 {
                     if (existAccount.Status == EnumAccountStatus.Ban)
                     {
-                        throw new APIException(HttpStatusCode.OK, "Your account is banned");
+                        throw new APIException(HttpStatusCode.OK, "Your account is banned", null);
                     }
                     string accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
                     return new AuthResponse()
@@ -48,7 +48,7 @@ namespace YBS2.Service.Services.Implements
                         AccessToken = accessToken,
                         AccountId = existAccount.Id,
                         Email = existAccount.Email,
-                        Role = existAccount.Role,
+                        Role = existAccount.Role.ToUpper(),
                         Username = existAccount.Username
                     };
                 }
@@ -80,7 +80,7 @@ namespace YBS2.Service.Services.Implements
                     AccessToken = accessToken,
                     AccountId = existAccount.Id,
                     Email = existAccount.Email,
-                    Role = existAccount.Role,
+                    Role = existAccount.Role.ToUpper(),
                     Username = existAccount.Username
                 };
             }

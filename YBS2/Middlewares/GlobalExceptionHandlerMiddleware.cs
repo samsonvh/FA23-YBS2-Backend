@@ -27,7 +27,7 @@ namespace YBS2.Middlewares
                 //Set up the response type to Json
                 context.Response.ContentType = "application/json";
 
-                var jsonResponse = JsonSerializer.Serialize(exception.Message);
+                var jsonResponse = JsonSerializer.Serialize(new {Status = exception.StatusCode, Title = exception.Message, Errors = exception.Errors});
                 //Write error json to response body
                 await context.Response.WriteAsync(jsonResponse);
             }

@@ -182,9 +182,12 @@ namespace YBS2.Service.Services.Implements
             {
                 query = query.Where(membershipPackage => membershipPackage.Status == pageRequest.Status);
             }
+
+            
+
             query = !string.IsNullOrWhiteSpace(pageRequest.OrderBy)
-                    ? query.SortBy(pageRequest.OrderBy, pageRequest.IsAscending)
-                    : pageRequest.IsAscending
+                    ? query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending)
+                    : pageRequest.IsDescending
                     ? query.OrderBy(membershipPackage => membershipPackage.Id)
                     : query.OrderByDescending(membershipPackage => membershipPackage.Id);
             return query;

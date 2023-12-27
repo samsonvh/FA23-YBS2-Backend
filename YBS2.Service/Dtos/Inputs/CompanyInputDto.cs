@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace YBS2.Service.Dtos.Inputs
 {
     public class CompanyInputDto
     {
+        [MinLength(2)]
         public string Username { get; set; }
         public string Email { get; set; }
         public string Name { get; set; }

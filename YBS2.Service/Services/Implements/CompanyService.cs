@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Dynamic;
 using System.Linq.Expressions;
 using System.Net;
+using YBS.Service.Utils;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
@@ -69,7 +71,7 @@ namespace YBS2.Service.Services.Implements
             string newPassword = "password";
             Account account = new Account
             {
-                Email = inputDto.Email,
+                Email = inputDto.Email.ToLower(),
                 Username = inputDto.Username,
                 Password = PasswordUtils.HashPassword(newPassword),
                 Role = nameof(EnumRole.Company).ToUpper(),
@@ -96,20 +98,25 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<DefaultPageResponse<CompanyListingDto>> GetAll(CompanyPageRequest pageRequest)
         {
-            List<CompanyListingDto> list = await _unitOfWork.CompanyRepository
-                .GetAll()
-                .Include(company => company.Account)
+            IQueryable<Company> query = _unitOfWork.CompanyRepository.GetAll().Include(company => company.Account);
+            query = Filter(query, pageRequest);
+
+            int totalResults = await query.CountAsync();
+
+            List<CompanyListingDto> list = await query
+                .Skip((pageRequest.PageIndex - 1) * pageRequest.PageSize)
+                .Take(pageRequest.PageSize)
                 .Select(company => _mapper.Map<CompanyListingDto>(company))
                 .ToListAsync();
-            DefaultPageResponse<CompanyListingDto> pageResponse = new DefaultPageResponse<CompanyListingDto>
+
+            return new DefaultPageResponse<CompanyListingDto>
             {
                 Data = list,
-                PageCount = list.Count / pageRequest.PageSize + 1,
                 PageIndex = pageRequest.PageIndex,
+                PageCount = totalResults / pageRequest.PageSize + 1,
                 PageSize = pageRequest.PageSize,
-                TotalItem = list.Count
+                TotalItem = totalResults
             };
-            return pageResponse;
         }
 
         public async Task<CompanyDto?> GetDetails(Guid id)
@@ -133,29 +140,55 @@ namespace YBS2.Service.Services.Implements
                 .FirstOrDefaultAsync();
             if (existingAccount != null)
             {
+                dynamic errors = new ExpandoObject();
                 string message = "is unavailable";
                 if (existingAccount.Email == inputDto.Email)
                 {
                     message = "Email " + message;
+                    errors.Email = new string[] { "Email is unavailable" };
                 }
                 if (existingAccount.Username == inputDto.Username)
                 {
                     message = "Username " + message;
+                    errors.Username = new string[] { "Username is unavailable" };
                 }
-                throw new APIException(HttpStatusCode.OK, message);
+                throw new APIException(HttpStatusCode.OK, message, errors);
             }
+
             Company? existingCompany = await _unitOfWork.CompanyRepository
                 .Find(company => company.Name == inputDto.Name)
                 .FirstOrDefaultAsync();
             if (existingCompany != null)
             {
+                dynamic errors = new ExpandoObject();
                 string message = "is unavailable";
                 if (existingCompany.Name == inputDto.Name)
                 {
                     message = "Name " + message;
+                    errors.Name = new string[] { "Name is unavailable" };
                 }
-                throw new APIException(HttpStatusCode.OK, message);
+                throw new APIException(HttpStatusCode.OK, message, errors);
             }
+        }
+
+        private IQueryable<Company> Filter(IQueryable<Company> query, CompanyPageRequest pageRequest)
+        {
+            if (pageRequest.Name != null)
+            {
+                query = query.Where(company => company.Name.ToLower().Contains(pageRequest.Name.Trim().ToLower()));
+            }
+
+            if (pageRequest.Status != null && Enum.IsDefined(typeof(EnumAccountStatus), pageRequest.Status))
+            {
+                query = query.Where(company => company.Account.Status == pageRequest.Status);
+            }
+
+            if (string.IsNullOrEmpty(pageRequest.OrderBy))
+            {
+                pageRequest.OrderBy = "Id";
+            }
+            query = query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending);
+            return query;
         }
     }
 }

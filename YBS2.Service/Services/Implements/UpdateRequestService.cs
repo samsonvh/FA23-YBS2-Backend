@@ -69,7 +69,28 @@ namespace YBS2.Service.Services.Implements
             };
         }
 
+        public async Task<DefaultPageResponse<UpdateRequestListingDto>> GetAll(UpdateRequestPageRequest pageRequest, Guid companyId)
+        {
+            List<UpdateRequestListingDto> list = await _unitOfWork.UpdateRequestRepository
+                .Find(updateRequest => updateRequest.CompanyId == companyId)
+                .Select(updateRequest => _mapper.Map<UpdateRequestListingDto>(updateRequest))
+                .ToListAsync();
+            return new DefaultPageResponse<UpdateRequestListingDto>
+            {
+                Data = list,
+                TotalItem = list.Count,
+                PageCount = list.Count / pageRequest.PageSize,
+                PageSize = pageRequest.PageSize,
+                PageIndex = pageRequest.PageIndex
+            };
+        }
+
         public Task<UpdateRequestDto?> GetDetails(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<UpdateRequestDto?> GetDetails(Guid id, Guid companyId)
         {
             throw new NotImplementedException();
         }

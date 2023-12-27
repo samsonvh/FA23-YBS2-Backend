@@ -68,8 +68,8 @@ namespace YBS2.Service.Services.Implements
                 query = query.Where(member => member.Status == pageRequest.Status);
             }
             query = !string.IsNullOrWhiteSpace(pageRequest.OrderBy)
-                    ? query.SortBy(pageRequest.OrderBy, pageRequest.IsAscending)
-                    : pageRequest.IsAscending
+                    ? query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending)
+                    : pageRequest.IsDescending
                     ? query.OrderBy(member => member.Id)
                     : query.OrderByDescending(member => member.Id);
             return query;

@@ -21,5 +21,6 @@ namespace YBS2.Service.Dtos
         public string? Comment { get; set; } = null;
         public DateTime CreatedDate { get; set; }
         public DateTime? ApprovedDate { get; set; }
+        public string Status { get; set; }
     }
 }
