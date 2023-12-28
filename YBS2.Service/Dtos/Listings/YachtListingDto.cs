@@ -13,7 +13,6 @@ namespace YBS2.Service.Dtos.Listings
         public string Manufacturer { get; set; }
         public int TotalCrew { get; set; }
         public int Cabin { get; set; }
-        public int Type { get; set; }
         public string Status { get; set; }
     }
 }

@@ -18,7 +18,6 @@ namespace YBS2.Service.Dtos.Inputs
         public int TotalCrew { get; set; }
         public int TotalPassenger { get; set; }
         public int Cabin { get; set; }
-        public int Type { get; set; }
         public EnumYachtStatus Status { get; set; }
     }
 }

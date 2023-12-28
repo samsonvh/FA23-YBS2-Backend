@@ -2,7 +2,9 @@ namespace YBS2.Data.Enums
 {
     public enum EnumTourType
     {
-        Inside_Provice = 0,
-        Outside_Province = 1
+        Group_Tour = 0,
+        Private_Tour = 1,
+        Luxury_Tour = 2,
+        Promotion_Tour = 3
     }
 }

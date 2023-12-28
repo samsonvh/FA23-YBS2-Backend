@@ -66,6 +66,7 @@ builder.Services.AddScoped<IMemberService,MemberService>();
 builder.Services.AddScoped<IDockService,DockService>();
 builder.Services.AddScoped<IYachtService,YachtService>();
 builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
+builder.Services.AddScoped<ITourService, TourService>();
 builder.Services.AddHttpContextAccessor();
 
 //Add Authentication

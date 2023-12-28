@@ -18,7 +18,6 @@ namespace YBS2.Service.Dtos
         public int TotalCrew { get; set; }
         public int TotalPassengers { get; set; }
         public int Cabin { get; set; }
-        public int Type { get; set; }
         public string Status { get; set; }
     }
 }

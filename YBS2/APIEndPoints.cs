@@ -39,6 +39,9 @@ namespace YBS2
         //Yachts
         public const string YACHT_V1 = API_VERSION_V1 + "/yachts";
         public const string YACHT_ID_V1 = YACHT_V1 + "/{id}";
+        //Tours
+        public const string TOUR_V1 = API_VERSION_V1 + "/tours";
+        public const string TOUR_ID_V1 = TOUR_V1 + "/{id}";
 
     }
 }

@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using YBS2.Data.Enums;
 using YBS2.Data.Models;
 using YBS2.Service.Exceptions;
 
@@ -21,7 +22,7 @@ namespace YBS2.Service.Utils
                 new Claim(ClaimTypes.Role, account.Role),
             };
             account.Role = TextUtils.Capitalize(account.Role);
-            if (account.Role == "Member")
+            if (account.Role == nameof(EnumRole.Member))
             {
                if (account.Member == null)
                {
@@ -30,7 +31,7 @@ namespace YBS2.Service.Utils
                claims.Add(new Claim("MemberId", account.Member.Id.ToString())); 
                //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
             }
-            if (account.Role == "Company")
+            if (account.Role == nameof(EnumRole.Company))
             {
                 if (account.Company == null)
                 {

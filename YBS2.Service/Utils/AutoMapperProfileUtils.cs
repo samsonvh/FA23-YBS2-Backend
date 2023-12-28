@@ -48,6 +48,11 @@ namespace YBS2.Service.Utils
             CreateMap<MembershipPackage, MembershipPackageListingDto>();
             CreateMap<MembershipPackage, MembershipPackageDto>();
             CreateMap<MembershipPackageInputDto, MembershipPackage>();
+
+            //Tour
+            CreateMap<Tour, TourListingDto>();
+            CreateMap<Tour, TourDto>();
+            CreateMap<TourInputDto, Tour>();
         }
 
         private static string MapDefaultStatus(Enum status)
