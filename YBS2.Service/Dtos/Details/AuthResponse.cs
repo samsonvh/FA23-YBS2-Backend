@@ -1,7 +1,7 @@
 using Swashbuckle.AspNetCore.Annotations;
 using YBS2.Service.Swaggers;
 
-namespace YBS2.Service.Dtos
+namespace YBS2.Service.Dtos.Details
 {
     public class AuthResponse
     {

@@ -1,6 +1,7 @@
 using AutoMapper;
 using YBS2.Data.Models;
 using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 

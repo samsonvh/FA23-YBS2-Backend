@@ -2,11 +2,12 @@ using Google.Apis.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Dynamic;
 using System.Net;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
-using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Exceptions;
 using YBS2.Service.Utils;
@@ -40,7 +41,7 @@ namespace YBS2.Service.Services.Implements
                 {
                     if (existAccount.Status == EnumAccountStatus.Ban)
                     {
-                        throw new APIException(HttpStatusCode.OK, "Your account is banned", null);
+                        throw new APIException(HttpStatusCode.Unauthorized, "Your account is banned", null);
                     }
                     string accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
                     return new AuthResponse()
@@ -61,8 +62,11 @@ namespace YBS2.Service.Services.Implements
             GoogleJsonWebSignature.Payload? payload = await JWTUtils.GetPayload(idToken, _configuration);
             if (payload == null)
             {
-                throw new APIException(HttpStatusCode.BadRequest, "Invalid IdToken", null);
+                dynamic errors = new ExpandoObject();
+                errors.IdToken = "Invalid IdToken";
+                throw new APIException(HttpStatusCode.BadRequest, errors.IdToken,  errors);
             }
+
             var existAccount = await _unitOfWork.AccountRepository
                 .Find(account => account.Email.Trim().ToUpper() == payload.Email.Trim().ToUpper())
                 .Include(account => account.Member)
@@ -72,7 +76,7 @@ namespace YBS2.Service.Services.Implements
             {
                 if (existAccount.Status == EnumAccountStatus.Ban)
                 {
-                    throw new APIException(HttpStatusCode.OK, "Your account is banned", null);
+                    throw new APIException(HttpStatusCode.Unauthorized, "Your account is banned", null);
                 }
                 var accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
                 return new AuthResponse()

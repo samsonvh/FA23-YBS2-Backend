@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using YBS2.Data.Enums;
 
-namespace YBS2.Service.Dtos
+namespace YBS2.Service.Dtos.Details
 {
     public class BookingDto
     {

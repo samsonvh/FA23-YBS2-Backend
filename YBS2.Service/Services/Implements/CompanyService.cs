@@ -6,7 +6,7 @@ using YBS.Service.Utils;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
-using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
@@ -37,27 +37,20 @@ namespace YBS2.Service.Services.Implements
                 .FirstOrDefaultAsync();
             if (existingCompany == null)
             {
-                throw new APIException(HttpStatusCode.OK, "Not found", null);
-            }
-            if (existingCompany.Account.Status.ToString().ToUpper() == status.ToUpper())
-            {
-                return false;
+                dynamic errors = new ExpandoObject();
+                errors.CompanyId = $"Company with ID {existingCompany.Id} found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.CompanyId, errors);
             }
 
-            switch (TextUtils.Capitalize(status))
+            status = TextUtils.Capitalize(status);
+            if (!Enum.IsDefined(typeof(EnumAccountStatus), status))
             {
-                case nameof(EnumAccountStatus.Ban):
-                    existingCompany.Account.Status = EnumAccountStatus.Ban;
-                    break;
-                case nameof(EnumAccountStatus.Active):
-                    existingCompany.Account.Status = EnumAccountStatus.Active;
-                    break;
-                case nameof(EnumAccountStatus.Inactive):
-                    existingCompany.Account.Status = EnumAccountStatus.Inactive;
-                    break;
-                default:
-                    throw new APIException(HttpStatusCode.BadRequest, "Invalid status", null);
+                dynamic errors = new ExpandoObject();
+                errors.Status = $"Status {status} is invalid";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Status, errors);
             }
+            existingCompany.Account.Status = Enum.Parse<EnumAccountStatus>(status);
+
             _unitOfWork.AccountRepository.Update(existingCompany.Account);
             await _unitOfWork.SaveChangesAsync();
             return true;
@@ -140,18 +133,19 @@ namespace YBS2.Service.Services.Implements
             if (existingAccount != null)
             {
                 dynamic errors = new ExpandoObject();
-                string message = "is unavailable";
+                List<string> props = new List<string>();
                 if (existingAccount.Email == inputDto.Email)
                 {
-                    message = "Email " + message;
+                    props.Add("Email");
                     errors.Email = new string[] { "Email is unavailable" };
                 }
                 if (existingAccount.Username == inputDto.Username)
                 {
-                    message = "Username " + message;
+                    props.Add("Username");
                     errors.Username = new string[] { "Username is unavailable" };
                 }
-                throw new APIException(HttpStatusCode.OK, message, errors);
+                string message = string.Join(", ", props) + " is unavailable";
+                throw new APIException(HttpStatusCode.BadRequest, message, errors);
             }
 
             Company? existingCompany = await _unitOfWork.CompanyRepository
@@ -166,7 +160,7 @@ namespace YBS2.Service.Services.Implements
                     message = "Name " + message;
                     errors.Name = new string[] { "Name is unavailable" };
                 }
-                throw new APIException(HttpStatusCode.OK, message, errors);
+                throw new APIException(HttpStatusCode.BadRequest, message, errors);
             }
         }
 

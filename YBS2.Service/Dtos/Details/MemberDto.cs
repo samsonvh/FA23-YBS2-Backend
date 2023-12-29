@@ -1,4 +1,4 @@
-namespace YBS2.Service.Dtos
+namespace YBS2.Service.Dtos.Details
 {
     public class MemberDto
     {

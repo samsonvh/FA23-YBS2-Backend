@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using YBS2.Service.Dtos;
+using YBS2.Data.Enums;
+using YBS2.Middlewares.AuthenticationFilter;
+using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
@@ -9,6 +11,7 @@ using YBS2.Service.Services;
 
 namespace YBS2.Controllers
 {
+    [RoleAuthorization(nameof(EnumRole.Admin))]
     [Route(APIEndPoints.COMPANIES_V1)]
     [ApiController]
     public class CompaniesController : ControllerBase

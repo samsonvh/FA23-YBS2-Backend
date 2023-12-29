@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using YBS.Middlewares;
 using YBS2.Data.Enums;
-using YBS2.Service.Dtos;
+using YBS2.Middlewares.AuthenticationFilter;
+using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;

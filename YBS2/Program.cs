@@ -7,7 +7,7 @@ using System.Text;
 using YBS2.Data.Context;
 using YBS2.Data.UnitOfWork;
 using YBS2.Data.UnitOfWork.Implement;
-using YBS2.Middlewares;
+using YBS2.Middlewares.ExceptionHandler;
 using YBS2.Service.Services;
 using YBS2.Service.Services.Implements;
 using YBS2.Service.Swaggers;
