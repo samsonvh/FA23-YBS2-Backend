@@ -41,7 +41,9 @@ namespace YBS2.Service.Services.Implements
                 {
                     if (existAccount.Status == EnumAccountStatus.Ban)
                     {
-                        throw new APIException(HttpStatusCode.Unauthorized, "Your account is banned", null);
+                        dynamic errors = new ExpandoObject();
+                        errors.Unauthorized = "Your account is banned";
+                        throw new APIException(HttpStatusCode.Unauthorized, errors.Unauthorized, errors);
                     }
                     string accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
                     return new AuthResponse()
@@ -76,7 +78,9 @@ namespace YBS2.Service.Services.Implements
             {
                 if (existAccount.Status == EnumAccountStatus.Ban)
                 {
-                    throw new APIException(HttpStatusCode.Unauthorized, "Your account is banned", null);
+                    dynamic errors = new ExpandoObject();
+                    errors.Unauthorized = "Unauthorized";
+                    throw new APIException(HttpStatusCode.Unauthorized, errors.Unauthorized, errors);
                 }
                 var accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
                 return new AuthResponse()

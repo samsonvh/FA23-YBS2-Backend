@@ -9,11 +9,11 @@ namespace YBS2.Data.Models
 {
     public class Booking
     {
-        public int Id { get; set; }
-        public int? MemberId { get; set; }
+        public Guid Id { get; set; }
+        public Guid? MemberId { get; set; }
         [ForeignKey("MemberId")]
         public Member? Member { get; set; }
-        public int TourId { get; set; }
+        public Guid TourId { get; set; }
         [ForeignKey("TourId")]
         public Tour Tour { get; set; }
         public DateTime BookingDate { get; set; }

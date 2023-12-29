@@ -10,5 +10,6 @@ namespace YBS2.Service.Services
     public interface IMembershipPackageService : IDefaultService<MembershipPackagePageRequest, MembershipPackageListingDto, MembershipPackageDto, MembershipPackageInputDto>
     {
         Task<DefaultPageResponse<MembershipPackageListingDto>> GetAll (MembershipPackagePageRequest pageRequest, ClaimsPrincipal claims);
+        Task<MembershipPackageDto?> GetDetails (Guid id, ClaimsPrincipal claims);
     }
 }

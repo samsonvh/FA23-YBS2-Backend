@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using YBS2.Data.Enums;
@@ -8,6 +9,7 @@ using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Dtos.PageResponses;
 using YBS2.Service.Services;
+using YBS2.Service.Utils;
 
 namespace YBS2.Controllers
 {
@@ -17,11 +19,13 @@ namespace YBS2.Controllers
     {
         private readonly ILogger<MembershipPackageController> _logger;
         private readonly IMembershipPackageService _membershipPackageService;
+        private readonly IConfiguration _configuration;
 
-        public MembershipPackageController(ILogger<MembershipPackageController> logger, IMembershipPackageService membershipPackageService)
+        public MembershipPackageController(ILogger<MembershipPackageController> logger, IMembershipPackageService membershipPackageService, IConfiguration configuration)
         {
             _logger = logger;
             _membershipPackageService = membershipPackageService;
+            _configuration = configuration;
         }
         [SwaggerOperation("Get list of membership packages, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<MembershipPackageListingDto>))]
@@ -30,7 +34,8 @@ namespace YBS2.Controllers
         
         public async Task<IActionResult> GetAll([FromQuery] MembershipPackagePageRequest pageRequest)
         {
-            return Ok(await _membershipPackageService.GetAll(pageRequest));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
+            return Ok(await _membershipPackageService.GetAll(pageRequest,claims));
         }
 
         [SwaggerOperation("Get details of a membership package according to ID")]
@@ -41,7 +46,8 @@ namespace YBS2.Controllers
         [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
-            return Ok(await _membershipPackageService.GetDetails(id));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
+            return Ok(await _membershipPackageService.GetDetails(id,claims));
         }
 
         [SwaggerOperation("Create new membership package")]
