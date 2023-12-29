@@ -12,6 +12,7 @@ using YBS2.Service.Services;
 namespace YBS2.Controllers
 {
     [Route(APIEndPoints.MEMBERSHIP_PACKAGES_V1)]
+    [ApiController]
     public class MembershipPackageController : ControllerBase
     {
         private readonly ILogger<MembershipPackageController> _logger;
@@ -26,6 +27,7 @@ namespace YBS2.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<MembershipPackageListingDto>))]
         [Produces("application/json")]
         [HttpGet]
+        
         public async Task<IActionResult> GetAll([FromQuery] MembershipPackagePageRequest pageRequest)
         {
             return Ok(await _membershipPackageService.GetAll(pageRequest));
@@ -36,24 +38,16 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBERSHIP_PACKAGES_ID_V1)]
         [HttpGet]
+        [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
-            MembershipPackageDto? membershipPackageDto = await _membershipPackageService.GetDetails(id);
-            if (membershipPackageDto != null)
-            {
-                return Ok(membershipPackageDto);
-            }
-            else
-            {
-                return Ok();
-            }
+            return Ok(await _membershipPackageService.GetDetails(id));
         }
 
         [SwaggerOperation("Create new membership package")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MembershipPackageDto))]
         [Produces("application/json")]
         [HttpPost]
-        [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> Create([FromForm] MembershipPackageInputDto inputDto)
         {
             return Ok(await _membershipPackageService.Create(inputDto));
@@ -64,7 +58,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBERSHIP_PACKAGES_ID_V1)]
         [HttpPut]
-        [RoleAuthorization(nameof(EnumRole.Admin))]
+        [RoleAuthorization(nameof(EnumRole.Member))]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] MembershipPackageInputDto inputDto)
         {
             return Ok(await _membershipPackageService.Update(id, inputDto));

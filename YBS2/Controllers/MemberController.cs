@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using YBS2.Middlewares.AuthenticationFilter;
@@ -7,26 +9,31 @@ using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Dtos.PageResponses;
+using YBS2.Service.Exceptions;
 using YBS2.Service.Services;
+using YBS2.Service.Utils;
 
 namespace YBS2.Controllers
 {
     [Route(APIEndPoints.MEMBER_V1)]
-    [RoleAuthorization($"{nameof(EnumRole.Admin)}")]
+    [ApiController]
     public class MemberController : ControllerBase
     {
         private readonly ILogger<MemberController> _logger;
         private readonly IMemberService _memberService;
+        private readonly IConfiguration _configuration;
 
-        public MemberController(ILogger<MemberController> logger, IMemberService memberService)
+        public MemberController(ILogger<MemberController> logger, IMemberService memberService, IConfiguration configuration)
         {
             _logger = logger;
             _memberService = memberService;
+            _configuration = configuration;
         }
 
         [SwaggerOperation("Get list of members, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<MemberListingDto>))]
         [Produces("application/json")]
+        [RoleAuthorization(nameof(EnumRole.Admin))]
         [HttpGet]
         [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> GetAll([FromQuery] MemberPageRequest pageRequest)
@@ -42,15 +49,7 @@ namespace YBS2.Controllers
         [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
-            MemberDto? membershipPackageDto = await _memberService.GetDetails(id);
-            if (membershipPackageDto != null)
-            {
-                return Ok(membershipPackageDto);
-            }
-            else
-            {
-                return Ok();
-            }
+            return Ok(await _memberService.GetDetails(id));
         }
 
         [SwaggerOperation("Create new member")]
@@ -65,12 +64,12 @@ namespace YBS2.Controllers
         [SwaggerOperation("Update member details according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(MemberDto))]
         [Produces("application/json")]
-        [Route(APIEndPoints.MEMBER_ID_V1)]
         [HttpPut]
         [RoleAuthorization(nameof(EnumRole.Member))]
-        public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] MemberInputDto inputDto)
+        public async Task<IActionResult> Update([FromForm] MemberInputDto inputDto)
         {
-            return Ok(await _memberService.Update(id, inputDto));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _memberService.Update(inputDto, claims));
         }
 
         [SwaggerOperation("Change status of member according to ID")]
@@ -82,6 +81,16 @@ namespace YBS2.Controllers
         public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] string status)
         {
             return Ok(await _memberService.ChangeStatus(id, status));
+
+        }
+        [SwaggerOperation("Change status of member according to ID")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.MEMBER_ACTIVATE_V1)]
+        [HttpPut]
+        public async Task<IActionResult> ActivateMember(ActivateMemberInputDto inputDto)
+        {
+            return Ok(await _memberService.ActivateMember(inputDto));
         }
     }
 }

@@ -22,11 +22,29 @@ namespace YBS2
         //Members
         public const string MEMBER_V1 = API_VERSION_V1 + "/members";
         public const string MEMBER_ID_V1 = MEMBER_V1 + "/{id}";
+        public const string MEMBER_ACTIVATE_V1 = MEMBER_V1 + "/activate";
 
         //  Update Requests
         public const string UPDATE_REQUESTS_V1 = API_VERSION_V1 + "/update-requests";
         public const string UPDATE_REQUESTS_ID_V1 = UPDATE_REQUESTS_V1 + "/{id}";
         public const string UPDATE_REQUESTS_OF_COMPANY_ID_V1 = COMPANIES_ID_V1 + "/update-requests";
         public const string UPDATE_REQUESTS_ID_OF_COMPANY_ID_V1 = UPDATE_REQUESTS_OF_COMPANY_ID_V1 + "/{updateRequestId}";
+
+        //VNPay
+        public const string VNPAY_REGISTER_V1 = API_VERSION_V1 + "/vnpays/register";
+
+        //Docks
+        public const string DOCK_V1 = API_VERSION_V1 + "/docks";
+        public const string DOCK_ID_V1 = DOCK_V1 + "/{id}";
+        //Yachts
+        public const string YACHT_V1 = API_VERSION_V1 + "/yachts";
+        public const string YACHT_ID_V1 = YACHT_V1 + "/{id}";
+        //Tours
+        public const string TOUR_V1 = API_VERSION_V1 + "/tours";
+        public const string TOUR_ID_V1 = TOUR_V1 + "/{id}";
+        
+        //Bookings
+        public const string BOOKING_V1 = API_VERSION_V1 + "/bookings";
+        public const string BOOKING_ID_V1 = BOOKING_V1 + "/{id}";
     }
 }

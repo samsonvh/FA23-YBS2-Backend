@@ -20,7 +20,7 @@ namespace YBS2.Middlewares.AuthenticationFilter
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var claimsPrincipal = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
+            var claimsPrincipal = JWTUtils.GetClaim(_configuration, _httpContextAccessor.HttpContext.Request.Headers["Authorization"]);
             // Retrieve the Role claim value
             if (claimsPrincipal == null)
             {

@@ -33,19 +33,18 @@ namespace YBS2.Service.Services.Implements
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
         }
-
         public async Task<bool> ChangeStatus(Guid id, string status)
         {
             var existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
                                                     .Find(membershipPackage => membershipPackage.Id == id)
                                                     .FirstOrDefaultAsync();
-            if (existingMembershipPackage == null)
+            string? message;
+            if (existingMembershipPackage != null)
             {
                 dynamic errors = new ExpandoObject();
                 errors.MembershipPackageId = $"Membership Package with ID {id} not found";
                 throw new APIException(HttpStatusCode.NotFound, errors.MembershipPackageId, errors);
             }
-
             if (!Enum.IsDefined(typeof(EnumMembershipPackageStatus), status))
             {
                 dynamic errors = new ExpandoObject();
@@ -71,10 +70,6 @@ namespace YBS2.Service.Services.Implements
             return _mapper.Map<MembershipPackageDto>(membershipPackage);
         }
 
-        public Task<bool> Delete(Guid id, string name)
-        {
-            throw new NotImplementedException();
-        }
 
         public Task<bool> Delete(Guid id)
         {
@@ -83,8 +78,12 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<DefaultPageResponse<MembershipPackageListingDto>> GetAll(MembershipPackagePageRequest pageRequest)
         {
+            throw new NotImplementedException();
+        }
+
+        public async Task<DefaultPageResponse<MembershipPackageListingDto>> GetAll(MembershipPackagePageRequest pageRequest, ClaimsPrincipal claims)
+        {
             IQueryable<MembershipPackage> query = _unitOfWork.MembershipPackageRepository.GetAll();
-            ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
             if (claims != null)
             {
                 string role = claims.FindFirstValue(ClaimTypes.Role);
@@ -95,9 +94,9 @@ namespace YBS2.Service.Services.Implements
             }
             query = FilterGetAll(query, pageRequest);
 
-            var totalCount = query.Count();
+            int totalCount = query.Count();
 
-            var pageCount = totalCount / pageRequest.PageSize + 1;
+            int pageCount = totalCount / pageRequest.PageSize + 1;
             List<MembershipPackageListingDto> list = await query
                                                     .Skip((pageRequest.PageIndex - 1) * pageRequest.PageSize)
                                                     .Take(pageRequest.PageSize)
@@ -123,18 +122,18 @@ namespace YBS2.Service.Services.Implements
                 .FirstOrDefaultAsync();
             if (membershipPackage != null)
             {
-                ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
-                if (claims != null)
-                {
-                    string role = claims.FindFirstValue(ClaimTypes.Role);
-                    if (role != nameof(EnumRole.Admin))
-                    {
-                        if (membershipPackage.Status == EnumMembershipPackageStatus.Inactive)
-                        {
-                            throw new APIException(HttpStatusCode.BadRequest, "This membership package is currently inactive, please choose another membership package.", null);
-                        }
-                    }
-                }
+                // ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
+                // if (claims != null)
+                // {
+                //     string role = claims.FindFirstValue(ClaimTypes.Role);
+                //     if (role != nameof(EnumRole.Admin))
+                //     {
+                //         if (membershipPackage.Status == EnumMembershipPackageStatus.Inactive)
+                //         {
+                //             throw new APIException(HttpStatusCode.BadRequest, "This membership package is currently inactive, please choose another membership package.", null);
+                //         }
+                //     }
+                // }
                 return _mapper.Map<MembershipPackageDto>(membershipPackage);
             }
             return null;

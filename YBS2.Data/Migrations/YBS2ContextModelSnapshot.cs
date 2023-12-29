@@ -99,6 +99,41 @@ namespace YBS2.Data.Migrations
                     b.ToTable("Company", (string)null);
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.Dock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ImageURL")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable("Dock", (string)null);
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.Member", b =>
                 {
                     b.Property<Guid>("Id")
@@ -131,7 +166,7 @@ namespace YBS2.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<DateTime>("MemberSinceDate")
+                    b.Property<DateTime?>("MemberSinceDate")
                         .HasColumnType("datetime");
 
                     b.Property<string>("Nationality")
@@ -224,6 +259,71 @@ namespace YBS2.Data.Migrations
                     b.ToTable("MembershipRegistration", (string)null);
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.Tour", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DurationUnit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("ImageURL")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("MaximumGuest")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<float>("Price")
+                        .HasColumnType("real");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("YachtId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("YachtId");
+
+                    b.ToTable("Tour", (string)null);
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.UpdateRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -281,6 +381,62 @@ namespace YBS2.Data.Migrations
                     b.ToTable("UpdateRequest", (string)null);
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.Yacht", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BEAM")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("Cabin")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DRAFT")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ImageURL")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("LOA")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Manufacturer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalCrew")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalPassenger")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable("Yacht", (string)null);
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.Company", b =>
                 {
                     b.HasOne("YBS2.Data.Models.Account", "Account")
@@ -290,6 +446,17 @@ namespace YBS2.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.Dock", b =>
+                {
+                    b.HasOne("YBS2.Data.Models.Company", "Company")
+                        .WithMany("Docks")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("YBS2.Data.Models.Member", b =>
@@ -322,6 +489,23 @@ namespace YBS2.Data.Migrations
                     b.Navigation("MembershipPackage");
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.Tour", b =>
+                {
+                    b.HasOne("YBS2.Data.Models.Company", "Company")
+                        .WithMany("Tours")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("YBS2.Data.Models.Yacht", "Yacht")
+                        .WithMany("Tours")
+                        .HasForeignKey("YachtId");
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Yacht");
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.UpdateRequest", b =>
                 {
                     b.HasOne("YBS2.Data.Models.Account", "Account")
@@ -339,6 +523,17 @@ namespace YBS2.Data.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.Yacht", b =>
+                {
+                    b.HasOne("YBS2.Data.Models.Company", "Company")
+                        .WithMany("Yachts")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.Account", b =>
                 {
                     b.Navigation("Company");
@@ -350,7 +545,13 @@ namespace YBS2.Data.Migrations
 
             modelBuilder.Entity("YBS2.Data.Models.Company", b =>
                 {
+                    b.Navigation("Docks");
+
+                    b.Navigation("Tours");
+
                     b.Navigation("UpdateRequests");
+
+                    b.Navigation("Yachts");
                 });
 
             modelBuilder.Entity("YBS2.Data.Models.Member", b =>
@@ -361,6 +562,11 @@ namespace YBS2.Data.Migrations
             modelBuilder.Entity("YBS2.Data.Models.MembershipPackage", b =>
                 {
                     b.Navigation("MembershipRegistrations");
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.Yacht", b =>
+                {
+                    b.Navigation("Tours");
                 });
 #pragma warning restore 612, 618
         }

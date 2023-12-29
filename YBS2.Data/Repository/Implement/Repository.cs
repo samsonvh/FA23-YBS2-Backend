@@ -43,7 +43,7 @@ namespace YBS2.Data.Repository.Implement
             return _context.Set<T>();
         }
 
-        public async Task<T> GetByID(int id)
+        public async Task<T> GetByID(Guid id)
         {
             return await _context.Set<T>().FindAsync(id);
         }
@@ -52,5 +52,6 @@ namespace YBS2.Data.Repository.Implement
         {
             _context.RemoveRange(entities);
         }
+
     }
 }

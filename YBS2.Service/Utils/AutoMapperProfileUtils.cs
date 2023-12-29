@@ -1,5 +1,6 @@
 using AutoMapper;
 using YBS2.Data.Models;
+using YBS2.Service.Dtos;
 using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
@@ -21,6 +22,20 @@ namespace YBS2.Service.Utils
                 .ForMember(companyDto => companyDto.Status, options => options.MapFrom(company => MapDefaultStatus(company.Account.Status)));
             CreateMap<Company, CompanyListingDto>()
                 .ForMember(companyListingDto => companyListingDto.Status, options => options.MapFrom(company => MapDefaultStatus(company.Account.Status)));
+            // Member 
+            CreateMap<Member,MemberListingDto>();
+            CreateMap<Member,MemberDto>();
+            CreateMap<MemberInputDto,Member>()
+                .ForMember(member => member.AvatarURL,options => options.Ignore());
+            CreateMap<MemberInputDto,Account>();
+            //Dock
+            CreateMap<Dock,DockListingDto>();
+            CreateMap<Dock,DockDto>();
+            CreateMap<DockInputDto,Dock>();
+            //Yacht
+            CreateMap<Yacht,YachtListingDto>();
+            CreateMap<Yacht,YachtDto>();
+            CreateMap<YachtInputDto,Yacht>();
 
 
             //  Update Request
@@ -34,6 +49,11 @@ namespace YBS2.Service.Utils
             CreateMap<MembershipPackage, MembershipPackageListingDto>();
             CreateMap<MembershipPackage, MembershipPackageDto>();
             CreateMap<MembershipPackageInputDto, MembershipPackage>();
+
+            //Tour
+            CreateMap<Tour, TourListingDto>();
+            CreateMap<Tour, TourDto>();
+            CreateMap<TourInputDto, Tour>();
         }
 
         private static string MapDefaultStatus(Enum status)

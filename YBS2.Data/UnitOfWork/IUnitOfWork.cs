@@ -11,6 +11,10 @@ namespace YBS2.Data.UnitOfWork
         IGenericRepositoty<MembershipPackage> MembershipPackageRepository { get; }
         IGenericRepositoty<MembershipRegistration> MembershipRegistrationRepository { get; }
         IGenericRepositoty<UpdateRequest> UpdateRequestRepository { get; }
+        IGenericRepositoty<Dock> DockRepository { get; }
+        IGenericRepositoty<Yacht> YachtRepository { get; }
+        IGenericRepositoty<Tour> TourRepository { get; }
+        IGenericRepositoty<Booking> BookingRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }

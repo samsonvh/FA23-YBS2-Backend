@@ -17,6 +17,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"./yacht-booking-system-2-firebase-adminsdk-mom0t-4843c07945.json");
 
+//add cors
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(MyAllowSpecificOrigins, builder =>
+    {
+        builder.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:8081", "http://192.168.4:8081")
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -61,6 +73,13 @@ builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUpdateRequestService, UpdateRequestService>();
 builder.Services.AddSingleton<IFirebaseStorageService>(service => new FirebaseStorageService(StorageClient.Create()));
 builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
+builder.Services.AddScoped<IVNPayService, VNPayService>();
+builder.Services.AddScoped<IMemberService, MemberService>();
+builder.Services.AddScoped<IDockService, DockService>();
+builder.Services.AddScoped<IYachtService, YachtService>();
+builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
+builder.Services.AddScoped<ITourService, TourService>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddHttpContextAccessor();
 
 //Add Authentication

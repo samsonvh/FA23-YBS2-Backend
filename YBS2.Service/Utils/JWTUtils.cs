@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using YBS2.Data.Enums;
 using YBS2.Data.Models;
 using YBS2.Service.Exceptions;
 
@@ -15,21 +16,23 @@ namespace YBS2.Service.Utils
     {
         public static string GenerateJWTToken(Account account, IConfiguration configuration)
         {
+            account.Role = TextUtils.Capitalize(account.Role);
             var claims = new List<Claim>()
             {
                 new Claim("Id", account.Id.ToString()),
                 new Claim(ClaimTypes.Role, account.Role),
             };
-            //if (account.Role.Name == "Member")
-            //{
-            //    if (account.Member == null)
-            //    {
-            //        throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information");
-            //    }
-            //    claims.Add(new Claim("MemberId", account.Member.Id.ToString()));
-            //    //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
-            //}
-            if (account.Role == "Company")
+            
+            if (account.Role == nameof(EnumRole.Member))
+            {
+               if (account.Member == null)
+               {
+                   throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information", null);
+               }
+               claims.Add(new Claim("MemberId", account.Member.Id.ToString())); 
+               //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
+            }
+            if (account.Role == nameof(EnumRole.Company))
             {
                 if (account.Company == null)
                 {
@@ -55,19 +58,18 @@ namespace YBS2.Service.Utils
             return accessToken;
         }
 
-        public static ClaimsPrincipal? GetClaim(IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
+        public static ClaimsPrincipal? GetClaim( IConfiguration configuration, string authorization)
         {
-            string accessToken = httpContextAccessor.HttpContext.Request.Headers["Authorization"];
             var accessTokenPrefix = "Bearer ";
             // if (accessToken == null)
             // {
             //     throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized");
             // }
-            if (accessToken != null)
+            if (authorization != null)
             {
-                if (accessToken.Contains(accessTokenPrefix))
+                if (authorization.Contains(accessTokenPrefix))
                 {
-                    accessToken = accessToken.Substring(accessTokenPrefix.Length);
+                    authorization = authorization.Substring(accessTokenPrefix.Length);
                 }
 
 
@@ -88,7 +90,7 @@ namespace YBS2.Service.Utils
 
                 // Decrypt the token and retrieve the claims
                 ClaimsPrincipal claimsPrincipal;
-                claimsPrincipal = tokenHandler.ValidateToken(accessToken.Trim(), tokenValidationParameters, out _);
+                claimsPrincipal = tokenHandler.ValidateToken(authorization.Trim(), tokenValidationParameters, out _);
                 if (claimsPrincipal == null)
                 {
                     throw new APIException(HttpStatusCode.BadRequest, "Failed to decrypt/validate the JWT token", null);
