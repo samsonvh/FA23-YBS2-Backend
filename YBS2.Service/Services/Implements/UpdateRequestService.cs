@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
+using YBS.Service.Utils;
 using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
-using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
@@ -91,6 +93,16 @@ namespace YBS2.Service.Services.Implements
         public Task<UpdateRequestDto?> Update(Guid id, UpdateRequestInputDto inputDto)
         {
             throw new NotImplementedException();
+        }
+
+        private IQueryable<UpdateRequest> Filter(IQueryable<UpdateRequest> query, UpdateRequestPageRequest pageRequest)
+        {
+            if (pageRequest.CompanyName != null)
+            {
+                
+            }
+
+            return query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending);
         }
     }
 }

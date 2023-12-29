@@ -45,7 +45,7 @@ namespace YBS2.Service.Services.Implements
         }
         private SortedList<string, string> AddRegisterRequestData(MemberInputDto inputDto, MembershipPackage membershipPackage, HttpContext context)
         {
-            SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
+            SortedList<string, string> _requestData = new SortedList<string, string>();
             var tick = DateTime.Now.Ticks.ToString();
             var callBackUrl = "https://" + context.Request.Host + _configuration["PaymentCallBack:BookingPaymentReturnUrl"];
             //add basic parameter to VNPay 

@@ -10,7 +10,6 @@ namespace YBS.Service.Utils
         {
             var type = typeof(TEntity);
             var property = type.GetTypeInfo().GetDeclaredProperty(TextUtils.Capitalize(sortProperty));
-            //var property = type.GetProperties().FirstOrDefault(q => q.Name.ToLower() == orderByProperty?.ToLower());
             if (property == null)
             {
                 property = type.GetProperties().FirstOrDefault(q => q.Name.ToLower() == "id");

@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using YBS2.Data.Enums;
+using YBS2.Middlewares.AuthenticationFilter;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Services;
@@ -19,6 +21,7 @@ namespace YBS2.Controllers
         }
 
         [HttpGet]
+        [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> GetAll([FromQuery] UpdateRequestPageRequest pageRequest)
         {
             return Ok(await _updateRequestService.GetAll(pageRequest));
@@ -26,6 +29,7 @@ namespace YBS2.Controllers
 
         [Route(APIEndPoints.UPDATE_REQUESTS_OF_COMPANY_ID_V1)]
         [HttpGet]
+        [RoleAuthorization($"{nameof(EnumRole.Admin)}, {nameof(EnumRole.Company)}")]
         public async Task<IActionResult> GetAllOfCompany([FromRoute] Guid id, [FromQuery] UpdateRequestPageRequest pageRequest)
         {
             return Ok(await _updateRequestService.GetAll(pageRequest, id));

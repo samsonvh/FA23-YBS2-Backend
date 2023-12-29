@@ -45,11 +45,11 @@ namespace YBS2.Service.Utils
             SigningCredentials signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken
             (
-            issuer,
-            audience,
-            claims: claims,
-            expires: DateTime.Now.AddMilliseconds(int.Parse(expires)),
-            signingCredentials: signingCredentials
+                issuer,
+                audience,
+                claims: claims,
+                expires: DateTime.Now.AddMilliseconds(int.Parse(expires)),
+                signingCredentials: signingCredentials
             );
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
             return accessToken;

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using YBS.Middlewares;
+using YBS2.Middlewares.AuthenticationFilter;
 using YBS2.Data.Enums;
-using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
@@ -23,10 +23,12 @@ namespace YBS2.Controllers
             _logger = logger;
             _memberService = memberService;
         }
+
         [SwaggerOperation("Get list of members, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<MemberListingDto>))]
         [Produces("application/json")]
         [HttpGet]
+        [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> GetAll([FromQuery] MemberPageRequest pageRequest)
         {
             return Ok(await _memberService.GetAll(pageRequest));
@@ -37,7 +39,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_ID_V1)]
         [HttpGet]
-        [RoleAuthorization($"{nameof(EnumRole.Admin)},{nameof(EnumRole.Member)}")]
+        [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
             MemberDto? membershipPackageDto = await _memberService.GetDetails(id);
@@ -65,7 +67,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_ID_V1)]
         [HttpPut]
-        [RoleAuthorization($"{nameof(EnumRole.Admin)},{nameof(EnumRole.Member)}")]
+        [RoleAuthorization(nameof(EnumRole.Member))]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] MemberInputDto inputDto)
         {
             return Ok(await _memberService.Update(id, inputDto));
@@ -76,6 +78,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_ID_V1)]
         [HttpPatch]
+        [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] string status)
         {
             return Ok(await _memberService.ChangeStatus(id, status));

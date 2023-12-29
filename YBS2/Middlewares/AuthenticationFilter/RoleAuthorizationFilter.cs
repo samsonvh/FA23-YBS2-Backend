@@ -4,7 +4,7 @@ using System.Security.Claims;
 using YBS2.Service.Exceptions;
 using YBS2.Service.Utils;
 
-namespace YBS.Middlewares
+namespace YBS2.Middlewares.AuthenticationFilter
 {
     public class RoleAuthorizationFilter : IAuthorizationFilter
     {
@@ -26,7 +26,7 @@ namespace YBS.Middlewares
             {
                 throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized", null);
             }
-            var roleClaim = claimsPrincipal.FindFirstValue(ClaimTypes.Role);
+            var roleClaim = TextUtils.Capitalize(claimsPrincipal.FindFirstValue(ClaimTypes.Role));
             if (!_role.Contains(roleClaim))
             {
                 throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized", null);

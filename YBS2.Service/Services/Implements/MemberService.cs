@@ -1,7 +1,7 @@
 using YBS.Service.Utils;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
-using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;

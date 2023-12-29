@@ -2,13 +2,14 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Dynamic;
 using System.Net;
 using System.Security.Claims;
 using YBS.Service.Utils;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
-using YBS2.Service.Dtos;
+using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
@@ -24,6 +25,7 @@ namespace YBS2.Service.Services.Implements
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
+
         public MembershipPackageService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
@@ -31,20 +33,27 @@ namespace YBS2.Service.Services.Implements
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<bool> ChangeStatus(Guid id, string name)
+
+        public async Task<bool> ChangeStatus(Guid id, string status)
         {
             var existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
                                                     .Find(membershipPackage => membershipPackage.Id == id)
                                                     .FirstOrDefaultAsync();
             if (existingMembershipPackage == null)
             {
-                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found.", null);
+                dynamic errors = new ExpandoObject();
+                errors.MembershipPackageId = $"Membership Package with ID {id} not found";
+                throw new APIException(HttpStatusCode.NotFound, errors.MembershipPackageId, errors);
             }
-            if (!Enum.IsDefined(typeof(EnumMembershipPackageStatus), name))
+
+            if (!Enum.IsDefined(typeof(EnumMembershipPackageStatus), status))
             {
-                throw new APIException(HttpStatusCode.BadRequest, "Membership Package status is not defined", null);
+                dynamic errors = new ExpandoObject();
+                errors.Status = $"Status {status} is invalid";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Status, errors);
             }
-            existingMembershipPackage.Status = (EnumMembershipPackageStatus)Enum.Parse(typeof(EnumMembershipPackageStatus), name);
+            existingMembershipPackage.Status = Enum.Parse<EnumMembershipPackageStatus>(status);
+
             _unitOfWork.MembershipPackageRepository.Update(existingMembershipPackage);
             await _unitOfWork.SaveChangesAsync();
             return true;
@@ -52,10 +61,11 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<MembershipPackageDto?> Create(MembershipPackageInputDto inputDto)
         {
-            //validate membership package field 
-            await CheckDupplicate(inputDto);
+            await CheckDuplicate(inputDto);
+
             MembershipPackage membershipPackage = _mapper.Map<MembershipPackage>(inputDto);
             membershipPackage.Status = EnumMembershipPackageStatus.Active;
+
             _unitOfWork.MembershipPackageRepository.Add(membershipPackage);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<MembershipPackageDto>(membershipPackage);
@@ -109,8 +119,8 @@ namespace YBS2.Service.Services.Implements
         public async Task<MembershipPackageDto?> GetDetails(Guid id)
         {
             MembershipPackage? membershipPackage = await _unitOfWork.MembershipPackageRepository
-                                                                        .Find(membershipPackage => membershipPackage.Id == id)
-                                                                        .FirstOrDefaultAsync();
+                .Find(membershipPackage => membershipPackage.Id == id)
+                .FirstOrDefaultAsync();
             if (membershipPackage != null)
             {
                 ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
@@ -134,11 +144,13 @@ namespace YBS2.Service.Services.Implements
         {
             //validate membership package field 
             MembershipPackage? membershipPackage = await _unitOfWork.MembershipPackageRepository
-                                                                    .Find(membershipPackage => membershipPackage.Id == id)
-                                                                    .FirstOrDefaultAsync();
+                .Find(membershipPackage => membershipPackage.Id == id)
+                .FirstOrDefaultAsync();
             if (membershipPackage == null)
             {
-                throw new APIException(HttpStatusCode.NotFound, "Membership Package not found", null);
+                dynamic errors = new ExpandoObject();
+                errors.MembershipPackageId = $"Membership Package with ID {id} not found";
+                throw new APIException(HttpStatusCode.NotFound, errors.MembershipPackageId, errors);
             }
             membershipPackage.Name = inputDto.Name;
             membershipPackage.Price = inputDto.Price;
@@ -147,45 +159,40 @@ namespace YBS2.Service.Services.Implements
             membershipPackage.DurationUnit = inputDto.DurationUnit;
             membershipPackage.DiscountPercent = inputDto.DiscountPercent;
             membershipPackage.Description = inputDto.Description;
+
             _unitOfWork.MembershipPackageRepository.Update(membershipPackage);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<MembershipPackageDto>(membershipPackage);
         }
-        private async Task CheckDupplicate(MembershipPackageInputDto inputDto)
+
+        private async Task CheckDuplicate(MembershipPackageInputDto inputDto)
         {
             MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
             .Find(membershipPackage => membershipPackage.Name == inputDto.Name)
             .FirstOrDefaultAsync();
             if (existingMembershipPackage != null)
             {
-                string message = "MembershipPackage with name: " + inputDto.Name + " already exist, please choose another name.";
-                throw new APIException(HttpStatusCode.BadRequest, message, null);
+                dynamic errors = new ExpandoObject();
+                errors.Name = $"MembershipPackage with name: {inputDto.Name} already exist";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Name, errors);
             }
         }
+
         private IQueryable<MembershipPackage> FilterGetAll(IQueryable<MembershipPackage> query, MembershipPackagePageRequest pageRequest)
         {
             if (pageRequest.Name != null)
             {
                 query = query.Where(membershipPackage => membershipPackage.Name.Trim().ToLower().Contains(pageRequest.Name.ToLower()));
             }
-
             if (pageRequest.MinPrice > 0 && pageRequest.MaxPrice > pageRequest.MinPrice)
             {
                 query = query.Where(membershipPackage => membershipPackage.Price <= pageRequest.MaxPrice && membershipPackage.Price >= pageRequest.MinPrice);
             }
-
             if (pageRequest.Status != null && Enum.IsDefined(typeof(EnumMembershipPackageStatus), pageRequest.Status))
             {
                 query = query.Where(membershipPackage => membershipPackage.Status == pageRequest.Status);
             }
-
-
-
-            query = !string.IsNullOrWhiteSpace(pageRequest.OrderBy)
-                    ? query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending)
-                    : pageRequest.IsDescending
-                    ? query.OrderBy(membershipPackage => membershipPackage.Id)
-                    : query.OrderByDescending(membershipPackage => membershipPackage.Id);
+            query = query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending);
             return query;
         }
 
