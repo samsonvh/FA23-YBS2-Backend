@@ -117,23 +117,29 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<MembershipPackageDto?> GetDetails(Guid id)
         {
+            throw new NotImplementedException();
+        }
+
+        public async Task<MembershipPackageDto?> GetDetails(Guid id, ClaimsPrincipal claims)
+        {
             MembershipPackage? membershipPackage = await _unitOfWork.MembershipPackageRepository
                 .Find(membershipPackage => membershipPackage.Id == id)
                 .FirstOrDefaultAsync();
             if (membershipPackage != null)
             {
-                // ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
-                // if (claims != null)
-                // {
-                //     string role = claims.FindFirstValue(ClaimTypes.Role);
-                //     if (role != nameof(EnumRole.Admin))
-                //     {
-                //         if (membershipPackage.Status == EnumMembershipPackageStatus.Inactive)
-                //         {
-                //             throw new APIException(HttpStatusCode.BadRequest, "This membership package is currently inactive, please choose another membership package.", null);
-                //         }
-                //     }
-                // }
+                if (claims != null)
+                {
+                    string role = claims.FindFirstValue(ClaimTypes.Role);
+                    if (role != nameof(EnumRole.Admin))
+                    {
+                        if (membershipPackage.Status == EnumMembershipPackageStatus.Inactive)
+                        {
+                            dynamic errors = new ExpandoObject();
+                            errors.MembershipPackage = "This membership package is currently inactive";
+                            throw new APIException(HttpStatusCode.BadRequest, errors.MembershipPackage, errors);
+                        }
+                    }
+                }
                 return _mapper.Map<MembershipPackageDto>(membershipPackage);
             }
             return null;

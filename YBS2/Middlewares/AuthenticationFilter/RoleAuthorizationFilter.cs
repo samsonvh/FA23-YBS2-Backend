@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Filters;
+using System.Dynamic;
 using System.Net;
 using System.Security.Claims;
 using YBS2.Service.Exceptions;
@@ -24,12 +25,16 @@ namespace YBS2.Middlewares.AuthenticationFilter
             // Retrieve the Role claim value
             if (claimsPrincipal == null)
             {
-                throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized", null);
+                dynamic errors = new ExpandoObject();
+                errors.Unauthorized = "Unauthorized";
+                throw new APIException(HttpStatusCode.Unauthorized, errors.Unauthorized, errors);
             }
             var roleClaim = TextUtils.Capitalize(claimsPrincipal.FindFirstValue(ClaimTypes.Role));
             if (!_role.Contains(roleClaim))
             {
-                throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized", null);
+                dynamic errors = new ExpandoObject();
+                errors.Unauthorized = "Unauthorized";
+                throw new APIException(HttpStatusCode.Unauthorized, errors.Unauthorized, errors);
             }
         }
     }

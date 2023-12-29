@@ -1,4 +1,6 @@
+using System.Dynamic;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -41,8 +43,9 @@ namespace YBS2.Service.Services.Implements
                                                                         .FirstOrDefaultAsync();
             if (existingMember == null)
             {
-                string message = "Not Found";
-                throw new APIException(HttpStatusCode.BadRequest, message, null);
+                dynamic errors = new ExpandoObject();
+                errors.MemberId = $"Member with ID {id} not found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.MemberId, errors);
             }
             if (existingMember.Account.Status.ToString().ToUpper() == status.ToUpper())
             {
@@ -60,7 +63,9 @@ namespace YBS2.Service.Services.Implements
                     existingMember.Account.Status = EnumAccountStatus.Inactive;
                     break;
                 default:
-                    throw new APIException(HttpStatusCode.BadRequest, "Invalid status", null);
+                    dynamic errors = new ExpandoObject();
+                    errors.MemberStatus = "Invalid status";
+                    throw new APIException(HttpStatusCode.BadRequest, errors.MemberStatus, errors);
             }
             _unitOfWork.AccountRepository.Update(existingMember.Account);
             await _unitOfWork.SaveChangesAsync();
@@ -200,34 +205,43 @@ namespace YBS2.Service.Services.Implements
             Account? existingAccount = await _unitOfWork.AccountRepository
                 .Find(account => account.Username == username || account.Email == email)
                 .FirstOrDefaultAsync();
+            List<string> props = new List<string>();
             if (existingAccount != null)
             {
-                string message = "is unavailable";
+                dynamic errors = new ExpandoObject();
+                string message = " is unavailable";
                 if (existingAccount.Email == email)
                 {
-                    message = "Email " + message;
+                    props.Add("Email");
+                    errors.Email = "Email" + message;
                 }
                 if (existingAccount.Username == username)
                 {
-                    message = "Username " + message;
+                    props.Add("Username");
+                    errors.Username = "Username" + message;
                 }
-                throw new APIException(HttpStatusCode.OK, message, null);
+                message = string.Join(",",props) + message;
+                throw new APIException(HttpStatusCode.OK, message, errors);
             }
             Member? existingMember = await _unitOfWork.MemberRepository
                 .Find(member => member.PhoneNumber == inputDto.PhoneNumber || member.IdentityNumber == inputDto.IdentityNumber)
                 .FirstOrDefaultAsync();
             if (existingMember != null)
             {
-                string message = "is unavailable";
+                dynamic errors = new ExpandoObject();
+                string message = " is unavailable";
                 if (existingMember.PhoneNumber == inputDto.PhoneNumber)
                 {
-                    message = "PhoneNumber " + message;
+                    props.Add("PhoneNumber");
+                    errors.PhoneNumber = "PhoneNumber" + message;
                 }
                 if (existingMember.IdentityNumber == inputDto.IdentityNumber)
                 {
-                    message = "IdentityNumber " + message;
+                    props.Add("IdentityNumber");
+                    errors.IdentityNumber = "IdentityNumber" + message;
                 }
-                throw new APIException(HttpStatusCode.OK, message, null);
+                message = string.Join(",",props) + message;
+                throw new APIException(HttpStatusCode.OK, message, errors);
             }
         }
 
