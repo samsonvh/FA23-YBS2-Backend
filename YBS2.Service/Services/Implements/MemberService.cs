@@ -41,9 +41,9 @@ namespace YBS2.Service.Services.Implements
             if (existingMember == null)
             {
                 string message = "Not Found";
-                throw new APIException(HttpStatusCode.BadRequest,message, null);
+                throw new APIException(HttpStatusCode.BadRequest, message, null);
             }
-            if (existingMember.Account.Status.ToString().ToUpper() == status.ToUpper() )
+            if (existingMember.Account.Status.ToString().ToUpper() == status.ToUpper())
             {
                 return false;
             }
@@ -129,25 +129,14 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<MemberDto?> GetDetails(Guid id)
         {
-            ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
-            if (claims != null)
-            {
-                string role = claims.FindFirstValue(ClaimTypes.Role);
-                if (role == "Member")
-                {
-                    id = Guid.Parse(claims.FindFirstValue("MemberId"));
-                }
-            }
             MemberDto? memberDto = await _unitOfWork.MemberRepository.Find(member => member.Id == id)
                                                                     .Select(member => _mapper.Map<MemberDto>(member))
                                                                     .FirstOrDefaultAsync();
             return memberDto;
         }
 
-        public async Task<MemberDto?> Update(MemberInputDto inputDto)
+        public async Task<MemberDto?> Update(MemberInputDto inputDto, ClaimsPrincipal claims)
         {
-            ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
-
             Guid id = Guid.Parse(claims.FindFirstValue("MemberId"));
             Member? existingMember = await _unitOfWork.MemberRepository.Find(member => member.Id == id)
                                                         .FirstOrDefaultAsync();

@@ -42,6 +42,9 @@ namespace YBS2
         //Tours
         public const string TOUR_V1 = API_VERSION_V1 + "/tours";
         public const string TOUR_ID_V1 = TOUR_V1 + "/{id}";
-
+        
+        //Bookings
+        public const string BOOKING_V1 = API_VERSION_V1 + "/bookings";
+        public const string BOOKING_ID_V1 = BOOKING_V1 + "/{id}";
     }
 }

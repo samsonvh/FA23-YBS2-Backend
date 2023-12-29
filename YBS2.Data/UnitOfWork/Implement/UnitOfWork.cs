@@ -17,6 +17,7 @@ namespace YBS2.Data.UnitOfWork.Implement
         private readonly IGenericRepositoty<Dock> _dockRepository;
         private readonly IGenericRepositoty<Yacht> _yachtRepository;
         private readonly IGenericRepositoty<Tour> _tourRepository;
+        private readonly IGenericRepositoty<Booking> _bookingRepository;
         public UnitOfWork(YBS2Context context)
         {
             _context = context;
@@ -126,6 +127,18 @@ namespace YBS2.Data.UnitOfWork.Implement
                     return _tourRepository;
                 }
                 return new GenericRepository<Tour>(_context);
+            }
+        }
+
+        public IGenericRepositoty<Booking> BookingRepository
+        {
+            get
+            {
+                if (_bookingRepository is not null)
+                {
+                    return _bookingRepository;
+                }
+                return new GenericRepository<Booking>(_context);
             }
         }
 

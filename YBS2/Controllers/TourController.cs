@@ -35,7 +35,6 @@ namespace YBS2.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<TourListingDto>))]
         [Produces("application/json")]
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] TourPageRequest pageRequest)
         {
             return Ok(await _tourService.GetAll(pageRequest));
@@ -46,7 +45,6 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [HttpGet]
         [Route(APIEndPoints.TOUR_ID_V1)]
-        [AllowAnonymous]
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
             return Ok(await _tourService.GetDetails(id));

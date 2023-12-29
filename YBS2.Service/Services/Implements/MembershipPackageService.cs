@@ -70,8 +70,12 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<DefaultPageResponse<MembershipPackageListingDto>> GetAll(MembershipPackagePageRequest pageRequest)
         {
+            throw new NotImplementedException();
+        }
+
+        public async Task<DefaultPageResponse<MembershipPackageListingDto>> GetAll(MembershipPackagePageRequest pageRequest, ClaimsPrincipal claims)
+        {
             IQueryable<MembershipPackage> query = _unitOfWork.MembershipPackageRepository.GetAll();
-            ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
             if (claims != null)
             {
                 string role = claims.FindFirstValue(ClaimTypes.Role);
@@ -110,18 +114,18 @@ namespace YBS2.Service.Services.Implements
                                                                         .FirstOrDefaultAsync();
             if (membershipPackage != null)
             {
-                ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
-                if (claims != null)
-                {
-                    string role = claims.FindFirstValue(ClaimTypes.Role);
-                    if (role != nameof(EnumRole.Admin))
-                    {
-                        if (membershipPackage.Status == EnumMembershipPackageStatus.Inactive)
-                        {
-                            throw new APIException(HttpStatusCode.BadRequest, "This membership package is currently inactive, please choose another membership package.", null);
-                        }
-                    }
-                }
+                // ClaimsPrincipal claims = JWTUtils.GetClaim(_httpContextAccessor, _configuration);
+                // if (claims != null)
+                // {
+                //     string role = claims.FindFirstValue(ClaimTypes.Role);
+                //     if (role != nameof(EnumRole.Admin))
+                //     {
+                //         if (membershipPackage.Status == EnumMembershipPackageStatus.Inactive)
+                //         {
+                //             throw new APIException(HttpStatusCode.BadRequest, "This membership package is currently inactive, please choose another membership package.", null);
+                //         }
+                //     }
+                // }
                 return _mapper.Map<MembershipPackageDto>(membershipPackage);
             }
             return null;
@@ -175,8 +179,6 @@ namespace YBS2.Service.Services.Implements
             {
                 query = query.Where(membershipPackage => membershipPackage.Status == pageRequest.Status);
             }
-
-
 
             query = !string.IsNullOrWhiteSpace(pageRequest.OrderBy)
                     ? query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending)
