@@ -22,6 +22,7 @@ namespace YBS2.Controllers
             _logger = logger;
             _vnpayService = vnpayService;
         }
+
         [SwaggerOperation("Create payment url of register membership")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(string))]
         [Produces("application/json")]
@@ -31,6 +32,7 @@ namespace YBS2.Controllers
         {
             return Ok(await _vnpayService.CreateRegisterRequestURL(membershipPackageId, HttpContext));
         }
+
         [SwaggerOperation("Create payment url of register membership")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(string))]
         [Produces("application/json")]
@@ -39,6 +41,26 @@ namespace YBS2.Controllers
         public async Task<IActionResult> CallBackRegisterPayment ()
         {
             return Ok(await _vnpayService.CallBackRegisterPayment(Request.Query));
+        }
+
+        [SwaggerOperation("Create payment url of booking")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(string))]
+        [Produces("application/json")]
+        [HttpPost]
+        [Route(APIEndPoints.VNPAY_BOOKING_V1)]
+        public async Task<IActionResult> CreateBookingRequestURL ([FromForm] Guid bookingId)
+        {
+            return Ok(await _vnpayService.CreateBookingRequestURL(bookingId, HttpContext));
+        }
+
+        [SwaggerOperation("Create payment url of register membership")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(string))]
+        [Produces("application/json")]
+        [HttpGet]
+        [Route(APIEndPoints.VNPAY_BOOKING_V1)]
+        public async Task<IActionResult> CallBackBookingPayment ()
+        {
+            return Ok(await _vnpayService.CallBackBookingPayment(Request.Query));
         }
     }
 }

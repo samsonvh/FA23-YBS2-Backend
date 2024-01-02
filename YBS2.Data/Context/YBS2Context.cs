@@ -18,6 +18,9 @@ namespace YBS2.Data.Context
         public DbSet<Yacht> Yachts { get; set; }
         public DbSet<Tour> Tours { get; set; }
         public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Passenger> Passengers { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<Wallet> Wallets { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(YBS2Context).Assembly);

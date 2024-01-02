@@ -7,10 +7,14 @@ namespace YBS2.Service.Dtos.PageResponses
 {
     public class VNPayResponseModel
     {
-        public Guid MembershipPackageId { get; set; }
-        public string VnpayResponseCode { get; set; }
-        public DateTime VnpayPaymentDate { get; set; }
-        public string TransactionNumber { get; set; }
-        public string TransactionStatus { get; set; }
+        public string Code {get; set;}
+        public float TotalAmount { get; set; }
+        public string Name { get; set; }
+        public string BankCode { get; set; }
+        public string BankTranNo { get; set; }
+        public string CardType { get; set; }
+        public DateTime PaymentDate { get; set; }
+        public string VNPayCode { get; set; }
+        public bool Success {get; set;}
     }
 }

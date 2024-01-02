@@ -41,7 +41,8 @@ namespace YBS2.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] BookingPageRequest pageRequest)
         {
-            return Ok(await _bookingService.GetAll(pageRequest));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
+            return Ok(await _bookingService.GetAll(pageRequest, claims));
         }
 
         [SwaggerOperation("Get details of a booking according to ID")]
@@ -51,16 +52,18 @@ namespace YBS2.Controllers
         [Route(APIEndPoints.BOOKING_ID_V1)]
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
-            return Ok(await _bookingService.GetDetails(id));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
+            return Ok(await _bookingService.GetDetails(id,claims));
         }
 
         [SwaggerOperation("Create new booking")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(BookingDto))]
         [Produces("application/json")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] BookingInputDto inputDto)
+        public async Task<IActionResult> Create([FromBody] BookingInputDto inputDto)
         {
-            return Ok(await _bookingService.Create(inputDto));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
+            return Ok(await _bookingService.Create(inputDto, claims));
         }
 
         [SwaggerOperation("Update booking details according to ID")]

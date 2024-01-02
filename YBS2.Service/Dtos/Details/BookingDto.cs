@@ -8,7 +8,7 @@ namespace YBS2.Service.Dtos.Details
 {
     public class BookingDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public DateTime BookingDate { get; set; }
         public int TotalPassengers { get; set; }
         public string Note { get; set; }

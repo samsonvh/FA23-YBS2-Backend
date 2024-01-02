@@ -15,6 +15,8 @@ namespace YBS2.Data.UnitOfWork
         IGenericRepositoty<Yacht> YachtRepository { get; }
         IGenericRepositoty<Tour> TourRepository { get; }
         IGenericRepositoty<Booking> BookingRepository { get; }
+        IGenericRepositoty<Transaction> TransactionRepository { get; }
+        IGenericRepositoty<Wallet> WalletRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }

@@ -9,5 +9,7 @@ namespace YBS2.Service.Services
     {
         Task<string> CreateRegisterRequestURL(Guid membershipPackageId, HttpContext context);
         Task<VNPayResponseModel> CallBackRegisterPayment(IQueryCollection collections);
+        Task<string> CreateBookingRequestURL(Guid bookingId, HttpContext context);
+        Task<VNPayResponseModel> CallBackBookingPayment(IQueryCollection collections);
     }
 }

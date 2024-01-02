@@ -2,6 +2,8 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using YBS2.Data.Enums;
+using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
 using YBS2.Service.Dtos.Details;
 using YBS2.Service.Exceptions;
@@ -42,13 +44,20 @@ namespace YBS2.Controllers
         [HttpGet("TestAPI")]
         public async Task<IActionResult> TestAPI()
         {
-            var accountList = await _unitOfWork.AccountRepository.GetAll().ToListAsync();
-            if (accountList.Count > 0)
+            Guid id = Guid.NewGuid();
+            Account account = new Account
             {
-                throw new APIException(HttpStatusCode.BadRequest, "Account List Null", null);
-            }
-            var result = _mapper.Map<List<AccountDto>>(accountList);
-            return Ok(result);
+                CreatedDate = DateTime.Now,
+                Email = "",
+                Id = id,
+                Password = "0",
+                Role = "MEMBER",
+                Status = EnumAccountStatus.Active,
+                Username = ""
+            };
+            _unitOfWork.AccountRepository.Add(account);
+            await _unitOfWork.SaveChangesAsync();
+            return Ok();
         }
     }
 }

@@ -2,6 +2,7 @@ using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using YBS2.Data.Context;
@@ -45,6 +46,11 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT"
     });
+    options.MapType<TimeSpan>(() => new OpenApiSchema
+	{
+		Type = "string",
+		Example = new OpenApiString("HH:mm:ss")
+	});
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {

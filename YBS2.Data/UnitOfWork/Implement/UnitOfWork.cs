@@ -18,6 +18,8 @@ namespace YBS2.Data.UnitOfWork.Implement
         private readonly IGenericRepositoty<Yacht> _yachtRepository;
         private readonly IGenericRepositoty<Tour> _tourRepository;
         private readonly IGenericRepositoty<Booking> _bookingRepository;
+        private readonly IGenericRepositoty<Transaction> _transactionRepository;
+        private readonly IGenericRepositoty<Wallet> _walletRepository;
         public UnitOfWork(YBS2Context context)
         {
             _context = context;
@@ -139,6 +141,30 @@ namespace YBS2.Data.UnitOfWork.Implement
                     return _bookingRepository;
                 }
                 return new GenericRepository<Booking>(_context);
+            }
+        }
+
+        public IGenericRepositoty<Transaction> TransactionRepository
+        {
+            get
+            {
+                if (_transactionRepository is not null)
+                {
+                    return _transactionRepository;
+                }
+                return new GenericRepository<Transaction>(_context);
+            }
+        }
+
+        public IGenericRepositoty<Wallet> WalletRepository
+        {
+            get
+            {
+                if (_walletRepository is not null)
+                {
+                    return _walletRepository;
+                }
+                return new GenericRepository<Wallet>(_context);
             }
         }
 

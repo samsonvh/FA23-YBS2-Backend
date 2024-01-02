@@ -32,6 +32,7 @@ namespace YBS2
 
         //VNPay
         public const string VNPAY_REGISTER_V1 = API_VERSION_V1 + "/vnpays/register";
+        public const string VNPAY_BOOKING_V1 = API_VERSION_V1 + "/vnpays/booking";
 
         //Docks
         public const string DOCK_V1 = API_VERSION_V1 + "/docks";
@@ -46,5 +47,9 @@ namespace YBS2
         //Bookings
         public const string BOOKING_V1 = API_VERSION_V1 + "/bookings";
         public const string BOOKING_ID_V1 = BOOKING_V1 + "/{id}";
+
+        //Transactions
+        public const string TRANSACTION_V1 = API_VERSION_V1 + "/transactions";
+        public const string TRANSACTION_ID_V1 = TRANSACTION_V1 + "/{id}";
     }
 }
