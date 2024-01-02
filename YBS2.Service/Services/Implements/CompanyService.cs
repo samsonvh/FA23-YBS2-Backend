@@ -36,7 +36,7 @@ namespace YBS2.Service.Services.Implements
                 .Include(company => company.Account)
                 .FirstOrDefaultAsync();
             if (existingCompany == null)
-            {
+            {   
                 dynamic errors = new ExpandoObject();
                 errors.CompanyId = $"Company with ID {existingCompany.Id} found";
                 throw new APIException(HttpStatusCode.BadRequest, errors.CompanyId, errors);

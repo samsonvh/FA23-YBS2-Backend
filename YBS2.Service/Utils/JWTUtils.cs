@@ -2,6 +2,7 @@ using Google.Apis.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Dynamic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -22,15 +23,15 @@ namespace YBS2.Service.Utils
                 new Claim("Id", account.Id.ToString()),
                 new Claim(ClaimTypes.Role, account.Role),
             };
-            
+
             if (account.Role == nameof(EnumRole.Member))
             {
-               if (account.Member == null)
-               {
-                   throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information", null);
-               }
-               claims.Add(new Claim("MemberId", account.Member.Id.ToString())); 
-               //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
+                if (account.Member == null)
+                {
+                    throw new APIException(HttpStatusCode.BadRequest, "Account doesn't have detail member information", null);
+                }
+                claims.Add(new Claim("MemberId", account.Member.Id.ToString()));
+                //claims.Add(new Claim("MembershipPackageId", account.Member.MembershipRegistrations.LastOrDefault(memberRegistration => memberRegistration.MemberId == account.Member.Id).MembershipPackageId.ToString()));
             }
             if (account.Role == nameof(EnumRole.Company))
             {
@@ -51,27 +52,22 @@ namespace YBS2.Service.Utils
                 issuer,
                 audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(7).AddMilliseconds(int.Parse(expires)),
+                expires: DateTime.UtcNow.AddHours(7).AddHours(int.Parse(expires)),
                 signingCredentials: signingCredentials
             );
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
             return accessToken;
         }
 
-        public static ClaimsPrincipal? GetClaim( IConfiguration configuration, string authorization)
+        public static ClaimsPrincipal? GetClaim(IConfiguration configuration, string authorization)
         {
             var accessTokenPrefix = "Bearer ";
-            // if (accessToken == null)
-            // {
-            //     throw new APIException(HttpStatusCode.Unauthorized, "Unauthorized");
-            // }
             if (authorization != null)
             {
                 if (authorization.Contains(accessTokenPrefix))
                 {
                     authorization = authorization.Substring(accessTokenPrefix.Length);
                 }
-
 
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration["JWT:SecretKey"]));
@@ -89,12 +85,21 @@ namespace YBS2.Service.Utils
                 };
 
                 // Decrypt the token and retrieve the claims
-                ClaimsPrincipal claimsPrincipal;
-                claimsPrincipal = tokenHandler.ValidateToken(authorization.Trim(), tokenValidationParameters, out _);
+                ClaimsPrincipal claimsPrincipal = tokenHandler.ValidateToken(authorization.Trim(), tokenValidationParameters, out _);
+
                 if (claimsPrincipal == null)
                 {
                     throw new APIException(HttpStatusCode.BadRequest, "Failed to decrypt/validate the JWT token", null);
                 }
+
+                if (DateTimeOffset.FromUnixTimeSeconds(long.Parse(claimsPrincipal.FindFirstValue("exp"))).UtcDateTime < DateTime.UtcNow.AddHours(7))
+                {
+                    dynamic Errors = new ExpandoObject();
+                    Errors.JWTExpires = "JWT token is expired";
+                    throw new APIException(HttpStatusCode.BadRequest, Errors.JWTExpires, Errors);
+                }
+
+
                 return claimsPrincipal;
             }
             else return null;

@@ -20,6 +20,8 @@ namespace YBS2.Data.Models
         public float TotalAmount { get; set; }
         public int TotalPassengers { get; set; }
         public string Note { get; set; }
+        public bool isIncludeBooker { get; set; }
+        public EnumBookingType Type { get; set; }
         public EnumBookingStatus Status { get; set; }
         public DateTime CreatedDate { get; set; }
         public ICollection<Passenger> Passengers { get; set; }

@@ -52,7 +52,8 @@ namespace YBS2.Service.Utils
             CreateMap<MembershipPackageInputDto, MembershipPackage>();
 
             //Tour
-            CreateMap<Tour, TourListingDto>();
+            CreateMap<Tour, TourListingDto>()
+                .ForMember(tourListingDto => tourListingDto.ImageURL, options => options.Ignore());
             CreateMap<Tour, TourDto>();
             CreateMap<TourInputDto, Tour>();
 

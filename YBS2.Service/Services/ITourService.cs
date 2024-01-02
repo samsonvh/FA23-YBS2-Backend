@@ -8,11 +8,14 @@ using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
+using YBS2.Service.Dtos.PageResponses;
 
 namespace YBS2.Service.Services
 {
     public interface ITourService : IDefaultService<TourPageRequest, TourListingDto, TourDto, TourInputDto>
     {
         Task<TourDto?> Create(TourInputDto inputDto, ClaimsPrincipal claims);
+        Task<DefaultPageResponse<TourListingDto>> GetAll(TourPageRequest pageRequest, ClaimsPrincipal claims);
+        Task<TourDto?> GetDetails(Guid id, ClaimsPrincipal claims);
     }
 }

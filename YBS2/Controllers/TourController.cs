@@ -23,7 +23,7 @@ namespace YBS2.Controllers
 {
     [ApiController]
     [Route(APIEndPoints.TOUR_V1)]
-    // [RoleAuthorization(nameof(EnumRole.Company))]
+    
     public class TourController : ControllerBase
     {
         private readonly ILogger<TourController> _logger;
@@ -42,7 +42,8 @@ namespace YBS2.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] TourPageRequest pageRequest)
         {
-            return Ok(await _tourService.GetAll(pageRequest));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _tourService.GetAll(pageRequest, claims));
         }
 
         [SwaggerOperation("Get details of a tour according to ID")]
@@ -53,18 +54,19 @@ namespace YBS2.Controllers
         
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
-            return Ok(await _tourService.GetDetails(id));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _tourService.GetDetails(id, claims));
         }
 
         [SwaggerOperation("Create new tour")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(TourDto))]
         [Produces("application/json")]
         [HttpPost]
-        [RoleAuthorization($"{nameof(EnumRole.Company)}")]
+        [RoleAuthorization(nameof(EnumRole.Company))]
         public async Task<IActionResult> Create([FromForm] TourInputDto inputDto)
         {
             ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
-            return Ok(await _tourService.Create(inputDto));
+            return Ok(await _tourService.Create(inputDto,claims));
         }
 
         [SwaggerOperation("Update tour details according to ID")]
@@ -72,7 +74,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [HttpPut]
         [Route(APIEndPoints.TOUR_ID_V1)]
-        [RoleAuthorization($"{nameof(EnumRole.Company)}")]
+        [RoleAuthorization(nameof(EnumRole.Company))]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] TourInputDto inputDto)
         {
             return Ok(await _tourService.Update(id, inputDto));

@@ -2,7 +2,8 @@ namespace YBS2.Data.Enums
 {
     public enum EnumTourType
     {
-        Group_Tour = 0,
-        Private_Tour = 1,
+        In_Day = 0,
+        Many_Days = 1
+        
     }
 }

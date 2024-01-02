@@ -52,7 +52,6 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, errors.TourId, errors);
             }
             Booking booking = _mapper.Map<Booking>(inputDto);
-            booking.TotalAmount = existingTour.Price;
             int totalPassengers = 0;
             List<Passenger> passengerList = _mapper.Map<List<Passenger>>(inputDto.Passengers);
             if (claims != null)
@@ -70,7 +69,6 @@ namespace YBS2.Service.Services.Implements
                     booking.MemberId = memberId;
                     if (inputDto.isIncludeBooker)
                     {
-                        totalPassengers += 1;
                         Member? member = await _unitOfWork.MemberRepository
                             .Find(member => member.Id == memberId)
                             .FirstOrDefaultAsync();
@@ -96,17 +94,11 @@ namespace YBS2.Service.Services.Implements
                 if (passengerList.Count == 0)
                 {
                     dynamic errors = new ExpandoObject();
-                    errors.MaximumGuest = "";
+                    errors.PassengerList = "Passenger List must not be null";
                     throw new APIException(HttpStatusCode.BadRequest, errors.PassengerList, errors);
                 }
-                totalPassengers += 1;
             }
             totalPassengers += passengerList.Count();
-            List<int> priceList = await _unitOfWork.BookingRepository
-                .Find(booking => booking.TourId == inputDto.TourId)
-                .Select(booking => booking.TotalPassengers)
-                .ToListAsync();
-            int TotalPassengersParticipant = priceList.Sum();
             booking.Passengers = passengerList;
             booking.TotalPassengers = totalPassengers;
             booking.Status = EnumBookingStatus.Pending;
