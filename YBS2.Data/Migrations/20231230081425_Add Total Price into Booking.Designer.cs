@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using YBS2.Data.Context;
 
@@ -11,9 +12,10 @@ using YBS2.Data.Context;
 namespace YBS2.Data.Migrations
 {
     [DbContext(typeof(YBS2Context))]
-    partial class YBS2ContextModelSnapshot : ModelSnapshot
+    [Migration("20231230081425_Add Total Price into Booking")]
+    partial class AddTotalPriceintoBooking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -274,9 +276,6 @@ namespace YBS2.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<float>("DiscountPercent")
-                        .HasColumnType("real");
-
                     b.Property<Guid>("MemberId")
                         .HasColumnType("uniqueidentifier");
 
@@ -288,10 +287,6 @@ namespace YBS2.Data.Migrations
 
                     b.Property<DateTime>("MembershipStartDate")
                         .HasColumnType("date");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -515,26 +510,6 @@ namespace YBS2.Data.Migrations
                     b.ToTable("UpdateRequest", (string)null);
                 });
 
-            modelBuilder.Entity("YBS2.Data.Models.Wallet", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("MemberId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Point")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MemberId")
-                        .IsUnique();
-
-                    b.ToTable("Wallet", (string)null);
-                });
-
             modelBuilder.Entity("YBS2.Data.Models.Yacht", b =>
                 {
                     b.Property<Guid>("Id")
@@ -720,17 +695,6 @@ namespace YBS2.Data.Migrations
                     b.Navigation("Company");
                 });
 
-            modelBuilder.Entity("YBS2.Data.Models.Wallet", b =>
-                {
-                    b.HasOne("YBS2.Data.Models.Member", "Member")
-                        .WithOne("Wallet")
-                        .HasForeignKey("YBS2.Data.Models.Wallet", "MemberId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Member");
-                });
-
             modelBuilder.Entity("YBS2.Data.Models.Yacht", b =>
                 {
                     b.HasOne("YBS2.Data.Models.Company", "Company")
@@ -774,9 +738,6 @@ namespace YBS2.Data.Migrations
                     b.Navigation("Bookings");
 
                     b.Navigation("MembershipRegistrations");
-
-                    b.Navigation("Wallet")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("YBS2.Data.Models.MembershipPackage", b =>

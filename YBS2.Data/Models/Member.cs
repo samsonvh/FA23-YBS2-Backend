@@ -10,6 +10,7 @@ namespace YBS2.Data.Models
         public Guid AccountId { get; set; }
         [ForeignKey("AccountId")]
         public Account Account { get; set; }
+        public Wallet Wallet { get; set; }
         public string FullName { get; set; }
         public string? AvatarURL { get; set; } = null;
         public DateTime DOB { get; set; }
@@ -22,5 +23,6 @@ namespace YBS2.Data.Models
         public EnumMemberStatus Status { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
         public ICollection<MembershipRegistration> MembershipRegistrations { get; set; }
+        public ICollection<Booking>? Bookings { get; set; }
     }
 }

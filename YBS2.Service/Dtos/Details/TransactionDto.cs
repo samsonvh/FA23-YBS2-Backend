@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace YBS2.Service.Dtos.PageResponses
+namespace YBS2.Service.Dtos.Details
 {
-    public class VNPayResponseModel
+    public class TransactionDto
     {
-        public string Code {get; set;}
-        public float TotalAmount { get; set; }
+        public Guid Id { get; set; }
+        public string Code { get; set; }
         public string Name { get; set; }
+        public float TotalAmount { get; set; }
         public string BankCode { get; set; }
         public string BankTranNo { get; set; }
         public string CardType { get; set; }
         public DateTime PaymentDate { get; set; }
         public string VNPayCode { get; set; }
-        public bool Success {get; set;}
+        public bool Success { get; set; }
+        public string Type { get; set; }
     }
 }

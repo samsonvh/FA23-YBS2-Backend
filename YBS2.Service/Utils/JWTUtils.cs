@@ -51,7 +51,7 @@ namespace YBS2.Service.Utils
                 issuer,
                 audience,
                 claims: claims,
-                expires: DateTime.Now.AddMilliseconds(int.Parse(expires)),
+                expires: DateTime.UtcNow.AddHours(7).AddMilliseconds(int.Parse(expires)),
                 signingCredentials: signingCredentials
             );
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);

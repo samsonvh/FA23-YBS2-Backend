@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Dynamic;
 using System.Globalization;
 using System.Net;
 using System.Security.Cryptography;
@@ -21,6 +23,262 @@ namespace YBS2.Service.Services.Implements
         {
             _configuration = configuration;
             _unitOfWork = unitOfWork;
+        }
+
+        private SortedList<string, string> AddRegisterRequestData(MembershipPackage membershipPackage, HttpContext context)
+        {
+            SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
+            var callBackUrl = "https://" + context.Request.Host + _configuration["PaymentCallBack:MembershipPaymentReturnUrl"];
+            //add basic parameter to VNPay 
+            _requestData = AddRequestData("vnp_Version", _configuration["Vnpay:Version"], _requestData);
+            _requestData = AddRequestData("vnp_Command", _configuration["Vnpay:Command"], _requestData);
+            _requestData = AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"], _requestData);
+            _requestData = AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"], _requestData);
+            _requestData = AddRequestData("vnp_CurrCode", "VND", _requestData);
+            _requestData = AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString(), _requestData);
+            _requestData = AddRequestData("vnp_OrderInfo", membershipPackage.Name.ToString(), _requestData);
+            _requestData = AddRequestData("vnp_OrderType", nameof(EnumTransactionType.Booking), _requestData);
+            _requestData = AddRequestData("vnp_Amount", ((int)membershipPackage.Price * 100).ToString(), _requestData);
+            _requestData = AddRequestData("vnp_ReturnUrl", callBackUrl, _requestData);
+            _requestData = AddRequestData("vnp_IpAddr", GetIpAddress(), _requestData);
+            _requestData = AddRequestData("vnp_CreateDate", DateTime.UtcNow.AddHours(7).ToString("yyyyMMddHHmmss"), _requestData);
+            _requestData = AddRequestData("vnp_ExpireDate", DateTime.UtcNow.AddHours(7).AddMinutes(15).ToString("yyyyMMddHHmmss"), _requestData);
+            return _requestData;
+        }
+
+        public async Task<string?> CreateRegisterRequestURL(Guid membershipPackageId, HttpContext context)
+        {
+            string baseUrl = _configuration["VnPay:BaseUrl"];
+            string hashSecret = _configuration["VnPay:HashSecret"];
+            MembershipPackage membershipPackage = await _unitOfWork.MembershipPackageRepository
+                .GetByID(membershipPackageId);
+            if (membershipPackage == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Id = $"Membership package with id {membershipPackageId} does not exist.";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
+            }
+            SortedList<string, string> _requestData = AddRegisterRequestData(membershipPackage, context);
+            var data = new StringBuilder();
+
+
+            foreach (var (key, value) in _requestData.Where(kv => !string.IsNullOrEmpty(kv.Value)))
+            {
+                data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
+            }
+
+
+            var querystring = data.ToString();
+
+
+            baseUrl += "?" + querystring;
+            var signData = querystring;
+            if (signData.Length > 0)
+            {
+                signData = signData.Remove(data.Length - 1, 1);
+            }
+
+
+            var vnpSecureHash = HmacSha512(hashSecret, signData);
+            baseUrl += "vnp_SecureHash=" + vnpSecureHash;
+
+
+            return baseUrl;
+        }
+
+        public async Task<VNPayResponseModel> CallBackRegisterPayment(IQueryCollection collections)
+        {
+            SortedList<string, string> _responseData = new SortedList<string, string>(new VnPayCompare());
+            foreach (var (key, value) in collections)
+            {
+                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
+                {
+                    _responseData = AddResponseData(key, value, _responseData);
+                }
+            }
+            string code = GetResponseData("vnp_TxnRef", _responseData).Trim();
+            float totalAmount = float.Parse(GetResponseData("vnp_Amount", _responseData).Trim()) / 100;
+            string name = GetResponseData("vnp_OrderInfo", _responseData).Trim();
+            string bankCode = GetResponseData("vnp_BankCode", _responseData).Trim();
+            string bankTranNo = GetResponseData("vnp_BankTranNo", _responseData).Trim();
+            string cardType = GetResponseData("vnp_CardType", _responseData).Trim();
+            DateTime paymentDate = DateTime.ParseExact(GetResponseData("vnp_PayDate", _responseData).Trim(), "yyyyMMddHHmmss", null);
+            string VNPayCode = GetResponseData("vnp_TransactionNo", _responseData).Trim();
+            string responseCode = GetResponseData("vnp_ResponseCode", _responseData).Trim();
+            string transactionStatus = GetResponseData("vnp_TransactionStatus", _responseData).Trim();
+            string vnpSecureHash =
+                collections.FirstOrDefault(k => k.Key == "vnp_SecureHash").Value;
+
+            string hashSecret = _configuration["VnPay:HashSecret"];
+            var checkSignature =
+                ValidateSignature(vnpSecureHash, hashSecret, _responseData); //check Signature
+            bool success = true;
+            if (!checkSignature)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Id = $"Invalid Signature";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
+            }
+            else
+            {
+                if (responseCode != "00" || transactionStatus != "00")
+                {
+                    dynamic errors = new ExpandoObject();
+                    errors.Id = "Payment Error";
+                    throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
+                }
+            }
+
+            return new VNPayResponseModel
+            {
+                Code = code,
+                TotalAmount = totalAmount,
+                BankCode = bankCode,
+                BankTranNo = bankTranNo,
+                CardType = cardType,
+                Name = name,
+                PaymentDate = paymentDate,
+                Success = success,
+                VNPayCode = VNPayCode
+            };
+        }
+
+        private SortedList<string, string> AddBookingRequestData(Booking booking, HttpContext context)
+        {
+            SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
+            var callBackUrl = "https://" + context.Request.Host + _configuration["PaymentCallBack:MembershipPaymentReturnUrl"];
+            //add basic parameter to VNPay 
+            _requestData = AddRequestData("vnp_Version", _configuration["Vnpay:Version"], _requestData);
+            _requestData = AddRequestData("vnp_Command", _configuration["Vnpay:Command"], _requestData);
+            _requestData = AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"], _requestData);
+            _requestData = AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"], _requestData);
+            _requestData = AddRequestData("vnp_CurrCode", "VND", _requestData);
+            _requestData = AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString(), _requestData);
+            _requestData = AddRequestData("vnp_OrderInfo", booking.Tour.Name.ToString(), _requestData);
+            _requestData = AddRequestData("vnp_OrderType", nameof(EnumTransactionType.Booking), _requestData);
+            _requestData = AddRequestData("vnp_Amount", ((int)booking.TotalAmount * 100).ToString(), _requestData);
+            _requestData = AddRequestData("vnp_ReturnUrl", callBackUrl, _requestData);
+            _requestData = AddRequestData("vnp_IpAddr", GetIpAddress(), _requestData);
+            _requestData = AddRequestData("vnp_CreateDate", DateTime.UtcNow.AddHours(7).ToString("yyyyMMddHHmmss"), _requestData);
+            _requestData = AddRequestData("vnp_ExpireDate", DateTime.UtcNow.AddHours(7).AddMinutes(15).ToString("yyyyMMddHHmmss"), _requestData);
+            return _requestData;
+        }
+
+        public async Task<string> CreateBookingRequestURL(Guid bookingId, HttpContext context)
+        {
+            string baseUrl = _configuration["VnPay:BaseUrl"];
+            string hashSecret = _configuration["VnPay:HashSecret"];
+            Booking? booking = await _unitOfWork.BookingRepository
+                .Find(booking => booking.Id == bookingId)
+                .Include(booking => booking.Tour)
+                .FirstOrDefaultAsync();
+            if (booking == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Id = $"Booking with id {bookingId} does not exist.";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
+            }
+            SortedList<string, string> _requestData = AddBookingRequestData(booking, context);
+            var data = new StringBuilder();
+
+
+            foreach (var (key, value) in _requestData.Where(kv => !string.IsNullOrEmpty(kv.Value)))
+            {
+                data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
+            }
+
+
+            var querystring = data.ToString();
+
+
+            baseUrl += "?" + querystring;
+            var signData = querystring;
+            if (signData.Length > 0)
+            {
+                signData = signData.Remove(data.Length - 1, 1);
+            }
+
+
+            var vnpSecureHash = HmacSha512(hashSecret, signData);
+            baseUrl += "vnp_SecureHash=" + vnpSecureHash;
+
+
+            return baseUrl;
+        }
+
+        public async Task<VNPayResponseModel> CallBackBookingPayment(IQueryCollection collections)
+        {
+            SortedList<string, string> _responseData = new SortedList<string, string>(new VnPayCompare());
+            foreach (var (key, value) in collections)
+            {
+                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
+                {
+                    _responseData = AddResponseData(key, value, _responseData);
+                }
+            }
+            string code = GetResponseData("vnp_TxnRef", _responseData).Trim();
+            float totalAmount = float.Parse(GetResponseData("vnp_Amount", _responseData).Trim()) / 100;
+            string name = GetResponseData("vnp_OrderInfo", _responseData).Trim();
+            string bankCode = GetResponseData("vnp_BankCode", _responseData).Trim();
+            string bankTranNo = GetResponseData("vnp_BankTranNo", _responseData).Trim();
+            string cardType = GetResponseData("vnp_CardType", _responseData).Trim();
+            DateTime paymentDate = DateTime.ParseExact(GetResponseData("vnp_PayDate", _responseData).Trim(), "yyyyMMddHHmmss", null);
+            string VNPayCode = GetResponseData("vnp_TransactionNo", _responseData).Trim();
+            string responseCode = GetResponseData("vnp_ResponseCode", _responseData).Trim();
+            string transactionStatus = GetResponseData("vnp_TransactionStatus", _responseData).Trim();
+            string vnpSecureHash =
+                collections.FirstOrDefault(k => k.Key == "vnp_SecureHash").Value;
+
+            string hashSecret = _configuration["VnPay:HashSecret"];
+            var checkSignature =
+                ValidateSignature(vnpSecureHash, hashSecret, _responseData); //check Signature
+            bool success = true;
+            if (!checkSignature)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Id = $"Invalid Signature";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
+            }
+            else
+            {
+                if (responseCode != "00" || transactionStatus != "00")
+                {
+                    dynamic errors = new ExpandoObject();
+                    errors.Id = "Payment Error";
+                    throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
+                }
+            }
+
+            return new VNPayResponseModel
+            {
+                Code = code,
+                TotalAmount = totalAmount,
+                BankCode = bankCode,
+                BankTranNo = bankTranNo,
+                CardType = cardType,
+                Name = name,
+                PaymentDate = paymentDate,
+                Success = success,
+                VNPayCode = VNPayCode
+            };
+        }
+
+        private string HmacSha512(string key, string inputData)
+        {
+            var hash = new StringBuilder();
+            var keyBytes = Encoding.UTF8.GetBytes(key);
+            var inputBytes = Encoding.UTF8.GetBytes(inputData);
+            using (var hmac = new HMACSHA512(keyBytes))
+            {
+                var hashValue = hmac.ComputeHash(inputBytes);
+                foreach (var theByte in hashValue)
+                {
+                    hash.Append(theByte.ToString("x2"));
+                }
+            }
+
+
+            return hash.ToString();
         }
         private static string GetIpAddress()
         {
@@ -49,119 +307,7 @@ namespace YBS2.Service.Services.Implements
             }
             return _requestData;
         }
-        private SortedList<string, string> AddRegisterRequestData(MembershipPackage membershipPackage, HttpContext context)
-        {
-            SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
-            var tick = DateTime.Now.Ticks.ToString();
-            var callBackUrl = "https://" + context.Request.Host + _configuration["PaymentCallBack:MembershipPaymentReturnUrl"];
-            //add basic parameter to VNPay 
-            _requestData = AddRequestData("vnp_Version", _configuration["Vnpay:Version"], _requestData);
-            _requestData = AddRequestData("vnp_Command", _configuration["Vnpay:Command"], _requestData);
-            _requestData = AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"], _requestData);
-            _requestData = AddRequestData("vnp_Amount", ((int)membershipPackage.Price * 100).ToString(), _requestData);
-            _requestData = AddRequestData("vnp_CreateDate", DateTime.UtcNow.AddHours(7).ToString("yyyyMMddHHmmss"), _requestData);
-            _requestData = AddRequestData("vnp_CurrCode", "VND", _requestData);
-            _requestData = AddRequestData("vnp_IpAddr", GetIpAddress(), _requestData);
-            _requestData = AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"], _requestData);
-            _requestData = AddRequestData("vnp_OrderInfo", membershipPackage.Id.ToString(), _requestData);
-            _requestData = AddRequestData("vnp_OrderType", nameof(EnumTransactionType.Register), _requestData);
-            _requestData = AddRequestData("vnp_ReturnUrl", callBackUrl, _requestData);
-            _requestData = AddRequestData("vnp_TxnRef", tick, _requestData);
-            _requestData = AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"), _requestData);
-            return _requestData;
-        }
 
-        public async Task<string?> CreateRegisterRequestURL(Guid membershipPackageId, HttpContext context)
-        {
-            string baseUrl = _configuration["VnPay:BaseUrl"];
-            string hashSecret = _configuration["VnPay:HashSecret"];
-            MembershipPackage activedMembershipPackage = await _unitOfWork.MembershipPackageRepository.GetByID(membershipPackageId);
-            if (activedMembershipPackage == null)
-            {
-                string message = "This membership package is currently inactive, please choose another membership package.";
-                throw new APIException(HttpStatusCode.BadRequest, message, null);
-            }
-            SortedList<string, string> _requestData = AddRegisterRequestData(activedMembershipPackage, context);
-            var data = new StringBuilder();
-
-
-            foreach (var (key, value) in _requestData.Where(kv => !string.IsNullOrEmpty(kv.Value)))
-            {
-                data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
-            }
-
-
-            var querystring = data.ToString();
-
-
-            baseUrl += "?" + querystring;
-            var signData = querystring;
-            if (signData.Length > 0)
-            {
-                signData = signData.Remove(data.Length - 1, 1);
-            }
-
-
-            var vnpSecureHash = HmacSha512(hashSecret, signData);
-            baseUrl += "vnp_SecureHash=" + vnpSecureHash;
-
-
-            return baseUrl;
-        }
-        private string HmacSha512(string key, string inputData)
-        {
-            var hash = new StringBuilder();
-            var keyBytes = Encoding.UTF8.GetBytes(key);
-            var inputBytes = Encoding.UTF8.GetBytes(inputData);
-            using (var hmac = new HMACSHA512(keyBytes))
-            {
-                var hashValue = hmac.ComputeHash(inputBytes);
-                foreach (var theByte in hashValue)
-                {
-                    hash.Append(theByte.ToString("x2"));
-                }
-            }
-
-
-            return hash.ToString();
-        }
-
-        public async Task<VNPayResponseModel> CallBackRegisterPayment(IQueryCollection collections)
-        {
-            SortedList<string, string> _responseData = new SortedList<string, string>(new VnPayCompare());
-            foreach (var (key, value) in collections)
-            {
-                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
-                {
-                    _responseData = AddResponseData(key, value, _responseData);
-                }
-            }
-            Guid membershipPackageId = Guid.Parse(GetResponseData("vnp_OrderInfo", _responseData).Trim()); //membership package id //can lay
-            string responseCode = GetResponseData("vnp_ResponseCode", _responseData).Trim();// can lay
-            DateTime paymentDate = DateTime.ParseExact(GetResponseData("vnp_PayDate", _responseData).Trim(), "yyyyMMddHHmmss", null);
-            string transactionNo = GetResponseData("vnp_TransactionNo", _responseData).Trim();//can lay
-            string transactionStatus = GetResponseData("vnp_TransactionStatus", _responseData).Trim();//can lay
-            string vnpSecureHash =
-                collections.FirstOrDefault(k => k.Key == "vnp_SecureHash").Value; //hash của dữ liệu trả về
-
-            string hashSecret = _configuration["VnPay:HashSecret"];
-            var checkSignature =
-                ValidateSignature(vnpSecureHash, hashSecret, _responseData); //check Signature
-            if (!checkSignature)
-            {
-                string message = "Invalid Signature";
-                throw new APIException(HttpStatusCode.BadGateway, message, null);
-            }
-
-            return new VNPayResponseModel
-            {
-                MembershipPackageId = membershipPackageId,
-                TransactionNumber = transactionNo,
-                TransactionStatus = transactionStatus,
-                VnpayPaymentDate = paymentDate,
-                VnpayResponseCode = responseCode
-            };
-        }
         private SortedList<string, string> AddResponseData(string key, string value, SortedList<string, string> _responseData)
         {
             if (!string.IsNullOrEmpty(value))
@@ -170,16 +316,19 @@ namespace YBS2.Service.Services.Implements
             }
             return _responseData;
         }
+
         private string GetResponseData(string key, SortedList<string, string> _responseData)
         {
             return _responseData.TryGetValue(key, out var retValue) ? retValue : string.Empty;
         }
+
         private bool ValidateSignature(string inputHash, string secretKey, SortedList<string, string> _responseData)
         {
             var rspRaw = GetResponseData(_responseData);
             var myChecksum = HmacSha512(secretKey, rspRaw);
             return myChecksum.Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
         }
+
         private string GetResponseData(SortedList<string, string> _responseData)
         {
             var data = new StringBuilder();
@@ -210,6 +359,7 @@ namespace YBS2.Service.Services.Implements
 
             return data.ToString();
         }
+
     }
     public class VnPayCompare : IComparer<string>
     {
