@@ -152,7 +152,14 @@ namespace YBS2.Service.Services.Implements
                     query = query.Where(tour => tour.CompanyId == companyId);
                 }
             }
-            return await query.Select(tour => _mapper.Map<TourDto>(tour)).FirstOrDefaultAsync();
+            Tour? tour = await query.FirstOrDefaultAsync();
+            if (tour == null)
+            {
+                return null;
+            }
+            TourDto tourDto = _mapper.Map<TourDto>(tour);
+            tourDto.ImageURLs = tour.ImageURL.Split(',');
+            return tourDto;
         }
 
         public async Task<TourDto?> Update(Guid id, TourInputDto inputDto)

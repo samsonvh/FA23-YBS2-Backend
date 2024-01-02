@@ -54,7 +54,8 @@ namespace YBS2.Service.Utils
             //Tour
             CreateMap<Tour, TourListingDto>()
                 .ForMember(tourListingDto => tourListingDto.ImageURL, options => options.Ignore());
-            CreateMap<Tour, TourDto>();
+            CreateMap<Tour, TourDto>()
+                .ForMember(tourDto => tourDto.ImageURLs, options => options.Ignore());
             CreateMap<TourInputDto, Tour>();
 
             //Booking
