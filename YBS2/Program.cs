@@ -80,7 +80,7 @@ builder.Services.AddScoped<IYachtService, YachtService>();
 builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
 builder.Services.AddScoped<ITourService, TourService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
-builder.Services.AddScoped<ITransactionService, TransactionService>();
+// builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddHttpContextAccessor();
 
 //Add Authentication
