@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 
 namespace YBS2.Service.Dtos.PageResponses
 {
-    public class VNPayResponseModel
+    public class VNPayRegisterResponse
     {
+        public Guid MemberId { get; set; }
+        public Guid MembershipPackageId { get; set; }
         public string Code {get; set;}
         public float TotalAmount { get; set; }
         public string Name { get; set; }

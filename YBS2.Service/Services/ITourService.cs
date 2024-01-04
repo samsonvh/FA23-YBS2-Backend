@@ -17,5 +17,6 @@ namespace YBS2.Service.Services
         Task<TourDto?> Create(TourInputDto inputDto, ClaimsPrincipal claims);
         Task<DefaultPageResponse<TourListingDto>> GetAll(TourPageRequest pageRequest, ClaimsPrincipal claims);
         Task<TourDto?> GetDetails(Guid id, ClaimsPrincipal claims);
+        Task<bool> ChangeStatus(Guid id, string status, ClaimsPrincipal claims);
     }
 }

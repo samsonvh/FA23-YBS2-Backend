@@ -30,7 +30,7 @@ namespace YBS2.Controllers
             _logger = logger;
             _yachtService = yachtService;
         }
-        [SwaggerOperation("Get list of yachts, paging information")]
+        [SwaggerOperation("[Company] Get list of yachts, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<YachtListingDto>))]
         [Produces("application/json")]
         [HttpGet]
@@ -39,7 +39,7 @@ namespace YBS2.Controllers
             return Ok(await _yachtService.GetAll(pageRequest));
         }
 
-        [SwaggerOperation("Get details of a yacht according to ID")]
+        [SwaggerOperation("[Company] Get details of a yacht according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(YachtDto))]
         [Produces("application/json")]
         [HttpGet]
@@ -57,7 +57,7 @@ namespace YBS2.Controllers
             }
         }
 
-        [SwaggerOperation("Create new yacht")]
+        [SwaggerOperation("[Company] Create new yacht")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(YachtDto))]
         [Produces("application/json")]
         [HttpPost]
@@ -66,7 +66,7 @@ namespace YBS2.Controllers
             return Ok(await _yachtService.Create(inputDto));
         }
 
-        [SwaggerOperation("Update yacht details according to ID")]
+        [SwaggerOperation("[Company] Update yacht details according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(YachtDto))]
         [Produces("application/json")]
         [HttpPut]
@@ -76,7 +76,7 @@ namespace YBS2.Controllers
             return Ok(await _yachtService.Update(id, inputDto));
         }
 
-        [SwaggerOperation("Change status of yacht according to ID")]
+        [SwaggerOperation("[Company] Change status of yacht according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.YACHT_ID_V1)]

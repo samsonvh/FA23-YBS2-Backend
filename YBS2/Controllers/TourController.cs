@@ -36,7 +36,7 @@ namespace YBS2.Controllers
             _tourService = tourService;
             _configuration = configuration;
         }
-        [SwaggerOperation("Get list of tours, paging information")]
+        [SwaggerOperation("[Public] Get list of tours, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<TourListingDto>))]
         [Produces("application/json")]
         [HttpGet]
@@ -46,7 +46,7 @@ namespace YBS2.Controllers
             return Ok(await _tourService.GetAll(pageRequest, claims));
         }
 
-        [SwaggerOperation("Get details of a tour according to ID")]
+        [SwaggerOperation("[Public] Get details of a tour according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(TourDto))]
         [Produces("application/json")]
         [HttpGet]
@@ -58,7 +58,7 @@ namespace YBS2.Controllers
             return Ok(await _tourService.GetDetails(id, claims));
         }
 
-        [SwaggerOperation("Create new tour")]
+        [SwaggerOperation("[Company] Create new tour")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(TourDto))]
         [Produces("application/json")]
         [HttpPost]
@@ -69,7 +69,7 @@ namespace YBS2.Controllers
             return Ok(await _tourService.Create(inputDto,claims));
         }
 
-        [SwaggerOperation("Update tour details according to ID")]
+        [SwaggerOperation("[Company] Update tour details according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(TourDto))]
         [Produces("application/json")]
         [HttpPut]
@@ -80,14 +80,16 @@ namespace YBS2.Controllers
             return Ok(await _tourService.Update(id, inputDto));
         }
 
-        [SwaggerOperation("Change status of tour according to ID")]
+        [SwaggerOperation("[Company] Change status of tour according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.TOUR_ID_V1)]
         [HttpPatch]
+        [RoleAuthorization(nameof(EnumRole.Company))]
         public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] string status)
         {
-            return Ok(await _tourService.ChangeStatus(id, status));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _tourService.ChangeStatus(id, status, claims));
 
         }
     }

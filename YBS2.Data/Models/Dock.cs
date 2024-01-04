@@ -18,5 +18,6 @@ namespace YBS2.Data.Models
         public string ImageURL { get; set; }
         public string Description { get; set; }
         public EnumDockStatus Status { get; set; }
+        public ICollection<TourDock>? TourDocks { get; set; }
     }
 }

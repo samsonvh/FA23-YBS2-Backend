@@ -30,7 +30,7 @@ namespace YBS2.Controllers
             _configuration = configuration;
         }
 
-        [SwaggerOperation("Get list of members, paging information")]
+        [SwaggerOperation("[Admin] Get list of members, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<MemberListingDto>))]
         [Produces("application/json")]
         [HttpGet]
@@ -40,7 +40,7 @@ namespace YBS2.Controllers
             return Ok(await _memberService.GetAll(pageRequest));
         }
 
-        [SwaggerOperation("Get details of a member according to ID")]
+        [SwaggerOperation("[Admin] Get details of a member according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(MemberDto))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_ID_V1)]
@@ -51,13 +51,13 @@ namespace YBS2.Controllers
             return Ok(await _memberService.GetDetails(id));
         }
 
-        [SwaggerOperation("Create new member")]
+        [SwaggerOperation("[Public] Create new member")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MemberDto))]
         [Produces("application/json")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] MemberInputDto inputDto)
         {
-            return Ok(await _memberService.Create(inputDto));
+            return Ok(await _memberService.Create(inputDto, HttpContext));
         }
 
         [SwaggerOperation("Update member details according to ID")]
@@ -71,7 +71,7 @@ namespace YBS2.Controllers
             return Ok(await _memberService.Update(inputDto, claims));
         }
 
-        [SwaggerOperation("Change status of member according to ID")]
+        [SwaggerOperation("[Admin] Change status of member according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_ID_V1)]
@@ -82,14 +82,14 @@ namespace YBS2.Controllers
             return Ok(await _memberService.ChangeStatus(id, status));
 
         }
-        [SwaggerOperation("Change status of member according to ID")]
+        [SwaggerOperation("[Public] Activate member when payment for register successfully")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_ACTIVATE_V1)]
-        [HttpPut]
-        public async Task<IActionResult> ActivateMember(ActivateMemberInputDto inputDto)
+        [HttpGet]
+        public async Task<IActionResult> ActivateMember()
         {
-            return Ok(await _memberService.ActivateMember(inputDto));
+            return Ok(await _memberService.ActivateMember(Request.Query));
         }
     }
 }
