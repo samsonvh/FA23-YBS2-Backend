@@ -4,6 +4,7 @@ using YBS2.Service.Dtos;
 using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
+using YBS2.Service.Dtos.PageResponses;
 
 namespace YBS2.Service.Utils
 {
@@ -22,22 +23,25 @@ namespace YBS2.Service.Utils
                 .ForMember(companyDto => companyDto.Status, options => options.MapFrom(company => MapDefaultStatus(company.Account.Status)));
             CreateMap<Company, CompanyListingDto>()
                 .ForMember(companyListingDto => companyListingDto.Status, options => options.MapFrom(company => MapDefaultStatus(company.Account.Status)));
-           
+
             // Member 
-            CreateMap<Member,MemberListingDto>();
-            CreateMap<Member,MemberDto>();
-            CreateMap<MemberInputDto,Member>()
-                .ForMember(member => member.AvatarURL,options => options.Ignore());
-            CreateMap<MemberInputDto,Account>();
-            
+            CreateMap<Member, MemberListingDto>();
+            CreateMap<Member, MemberDto>();
+            CreateMap<MemberInputDto, Member>()
+                .ForMember(member => member.AvatarURL, options => options.Ignore());
+            CreateMap<MemberInputDto, Account>();
+
             //Dock
-            CreateMap<Dock,DockListingDto>();
-            CreateMap<Dock,DockDto>();
-            CreateMap<DockInputDto,Dock>();
+            CreateMap<Dock, DockListingDto>();
+            CreateMap<Dock, DockDto>();
+            CreateMap<DockInputDto, Dock>()
+                .ForMember(dock => dock.ImageURL, options => options.Ignore());
+            CreateMap<Dock, TourDock>()
+                .ForMember(dock => dock.Id, options => options.Ignore());
             //Yacht
-            CreateMap<Yacht,YachtListingDto>();
-            CreateMap<Yacht,YachtDto>();
-            CreateMap<YachtInputDto,Yacht>();
+            CreateMap<Yacht, YachtListingDto>();
+            CreateMap<Yacht, YachtDto>();
+            CreateMap<YachtInputDto, Yacht>();
 
             //  Update Request
             CreateMap<UpdateRequestInputDto, UpdateRequest>();
@@ -63,14 +67,16 @@ namespace YBS2.Service.Utils
             CreateMap<Booking, BookingDto>();
             CreateMap<BookingInputDto, Booking>()
                 .ForMember(booking => booking.Passengers, options => options.Ignore());
-        
+
             //Passenger
-            CreateMap<PassengerInputDto,Passenger>();
+            CreateMap<PassengerInputDto, Passenger>();
 
             //Transaction 
             CreateMap<Transaction, TransactionListingDto>();
             CreateMap<Transaction, TransactionDto>();
             CreateMap<TransactionInputDto, Transaction>();
+            //VNPayResponse 
+            CreateMap<VNPayRegisterResponse,Transaction>();
         }
 
         private static string MapDefaultStatus(Enum status)

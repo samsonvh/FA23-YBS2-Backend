@@ -27,7 +27,7 @@ namespace YBS2.Controllers
             _membershipPackageService = membershipPackageService;
             _configuration = configuration;
         }
-        [SwaggerOperation("Get list of membership packages, paging information")]
+        [SwaggerOperation("[Public] Get list of membership packages, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<MembershipPackageListingDto>))]
         [Produces("application/json")]
         [HttpGet]
@@ -38,7 +38,7 @@ namespace YBS2.Controllers
             return Ok(await _membershipPackageService.GetAll(pageRequest,claims));
         }
 
-        [SwaggerOperation("Get details of a membership package according to ID")]
+        [SwaggerOperation("[Public] Get details of a membership package according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(MembershipPackageDto))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBERSHIP_PACKAGES_ID_V1)]
@@ -50,7 +50,7 @@ namespace YBS2.Controllers
             return Ok(await _membershipPackageService.GetDetails(id,claims));
         }
 
-        [SwaggerOperation("Create new membership package")]
+        [SwaggerOperation("[Admin] Create new membership package")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MembershipPackageDto))]
         [Produces("application/json")]
         [HttpPost]
@@ -59,7 +59,7 @@ namespace YBS2.Controllers
             return Ok(await _membershipPackageService.Create(inputDto));
         }
 
-        [SwaggerOperation("Update membership package details according to ID")]
+        [SwaggerOperation("[Admin] Update membership package details according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(MembershipPackageDto))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBERSHIP_PACKAGES_ID_V1)]
@@ -70,7 +70,7 @@ namespace YBS2.Controllers
             return Ok(await _membershipPackageService.Update(id, inputDto));
         }
 
-        [SwaggerOperation("Change status of membership package according to ID")]
+        [SwaggerOperation("[Admin] Change status of membership package according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBERSHIP_PACKAGES_ID_V1)]

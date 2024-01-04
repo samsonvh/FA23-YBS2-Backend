@@ -30,7 +30,7 @@ namespace YBS2.Controllers
             _configuration = configuration;
         }
 
-        [SwaggerOperation("Get list of transactions, paging information")]
+        [SwaggerOperation("[Member] Get list of transactions, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<TransactionListingDto>))]
         [Produces("application/json")]
         [HttpGet]
@@ -40,7 +40,7 @@ namespace YBS2.Controllers
             return Ok(await _transactionService.GetAll(pageRequest));
         }
 
-        [SwaggerOperation("Get details of a transaction according to ID")]
+        [SwaggerOperation("[Member] Get details of a transaction according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(TransactionDto))]
         [Produces("application/json")]
         [Route(APIEndPoints.TRANSACTION_ID_V1)]
@@ -50,7 +50,7 @@ namespace YBS2.Controllers
             return Ok(await _transactionService.GetDetails(id));
         }
 
-        [SwaggerOperation("Create new transaction")]
+        [SwaggerOperation("[Public] Create new transaction")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(TransactionDto))]
         [Produces("application/json")]
         [HttpPost]
@@ -59,7 +59,7 @@ namespace YBS2.Controllers
             return Ok(await _transactionService.Create(inputDto));
         }
 
-        [SwaggerOperation("Update transaction details according to ID")]
+        [SwaggerOperation("[Public] Update transaction details according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(TransactionDto))]
         [Produces("application/json")]
         [HttpPut]
@@ -70,7 +70,7 @@ namespace YBS2.Controllers
             return Ok(await _transactionService.Update(id, inputDto));
         }
 
-        [SwaggerOperation("Change status of transaction according to ID")]
+        [SwaggerOperation("[Public] Change status of transaction according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.TRANSACTION_ID_V1)]

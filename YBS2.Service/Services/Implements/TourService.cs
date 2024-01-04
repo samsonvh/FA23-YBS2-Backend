@@ -6,7 +6,10 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
+using Humanizer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using YBS.Service.Utils;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
@@ -18,6 +21,7 @@ using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Dtos.PageResponses;
 using YBS2.Service.Exceptions;
+using YBS2.Service.Utils;
 
 namespace YBS2.Service.Services.Implements
 {
@@ -26,11 +30,13 @@ namespace YBS2.Service.Services.Implements
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFirebaseStorageService _firebaseStorageService;
-        public TourService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseStorageService firebaseStorageService)
+        private readonly IConfiguration _configuration;
+        public TourService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseStorageService firebaseStorageService, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _firebaseStorageService = firebaseStorageService;
+            _configuration = configuration;
         }
         public Task<bool> ChangeStatus(Guid id, string status)
         {
@@ -39,7 +45,22 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<TourDto?> Create(TourInputDto inputDto, ClaimsPrincipal claims)
         {
-            Guid tourId = Guid.Parse(claims.FindFirstValue("TourId"));
+            Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
+            Company? existingCompany = await _unitOfWork.CompanyRepository
+                .Find(company => company.Id == companyId && company.Account.Status == EnumAccountStatus.Active)
+                .FirstOrDefaultAsync();
+            if (existingCompany == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Company = "Company Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Company, Errors);
+            }
+            if (inputDto.Docks.Count == 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Dock = "Tour must have at least 1 dock.";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Dock, Errors);
+            }
             Yacht? existingYacht = await _unitOfWork.YachtRepository
                 .Find(yacht => yacht.Id == inputDto.YachtId)
                 .FirstOrDefaultAsync();
@@ -56,33 +77,41 @@ namespace YBS2.Service.Services.Implements
                 inputDto.Duration = DateTime.Now.Add(inputDto.EndTime - inputDto.StartTime).Hour;
             }
 
+            List<TourDock> tourDocks = await _unitOfWork.DockRepository
+                .Find(dock => inputDto.Docks.Contains(dock.Id) && dock.Status == EnumDockStatus.Active)
+                .Select(dock => _mapper.Map<TourDock>(dock))
+                .ToListAsync();
+
+            if (tourDocks.Count == 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Dock = "No Dock Found.";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Dock, Errors);
+            }
             Tour tour = _mapper.Map<Tour>(inputDto);
+            tour.TourDocks = tourDocks;
             tour.MaximumGuest = existingYacht.TotalPassenger;
             tour.Status = EnumTourStatus.Active;
-            tour.Id = tourId;
+            tour.CompanyId = companyId;
             _unitOfWork.TourRepository.Add(tour);
             await _unitOfWork.SaveChangesAsync();
 
-            if (inputDto.ImageURL.Count > 0)
-            {
-                string imageURL = "";
-                foreach (var image in inputDto.ImageURL)
-                {
-                    string imageName = tour.Id.ToString();
-                    Uri imageUri = await _firebaseStorageService.UploadFile(imageName, image);
-                    imageURL += imageUri.ToString() + ",";
-                }
-                imageURL = imageURL.Remove(imageURL.Length - 1, 1);
-                tour.ImageURL = imageURL;
-                _unitOfWork.TourRepository.Update(tour);
-                await _unitOfWork.SaveChangesAsync();
-            }
-            else
+            if (inputDto.ImageURLs.Count == 0)
             {
                 dynamic Errors = new ExpandoObject();
-                Errors.ImageURL = $"Tour must have at least 1 image.";
+                Errors.ImageURL = "Tour must have at least 1 image.";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.ImageURL, Errors);
             }
+            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.ImageURLs, tour.Id, _firebaseStorageService);
+            if (imageURL == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.UploadFile = "Error while uploading file";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.UploadFile, Errors);
+            }
+            tour.ImageURL = imageURL;
+            _unitOfWork.TourRepository.Update(tour);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<TourDto>(tour);
         }
 
@@ -164,7 +193,60 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<TourDto?> Update(Guid id, TourInputDto inputDto)
         {
-            throw new NotImplementedException();
+            Tour? existingTour = await _unitOfWork.TourRepository.GetByID(id);
+            if (existingTour == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Tour = "Tour Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Tour, Errors);
+            }
+            Yacht? existingYacht = await _unitOfWork.YachtRepository
+                .Find(yacht => yacht.Id == inputDto.YachtId)
+                .FirstOrDefaultAsync();
+            if (existingYacht == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Yacht = "Yacht Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Yacht, Errors);
+            }
+            await FirebaseUtil.DeleteFile(existingTour.ImageURL, _configuration, _firebaseStorageService);
+            if (inputDto.ImageURLs.Count == 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.ImageURL = "Tour must have at least 1 image.";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.ImageURL, Errors);
+            }
+            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.ImageURLs, existingTour.Id, _firebaseStorageService);
+            if (imageURL == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.ImageURL = "Error while uploading file.";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.ImageURL, Errors);
+            }
+            existingTour.ImageURL = imageURL;
+            existingTour.YachtId = inputDto.YachtId;
+            existingTour.Name = inputDto.Name;
+            existingTour.Price = inputDto.Price;
+            existingTour.Priority = inputDto.Priority;
+            existingTour.Location = inputDto.Location;
+            existingTour.StartTime = inputDto.StartTime;
+            existingTour.EndTime = inputDto.EndTime;
+            if (inputDto.Type == EnumTourType.Many_Days)
+            {
+                existingTour.Duration = (int)inputDto.Duration;
+                existingTour.DurationUnit = inputDto.DurationUnit;
+            }
+            else
+            {
+                inputDto.DurationUnit = "Hours";
+                inputDto.Duration = DateTime.Now.Add(inputDto.EndTime - inputDto.StartTime).Hour;
+            }
+            existingTour.MaximumGuest = existingYacht.TotalPassenger;
+            existingTour.Type = inputDto.Type;
+            existingTour.Description = inputDto.Description;
+            _unitOfWork.TourRepository.Update(existingTour);
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<TourDto>(existingTour);
         }
 
         private IQueryable<Tour> Filter(IQueryable<Tour> query, TourPageRequest pageRequest)
@@ -192,6 +274,40 @@ namespace YBS2.Service.Services.Implements
             query = query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending);
 
             return query;
+        }
+
+        public async Task<bool> ChangeStatus(Guid id, string status, ClaimsPrincipal claims)
+        {
+            Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
+            Company? existingCompany = await _unitOfWork.CompanyRepository
+                .Find(company => company.Id == companyId && company.Account.Status == EnumAccountStatus.Active)
+                .FirstOrDefaultAsync();
+            if (existingCompany == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.company = "Company Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.company, Errors);
+            }
+            Tour? exisitingTour = await _unitOfWork.TourRepository
+                .Find(tour => tour.Id == id && tour.CompanyId == companyId)
+                .FirstOrDefaultAsync();
+            if (exisitingTour == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Tour = "Tour Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Tour, Errors);
+            }
+            status = TextUtils.Capitalize(status);
+            if (!Enum.IsDefined(typeof(EnumTourStatus), status))
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Status = $"Status {status} is invalid";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Status, Errors);
+            }
+            exisitingTour.Status = Enum.Parse<EnumTourStatus>(status);
+            _unitOfWork.TourRepository.Update(exisitingTour);
+            await _unitOfWork.SaveChangesAsync();
+            return true;
         }
     }
 }

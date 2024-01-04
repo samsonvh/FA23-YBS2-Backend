@@ -5,5 +5,6 @@ namespace YBS2.Service.Services
     public interface IFirebaseStorageService
     {
         Task<Uri> UploadFile(string name, IFormFile file);
+        Task DeleteFile(string name);
     }
 }

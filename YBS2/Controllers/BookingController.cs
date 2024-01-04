@@ -35,7 +35,7 @@ namespace YBS2.Controllers
             _bookingService = bookingService;
             _configuration = configuration;
         }
-        [SwaggerOperation("Get list of bookings, paging information")]
+        [SwaggerOperation("[Company|Member] Get list of bookings, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<BookingListingDto>))]
         [Produces("application/json")]
         [HttpGet]
@@ -45,7 +45,7 @@ namespace YBS2.Controllers
             return Ok(await _bookingService.GetAll(pageRequest, claims));
         }
 
-        [SwaggerOperation("Get details of a booking according to ID")]
+        [SwaggerOperation("[Public] Get details of a booking according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(BookingDto))]
         [Produces("application/json")]
         [HttpGet]
@@ -56,7 +56,7 @@ namespace YBS2.Controllers
             return Ok(await _bookingService.GetDetails(id,claims));
         }
 
-        [SwaggerOperation("Create new booking")]
+        [SwaggerOperation("[Public] Create new booking")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(BookingDto))]
         [Produces("application/json")]
         [HttpPost]
@@ -66,7 +66,7 @@ namespace YBS2.Controllers
             return Ok(await _bookingService.Create(inputDto, claims));
         }
 
-        [SwaggerOperation("Update booking details according to ID")]
+        [SwaggerOperation("[Company|Member] Update booking details according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(BookingDto))]
         [Produces("application/json")]
         [HttpPut]
@@ -76,7 +76,7 @@ namespace YBS2.Controllers
             return Ok(await _bookingService.Update(id, inputDto));
         }
 
-        [SwaggerOperation("Change status of booking according to ID")]
+        [SwaggerOperation("[Company] Change status of booking according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.BOOKING_ID_V1)]

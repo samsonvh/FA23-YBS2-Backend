@@ -22,5 +22,10 @@ namespace YBS2.Service.Services.Implements
             var fileUri = new Uri(blob.MediaLink);
             return fileUri;
         }
+
+        public async Task DeleteFile(string name)
+        {
+            await _storageClient.DeleteObjectAsync(BUCKET_NAME,name);
+        }
     }
 }

@@ -30,9 +30,6 @@ namespace YBS2
         public const string UPDATE_REQUESTS_OF_COMPANY_ID_V1 = COMPANIES_ID_V1 + "/update-requests";
         public const string UPDATE_REQUESTS_ID_OF_COMPANY_ID_V1 = UPDATE_REQUESTS_OF_COMPANY_ID_V1 + "/{updateRequestId}";
 
-        //VNPay
-        public const string VNPAY_REGISTER_V1 = API_VERSION_V1 + "/vnpays/register";
-        public const string VNPAY_BOOKING_V1 = API_VERSION_V1 + "/vnpays/booking";
 
         //Docks
         public const string DOCK_V1 = API_VERSION_V1 + "/docks";

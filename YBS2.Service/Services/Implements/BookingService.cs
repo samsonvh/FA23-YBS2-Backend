@@ -70,7 +70,7 @@ namespace YBS2.Service.Services.Implements
                     if (inputDto.isIncludeBooker)
                     {
                         Member? member = await _unitOfWork.MemberRepository
-                            .Find(member => member.Id == memberId)
+                            .Find(member => member.Id == memberId && member.Account.Status == EnumAccountStatus.Active)
                             .FirstOrDefaultAsync();
                         if (member == null)
                         {

@@ -28,13 +28,15 @@ namespace YBS2.Service.Services.Implements
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         private readonly IFirebaseStorageService _storageService;
-        public MemberService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IMapper mapper, IFirebaseStorageService storageService)
+        private readonly IVNPayService _vnpayService;
+        public MemberService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IMapper mapper, IFirebaseStorageService storageService, IVNPayService vnpayService)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
             _mapper = mapper;
             _storageService = storageService;
+            _vnpayService = vnpayService;
         }
         public async Task<bool> ChangeStatus(Guid id, string status)
         {
@@ -74,6 +76,11 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<MemberDto?> Create(MemberInputDto inputDto)
         {
+            throw new NotImplementedException();
+        }
+
+        public async Task<string> Create(MemberInputDto inputDto, HttpContext context)
+        { 
             //validate member input field
             await CheckExistence(inputDto);
             string newPassword = "password";
@@ -98,7 +105,8 @@ namespace YBS2.Service.Services.Implements
                 _unitOfWork.MemberRepository.Update(member);
                 await _unitOfWork.SaveChangesAsync();
             }
-            return _mapper.Map<MemberDto>(member);
+            string url = await _vnpayService.CreateRegisterRequestURL(inputDto.MembershipPackageId, member.Id, context);
+            return url;
         }
 
 
@@ -144,7 +152,7 @@ namespace YBS2.Service.Services.Implements
         public async Task<MemberDto?> Update(MemberInputDto inputDto, ClaimsPrincipal claims)
         {
             Guid id = Guid.Parse(claims.FindFirstValue("MemberId"));
-            Member? existingMember = await _unitOfWork.MemberRepository.Find(member => member.Id == id)
+            Member? existingMember = await _unitOfWork.MemberRepository.Find(member => member.Id == id && member.Account.Status == EnumAccountStatus.Active)
                                                         .FirstOrDefaultAsync();
             if (existingMember != null)
             {
@@ -220,8 +228,8 @@ namespace YBS2.Service.Services.Implements
                     props.Add("Username");
                     errors.Username = "Username" + message;
                 }
-                message = string.Join(",",props) + message;
-                throw new APIException(HttpStatusCode.OK, message, errors);
+                message = string.Join(",", props) + message;
+                throw new APIException(HttpStatusCode.BadRequest, message, errors);
             }
             Member? existingMember = await _unitOfWork.MemberRepository
                 .Find(member => member.PhoneNumber == inputDto.PhoneNumber || member.IdentityNumber == inputDto.IdentityNumber)
@@ -240,28 +248,35 @@ namespace YBS2.Service.Services.Implements
                     props.Add("IdentityNumber");
                     errors.IdentityNumber = "IdentityNumber" + message;
                 }
-                message = string.Join(",",props) + message;
-                throw new APIException(HttpStatusCode.OK, message, errors);
+                message = string.Join(",", props) + message;
+                throw new APIException(HttpStatusCode.BadRequest, message, errors);
             }
         }
 
-        public async Task<bool> ActivateMember(ActivateMemberInputDto inputDto)
+        public async Task<MemberDto> ActivateMember(IQueryCollection collections)
         {
+            VNPayRegisterResponse vnpayResponse = await _vnpayService.CallBackRegisterPayment(collections);
+
             MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
-                                                        .Find(membershipPackage => membershipPackage.Id == inputDto.MembershipPackageId)
+                                                        .Find(membershipPackage => membershipPackage.Id == vnpayResponse.MembershipPackageId)
                                                         .FirstOrDefaultAsync();
             if (existingMembershipPackage == null)
             {
-                return false;
+                dynamic errors = new ExpandoObject();
+                errors.MembershipPackage = "Membership Package Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.MembershipPackage, errors);
             }
-            Member? existingMember = await _unitOfWork.MemberRepository.Find(member => member.Id == inputDto.MemberId)
+            Member? existingMember = await _unitOfWork.MemberRepository.Find(member => member.Id == vnpayResponse.MemberId)
                                                                     .Include(member => member.Account)
                                                                     .FirstOrDefaultAsync();
             if (existingMember == null)
             {
-                return false;
+                dynamic errors = new ExpandoObject();
+                errors.Member = "Member Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Member, errors);
             }
-            existingMember.MemberSinceDate = DateTime.UtcNow.AddHours(7);
+            DateTime now = DateTime.UtcNow.AddHours(7);
+            existingMember.MemberSinceDate = now;
             existingMember.Account.Status = EnumAccountStatus.Active;
             existingMember.Status = EnumMemberStatus.Active;
             _unitOfWork.MemberRepository.Update(existingMember);
@@ -271,23 +286,29 @@ namespace YBS2.Service.Services.Implements
                 Member = existingMember,
                 MembershipPackage = existingMembershipPackage,
                 MembershipStartDate = DateTime.UtcNow.AddHours(7),
+                DiscountPercent = existingMembershipPackage.DiscountPercent,
+                Name = existingMembershipPackage.Name,
                 Status = EnumMembershipRegistrationStatus.Active
             };
             switch (existingMembershipPackage.DurationUnit)
             {
-                case "ngày":
+                case "Days":
                     membershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddDays(existingMembershipPackage.Duration);
                     break;
-                case "tháng":
+                case "Months":
                     membershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddMonths(existingMembershipPackage.Duration);
                     break;
-                case "năm":
+                case "Years":
                     membershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddYears(existingMembershipPackage.Duration);
                     break;
             }
             _unitOfWork.MembershipRegistrationRepository.Add(membershipRegistration);
+            Transaction transaction = _mapper.Map<Transaction>(vnpayResponse);
+            transaction.MembershipRegistration = membershipRegistration;
+            transaction.Type = EnumTransactionType.Register;
+            _unitOfWork.TransactionRepository.Add(transaction);
             await _unitOfWork.SaveChangesAsync();
-            return true;
+            return _mapper.Map<MemberDto>(existingMember);
         }
 
         public Task<MemberDto?> Update(Guid id, MemberInputDto inputDto)
