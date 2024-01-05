@@ -51,7 +51,7 @@ namespace YBS2.Controllers
             return Ok(await _memberService.GetDetails(id));
         }
 
-        [SwaggerOperation("[Public] Create new member")]
+        [SwaggerOperation("[Public] Create new member and return payment URL")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MemberDto))]
         [Produces("application/json")]
         [HttpPost]
@@ -83,7 +83,7 @@ namespace YBS2.Controllers
 
         }
         [SwaggerOperation("[Public] Activate member when payment for register successfully")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(MemberDto))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_ACTIVATE_V1)]
         [HttpGet]

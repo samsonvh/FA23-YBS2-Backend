@@ -44,6 +44,7 @@ namespace YBS2
         //Bookings
         public const string BOOKING_V1 = API_VERSION_V1 + "/bookings";
         public const string BOOKING_ID_V1 = BOOKING_V1 + "/{id}";
+        public const string BOOKING_CONFIRM = BOOKING_V1 + "/confirm";
 
         //Transactions
         public const string TRANSACTION_V1 = API_VERSION_V1 + "/transactions";

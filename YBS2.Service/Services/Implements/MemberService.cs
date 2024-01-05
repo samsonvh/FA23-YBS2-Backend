@@ -25,14 +25,12 @@ namespace YBS2.Service.Services.Implements
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         private readonly IFirebaseStorageService _storageService;
         private readonly IVNPayService _vnpayService;
-        public MemberService(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IMapper mapper, IFirebaseStorageService storageService, IVNPayService vnpayService)
+        public MemberService(IUnitOfWork unitOfWork, IConfiguration configuration, IMapper mapper, IFirebaseStorageService storageService, IVNPayService vnpayService)
         {
             _unitOfWork = unitOfWork;
-            _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
             _mapper = mapper;
             _storageService = storageService;
@@ -79,16 +77,15 @@ namespace YBS2.Service.Services.Implements
             throw new NotImplementedException();
         }
 
-        public async Task<string> Create(MemberInputDto inputDto, HttpContext context)
-        { 
+        public async Task<object> Create(MemberInputDto inputDto, HttpContext context)
+        {
             //validate member input field
             await CheckExistence(inputDto);
-            string newPassword = "password";
             Account account = new Account
             {
                 Email = inputDto.Email.Trim().ToLower(),
                 Username = inputDto.Username.Trim().ToLower(),
-                Password = PasswordUtils.HashPassword(newPassword),
+                Password = PasswordUtils.HashPassword(inputDto.Password),
                 Role = nameof(EnumRole.Member).ToUpper(),
                 Status = EnumAccountStatus.Inactive
             };
@@ -97,16 +94,30 @@ namespace YBS2.Service.Services.Implements
             member.Status = EnumMemberStatus.Inactive;
             _unitOfWork.MemberRepository.Add(member);
             await _unitOfWork.SaveChangesAsync();
-            if (inputDto.AvatarURL != null)
+            if (inputDto.Avatar != null)
             {
                 string avatarName = member.Id.ToString();
-                Uri avatarUri = await _storageService.UploadFile(avatarName, inputDto.AvatarURL);
+                Uri avatarUri = await _storageService.UploadFile(avatarName, inputDto.Avatar);
                 member.AvatarURL = avatarUri.ToString();
                 _unitOfWork.MemberRepository.Update(member);
                 await _unitOfWork.SaveChangesAsync();
             }
             string url = await _vnpayService.CreateRegisterRequestURL(inputDto.MembershipPackageId, member.Id, context);
-            return url;
+            dynamic memberDto = new ExpandoObject();
+            memberDto.Id = member.Id;
+            memberDto.FullName = member.FullName;
+            memberDto.AvatarURL = member.AvatarURL;
+            memberDto.DOB = member.DOB;
+            memberDto.Address = member.Address;
+            memberDto.PhoneNumber = member.PhoneNumber;
+            memberDto.IdentityNumber = member.IdentityNumber;
+            memberDto.Gender = member.Gender.ToString();
+            memberDto.Nationality = member.Nationality;
+            memberDto.MemberSinceDate = member.MemberSinceDate;
+            memberDto.Status = member.Status.ToString();
+            memberDto.CreatedDate = member.CreatedDate;
+            memberDto.PaymentURL = url;
+            return memberDto;
         }
 
 
@@ -166,10 +177,10 @@ namespace YBS2.Service.Services.Implements
                 existingMember.FullName = inputDto.FullName;
                 existingMember.Nationality = inputDto.Nationality;
 
-                if (inputDto.AvatarURL != null)
+                if (inputDto.Avatar != null)
                 {
                     string avatarName = existingMember.Id.ToString();
-                    Uri avatarUri = await _storageService.UploadFile(avatarName, inputDto.AvatarURL);
+                    Uri avatarUri = await _storageService.UploadFile(avatarName, inputDto.Avatar);
                     existingMember.AvatarURL = avatarName.ToString();
                 }
 
@@ -258,27 +269,34 @@ namespace YBS2.Service.Services.Implements
             VNPayRegisterResponse vnpayResponse = await _vnpayService.CallBackRegisterPayment(collections);
 
             MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
-                                                        .Find(membershipPackage => membershipPackage.Id == vnpayResponse.MembershipPackageId)
-                                                        .FirstOrDefaultAsync();
+                .Find(membershipPackage => membershipPackage.Id == vnpayResponse.MembershipPackageId && membershipPackage.Status == EnumMembershipPackageStatus.Active)
+                .FirstOrDefaultAsync();
             if (existingMembershipPackage == null)
             {
                 dynamic errors = new ExpandoObject();
                 errors.MembershipPackage = "Membership Package Not Found";
                 throw new APIException(HttpStatusCode.BadRequest, errors.MembershipPackage, errors);
             }
-            Member? existingMember = await _unitOfWork.MemberRepository.Find(member => member.Id == vnpayResponse.MemberId)
-                                                                    .Include(member => member.Account)
-                                                                    .FirstOrDefaultAsync();
+            Member? existingMember = await _unitOfWork.MemberRepository
+                .Find(member => member.Id == vnpayResponse.MemberId)
+                .Include(member => member.Account)
+                .FirstOrDefaultAsync();
             if (existingMember == null)
             {
                 dynamic errors = new ExpandoObject();
                 errors.Member = "Member Not Found";
                 throw new APIException(HttpStatusCode.BadRequest, errors.Member, errors);
             }
+            Wallet wallet = new Wallet
+            {
+                Point = existingMembershipPackage.Point
+            };
+
             DateTime now = DateTime.UtcNow.AddHours(7);
             existingMember.MemberSinceDate = now;
             existingMember.Account.Status = EnumAccountStatus.Active;
             existingMember.Status = EnumMemberStatus.Active;
+            existingMember.Wallet = wallet;
             _unitOfWork.MemberRepository.Update(existingMember);
 
             MembershipRegistration membershipRegistration = new MembershipRegistration
@@ -303,6 +321,8 @@ namespace YBS2.Service.Services.Implements
                     break;
             }
             _unitOfWork.MembershipRegistrationRepository.Add(membershipRegistration);
+
+
             Transaction transaction = _mapper.Map<Transaction>(vnpayResponse);
             transaction.MembershipRegistration = membershipRegistration;
             transaction.Type = EnumTransactionType.Register;

@@ -77,6 +77,7 @@ namespace YBS2.Service.Utils
             CreateMap<TransactionInputDto, Transaction>();
             //VNPayResponse 
             CreateMap<VNPayRegisterResponse,Transaction>();
+            CreateMap<VNPayBookingResponse,Transaction>();
         }
 
         private static string MapDefaultStatus(Enum status)

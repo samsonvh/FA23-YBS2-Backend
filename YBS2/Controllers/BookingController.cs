@@ -63,7 +63,7 @@ namespace YBS2.Controllers
         public async Task<IActionResult> Create([FromBody] BookingInputDto inputDto)
         {
             ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
-            return Ok(await _bookingService.Create(inputDto, claims));
+            return Ok(await _bookingService.Create(inputDto, claims, HttpContext));
         }
 
         [SwaggerOperation("[Company|Member] Update booking details according to ID")]
@@ -85,6 +85,15 @@ namespace YBS2.Controllers
         {
             return Ok(await _bookingService.ChangeStatus(id, status));
 
+        }
+        [SwaggerOperation("[Public] System confirm booking after user make an payment")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.BOOKING_CONFIRM)]
+        [HttpGet]
+        public async Task<IActionResult> ActivateMember()
+        {
+            return Ok(await _bookingService.ConfirmBooking(Request.Query));
         }
     }
 }

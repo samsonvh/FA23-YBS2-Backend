@@ -7,6 +7,8 @@ namespace YBS2.Service.Dtos.PageResponses
 {
     public class VNPayBookingResponse
     {
+        public Guid MemberId { get; set; }
+        public Guid BookingId { get; set; }
         public string Code {get; set;}
         public float TotalAmount { get; set; }
         public string Name { get; set; }

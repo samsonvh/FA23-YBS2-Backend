@@ -119,7 +119,7 @@ namespace YBS2.Service.Services.Implements
             bool success = true;
 
             MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
-                .Find(membershipPackage => membershipPackage.Id == membershipPackageId)
+                .Find(membershipPackage => membershipPackage.Id == membershipPackageId && membershipPackage.Status == EnumMembershipPackageStatus.Active)
                 .FirstOrDefaultAsync();
             if (existingMembershipPackage == null)
             {
@@ -131,14 +131,14 @@ namespace YBS2.Service.Services.Implements
             if (!checkSignature)
             {
                 dynamic errors = new ExpandoObject();
-                errors.Id = $"Invalid Signature";
-                throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
+                errors.Signature = $"Invalid Signature";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Signature, errors);
             }
             if (responseCode != "00" || transactionStatus != "00")
             {
                 dynamic errors = new ExpandoObject();
-                errors.Id = "Payment Error";
-                throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
+                errors.Payment = "Payment Error";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Payment, errors);
             }
             if (totalAmount != existingMembershipPackage.Price)
             {
@@ -146,7 +146,7 @@ namespace YBS2.Service.Services.Implements
                 errors.Amount = "Invalid Amount";
                 throw new APIException(HttpStatusCode.BadRequest, errors.Amount, errors);
             }
-            
+
             return new VNPayRegisterResponse
             {
                 MemberId = memberId,
@@ -166,15 +166,15 @@ namespace YBS2.Service.Services.Implements
         private SortedList<string, string> AddBookingRequestData(Booking booking, HttpContext context)
         {
             SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
-            var callBackUrl = "https://" + context.Request.Host + _configuration["PaymentCallBack:MembershipPaymentReturnUrl"];
+            var callBackUrl = "https://" + context.Request.Host + _configuration["PaymentCallBack:BookingPaymentReturnUrl"];
             //add basic parameter to VNPay 
             _requestData = AddRequestData("vnp_Version", _configuration["Vnpay:Version"], _requestData);
             _requestData = AddRequestData("vnp_Command", _configuration["Vnpay:Command"], _requestData);
             _requestData = AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"], _requestData);
             _requestData = AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"], _requestData);
             _requestData = AddRequestData("vnp_CurrCode", "VND", _requestData);
-            _requestData = AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString(), _requestData);
-            _requestData = AddRequestData("vnp_OrderInfo", booking.Tour.Name.ToString(), _requestData);
+            _requestData = AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString() + "," + booking.MemberId.ToString(), _requestData);
+            _requestData = AddRequestData("vnp_OrderInfo", booking.Tour.Name.ToString() + "," + booking.Id.ToString(), _requestData);
             _requestData = AddRequestData("vnp_OrderType", nameof(EnumTransactionType.Booking), _requestData);
             _requestData = AddRequestData("vnp_Amount", ((int)booking.TotalAmount * 100).ToString(), _requestData);
             _requestData = AddRequestData("vnp_ReturnUrl", callBackUrl, _requestData);
@@ -236,9 +236,13 @@ namespace YBS2.Service.Services.Implements
                     _responseData = AddResponseData(key, value, _responseData);
                 }
             }
-            string code = GetResponseData("vnp_TxnRef", _responseData).Trim();
+            string[] txnRef = GetResponseData("vnp_TxnRef", _responseData).Trim().Split(",");
+            string[] orderInfo = GetResponseData("vnp_OrderInfo", _responseData).Trim().Split(",");
+            Guid memberId = Guid.Parse(txnRef[1]);
+            Guid bookingId = Guid.Parse(orderInfo[1]);
+            string code = txnRef[0];
             float totalAmount = float.Parse(GetResponseData("vnp_Amount", _responseData).Trim()) / 100;
-            string name = GetResponseData("vnp_OrderInfo", _responseData).Trim();
+            string name = orderInfo[0];
             string bankCode = GetResponseData("vnp_BankCode", _responseData).Trim();
             string bankTranNo = GetResponseData("vnp_BankTranNo", _responseData).Trim();
             string cardType = GetResponseData("vnp_CardType", _responseData).Trim();
@@ -253,24 +257,38 @@ namespace YBS2.Service.Services.Implements
             var checkSignature =
                 ValidateSignature(vnpSecureHash, hashSecret, _responseData); //check Signature
             bool success = true;
+            Booking? existingBooking = await _unitOfWork.BookingRepository
+                .Find(booking => booking.Id == bookingId)
+                .Include(booking => booking.Tour)
+                .FirstOrDefaultAsync();
+            if (existingBooking == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Booking = "Booking Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Booking, errors);
+            }
             if (!checkSignature)
             {
                 dynamic errors = new ExpandoObject();
-                errors.Id = $"Invalid Signature";
-                throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
+                errors.Signature = $"Invalid Signature";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Signature, errors);
             }
-            else
+            if (responseCode != "00" || transactionStatus != "00")
             {
-                if (responseCode != "00" || transactionStatus != "00")
-                {
-                    dynamic errors = new ExpandoObject();
-                    errors.Id = "Payment Error";
-                    throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
-                }
+                dynamic errors = new ExpandoObject();
+                errors.Payment = "Payment Error";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Payment, errors);
             }
-
+            if (totalAmount/existingBooking.TotalPassengers != existingBooking.Tour.Price)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Amount = "Invalid Amount";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Amount, errors);
+            }
             return new VNPayBookingResponse
             {
+                BookingId = bookingId,
+                MemberId = memberId,
                 Code = code,
                 TotalAmount = totalAmount,
                 BankCode = bankCode,

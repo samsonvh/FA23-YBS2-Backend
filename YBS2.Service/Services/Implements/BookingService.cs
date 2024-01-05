@@ -6,6 +6,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using YBS.Service.Utils;
 using YBS2.Data.Enums;
@@ -25,10 +26,12 @@ namespace YBS2.Service.Services.Implements
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public BookingService(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IVNPayService _vnpayService;
+        public BookingService(IUnitOfWork unitOfWork, IMapper mapper, IVNPayService vnpayService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _vnpayService = vnpayService;
         }
         public Task<bool> ChangeStatus(Guid id, string status)
         {
@@ -40,7 +43,7 @@ namespace YBS2.Service.Services.Implements
             throw new NotImplementedException();
         }
 
-        public async Task<BookingDto?> Create(BookingInputDto inputDto, ClaimsPrincipal claims)
+        public async Task<object> Create(BookingInputDto inputDto, ClaimsPrincipal claims, HttpContext context)
         {
             Tour? existingTour = await _unitOfWork.TourRepository
                 .Find(tour => tour.Id == inputDto.TourId && tour.Status == EnumTourStatus.Active && tour.Yacht != null)
@@ -51,6 +54,35 @@ namespace YBS2.Service.Services.Implements
                 errors.TourId = "Tour Not Found";
                 throw new APIException(HttpStatusCode.BadRequest, errors.TourId, errors);
             }
+            Booking booking = await AddPassengerInBooking(inputDto, claims, existingTour);
+            booking.Status = EnumBookingStatus.Pending;
+            booking.Tour = existingTour;
+            _unitOfWork.BookingRepository.Add(booking);
+            await _unitOfWork.SaveChangesAsync();
+            dynamic bookingDto = new ExpandoObject();
+            bookingDto.Id = booking.Id;
+            if (booking.MemberId != null)
+            {
+                bookingDto.MemberId = booking.MemberId;
+            }
+            bookingDto.TourId = booking.TourId;
+            bookingDto.BookingDate = booking.BookingDate;
+            bookingDto.TotalAmount = booking.TotalAmount;
+            bookingDto.TotalPassengers = booking.TotalPassengers;
+            bookingDto.Note = booking.Note;
+            bookingDto.isIncludeBooker = booking.isIncludeBooker;
+            bookingDto.Type = booking.Type.ToString();
+            bookingDto.Status = booking.Status.ToString();
+            bookingDto.CreatedDate = booking.CreatedDate;
+            if (claims != null && booking.Type != EnumBookingType.Private_Tour)
+            {
+                bookingDto.PaymentURL = await _vnpayService.CreateBookingRequestURL(booking.Id, context);
+            }
+            return bookingDto;
+        }
+
+        private async Task<Booking> AddPassengerInBooking(BookingInputDto inputDto, ClaimsPrincipal claims, Tour existingTour)
+        {
             Booking booking = _mapper.Map<Booking>(inputDto);
             int totalPassengers = 0;
             List<Passenger> passengerList = _mapper.Map<List<Passenger>>(inputDto.Passengers);
@@ -98,15 +130,11 @@ namespace YBS2.Service.Services.Implements
                     throw new APIException(HttpStatusCode.BadRequest, errors.PassengerList, errors);
                 }
             }
-            totalPassengers += passengerList.Count();
+            float totalAmount = existingTour.Price*passengerList.Count();
+            booking.TotalPassengers = passengerList.Count();
             booking.Passengers = passengerList;
-            booking.TotalPassengers = totalPassengers;
-            booking.Status = EnumBookingStatus.Pending;
-            booking.Tour = existingTour;
-            booking.CreatedDate = DateTime.UtcNow.AddHours(7);
-            _unitOfWork.BookingRepository.Add(booking);
-            await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<BookingDto>(booking);
+            booking.TotalAmount = totalAmount;
+            return booking;
         }
 
         public Task<bool> Delete(Guid id)
@@ -211,6 +239,36 @@ namespace YBS2.Service.Services.Implements
             }
             query = query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending);
             return query;
+        }
+
+        public async Task<BookingDto> ConfirmBooking(IQueryCollection collections)
+        {
+            VNPayBookingResponse vnpayResponse = await _vnpayService.CallBackBookingPayment(collections);
+            Member? existingMember = await _unitOfWork.MemberRepository
+                .Find(member => member.Id == vnpayResponse.MemberId && member.Status == EnumMemberStatus.Active)
+                .FirstOrDefaultAsync();
+            if (existingMember == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Member = "Member Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Member, errors);
+            }
+            Booking? existingBooking = await _unitOfWork.BookingRepository
+                .Find(booking => booking.Id == vnpayResponse.BookingId)
+                .FirstOrDefaultAsync();
+            if (existingBooking == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Booking = "Booking Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Booking, errors);
+            }
+            DateTime now = DateTime.UtcNow.AddHours(7);
+            existingBooking.Status = EnumBookingStatus.Approved;
+            _unitOfWork.BookingRepository.Update(existingBooking);
+            Transaction transaction = _mapper.Map<Transaction>(vnpayResponse);
+            _unitOfWork.TransactionRepository.Add(transaction);
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<BookingDto>(existingBooking);
         }
     }
 }

@@ -10,9 +10,12 @@ namespace YBS2.Service.Dtos.Details
     {
         public Guid Id { get; set; }
         public DateTime BookingDate { get; set; }
+        public float TotalAmount { get; set; }
         public int TotalPassengers { get; set; }
         public string Note { get; set; }
-        public string Status { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public bool isIncludeBooker { get; set; }
+        public EnumBookingType Type { get; set; }
+        public EnumBookingStatus Status { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
     }
 }

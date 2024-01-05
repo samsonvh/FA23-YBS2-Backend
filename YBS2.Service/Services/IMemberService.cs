@@ -12,6 +12,6 @@ namespace YBS2.Service.Services
     {
         Task<MemberDto> ActivateMember(IQueryCollection collections);
         Task<MemberDto> Update(MemberInputDto inputDto, ClaimsPrincipal claims);
-        Task<string> Create(MemberInputDto inputDto, HttpContext context);
+        Task<object> Create(MemberInputDto inputDto, HttpContext context);
     }
 }

@@ -96,7 +96,7 @@ namespace YBS2.Service.Utils
                 {
                     dynamic Errors = new ExpandoObject();
                     Errors.JWTExpires = "JWT token is expired";
-                    throw new APIException(HttpStatusCode.BadRequest, Errors.JWTExpires, Errors);
+                    throw new APIException(HttpStatusCode.Unauthorized, Errors.JWTExpires, Errors);
                 }
 
 
