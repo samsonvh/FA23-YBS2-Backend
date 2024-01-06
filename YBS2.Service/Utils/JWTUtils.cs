@@ -52,7 +52,7 @@ namespace YBS2.Service.Utils
                 issuer,
                 audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(7).AddHours(int.Parse(expires)),
+                expires: DateTime.UtcNow.AddHours(7).AddMilliseconds(int.Parse(expires)),
                 signingCredentials: signingCredentials
             );
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
@@ -83,7 +83,13 @@ namespace YBS2.Service.Utils
                     ValidIssuer = issuer,
                     ValidAudience = audience,
                 };
-
+                DateTime validTo = tokenHandler.ReadToken(authorization.Trim()).ValidTo;
+                if (validTo.CompareTo(DateTime.UtcNow.AddHours(7)) < 0) 
+                {
+                    dynamic Errors = new ExpandoObject();
+                    Errors.JWTExpires = "JWT token is expired";
+                    throw new APIException(HttpStatusCode.Unauthorized, Errors.JWTExpires, Errors);
+                }
                 // Decrypt the token and retrieve the claims
                 ClaimsPrincipal claimsPrincipal = tokenHandler.ValidateToken(authorization.Trim(), tokenValidationParameters, out _);
 
@@ -92,12 +98,12 @@ namespace YBS2.Service.Utils
                     throw new APIException(HttpStatusCode.BadRequest, "Failed to decrypt/validate the JWT token", null);
                 }
 
-                if (DateTimeOffset.FromUnixTimeSeconds(long.Parse(claimsPrincipal.FindFirstValue("exp"))).UtcDateTime < DateTime.UtcNow.AddHours(7))
-                {
-                    dynamic Errors = new ExpandoObject();
-                    Errors.JWTExpires = "JWT token is expired";
-                    throw new APIException(HttpStatusCode.Unauthorized, Errors.JWTExpires, Errors);
-                }
+                // if (DateTimeOffset.FromUnixTimeSeconds(long.Parse(claimsPrincipal.FindFirstValue("exp"))).UtcDateTime < DateTime.UtcNow.AddHours(7))
+                // {
+                //     dynamic Errors = new ExpandoObject();
+                //     Errors.JWTExpires = "JWT token is expired";
+                //     throw new APIException(HttpStatusCode.Unauthorized, Errors.JWTExpires, Errors);
+                // }
 
 
                 return claimsPrincipal;

@@ -25,7 +25,7 @@ namespace YBS2.Data.Models
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public int Duration { get; set; }
-        public string DurationUnit { get; set; }
+        public EnumTimeUnit DurationUnit { get; set; }
         public int MaximumGuest { get; set; }
         public EnumTourType Type { get; set; }
         public string Description { get; set; }

@@ -30,7 +30,7 @@ namespace YBS2.Service.Dtos.Inputs
         [JsonConverter(typeof(JSonConverterTimeSpan))]
         public TimeSpan EndTime { get; set; }
         public int? Duration { get; set; }
-        public string? DurationUnit { get; set; }
+        public EnumTimeUnit? DurationUnit { get; set; }
         [Required]
         public EnumTourType Type { get; set; }
         [Required]

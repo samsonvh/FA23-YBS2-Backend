@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using YBS2.Data.Enums;
 
 namespace YBS2.Service.Dtos.Inputs
 {
@@ -13,7 +14,7 @@ namespace YBS2.Service.Dtos.Inputs
         [Required]
         public int Duration { get; set; }
         [Required]
-        public string DurationUnit { get; set; }
+        public EnumTimeUnit DurationUnit { get; set; }
         [Required]
         public float DiscountPercent { get; set; }
         [Required]

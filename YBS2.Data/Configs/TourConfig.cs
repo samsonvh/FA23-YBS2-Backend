@@ -20,7 +20,6 @@ namespace YBS2.Data.Configs
             builder.Property(tour => tour.Location).HasColumnType("nvarchar(100)");
             builder.Property(tour => tour.StartTime).HasColumnType("time");
             builder.Property(tour => tour.EndTime).HasColumnType("time");
-            builder.Property(tour => tour.DurationUnit).HasColumnType("nvarchar(10)");
             builder.Property(tour => tour.Description).HasColumnType("nvarchar(500)");
         }
 

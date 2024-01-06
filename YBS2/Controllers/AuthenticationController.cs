@@ -35,7 +35,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.AUTHENTICATION_CREDENTIALS_V1)]
         [HttpPost]
-        public async Task<IActionResult> LoginWithEmailAndPassword([FromForm] CredentialsInputDto credentials)
+        public async Task<IActionResult> LoginWithCredentials([FromForm] CredentialsInputDto credentials)
         {
             return Ok(await _authService.LoginWithCredentials(credentials));
         }

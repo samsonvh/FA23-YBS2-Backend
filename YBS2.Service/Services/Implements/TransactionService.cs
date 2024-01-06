@@ -99,13 +99,13 @@ namespace YBS2.Service.Services.Implements
                 };
                 switch (existingMembershipPackage.DurationUnit)
                 {
-                    case "ngày":
+                    case EnumTimeUnit.Days:
                         membershipRegistration.MembershipExpireDate = now.AddDays(existingMembershipPackage.Duration);
                         break;
-                    case "tháng":
+                    case EnumTimeUnit.Months:
                         membershipRegistration.MembershipExpireDate = now.AddMonths(existingMembershipPackage.Duration);
                         break;
-                    case "năm":
+                    case EnumTimeUnit.Years:
                         membershipRegistration.MembershipExpireDate = now.AddYears(existingMembershipPackage.Duration);
                         break;
                 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using YBS2.Data.Context;
 
@@ -11,9 +12,10 @@ using YBS2.Data.Context;
 namespace YBS2.Data.Migrations
 {
     [DbContext(typeof(YBS2Context))]
-    partial class YBS2ContextModelSnapshot : ModelSnapshot
+    [Migration("20240106083419_Change duration unit of tour and membership package to enum")]
+    partial class Changedurationunitoftourandmembershippackagetoenum
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -252,8 +254,9 @@ namespace YBS2.Data.Migrations
                     b.Property<int>("Duration")
                         .HasColumnType("int");
 
-                    b.Property<int>("DurationUnit")
-                        .HasColumnType("int");
+                    b.Property<string>("DurationUnit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -355,8 +358,9 @@ namespace YBS2.Data.Migrations
                     b.Property<int>("Duration")
                         .HasColumnType("int");
 
-                    b.Property<int>("DurationUnit")
-                        .HasColumnType("int");
+                    b.Property<string>("DurationUnit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time");

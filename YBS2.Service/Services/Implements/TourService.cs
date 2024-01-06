@@ -73,7 +73,7 @@ namespace YBS2.Service.Services.Implements
 
             if (inputDto.Type == EnumTourType.In_Day)
             {
-                inputDto.DurationUnit = "Hours";
+                inputDto.DurationUnit = EnumTimeUnit.Hours;
                 inputDto.Duration = DateTime.Now.Add(inputDto.EndTime - inputDto.StartTime).Hour;
             }
 
@@ -234,11 +234,11 @@ namespace YBS2.Service.Services.Implements
             if (inputDto.Type == EnumTourType.Many_Days)
             {
                 existingTour.Duration = (int)inputDto.Duration;
-                existingTour.DurationUnit = inputDto.DurationUnit;
+                existingTour.DurationUnit = (EnumTimeUnit)inputDto.DurationUnit;
             }
             else
             {
-                inputDto.DurationUnit = "Hours";
+                inputDto.DurationUnit = EnumTimeUnit.Hours;
                 inputDto.Duration = DateTime.Now.Add(inputDto.EndTime - inputDto.StartTime).Hour;
             }
             existingTour.MaximumGuest = existingYacht.TotalPassenger;

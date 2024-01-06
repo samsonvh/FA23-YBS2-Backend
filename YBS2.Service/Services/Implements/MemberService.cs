@@ -310,13 +310,13 @@ namespace YBS2.Service.Services.Implements
             };
             switch (existingMembershipPackage.DurationUnit)
             {
-                case "Days":
+                case EnumTimeUnit.Days:
                     membershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddDays(existingMembershipPackage.Duration);
                     break;
-                case "Months":
+                case EnumTimeUnit.Months:
                     membershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddMonths(existingMembershipPackage.Duration);
                     break;
-                case "Years":
+                case EnumTimeUnit.Years:
                     membershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddYears(existingMembershipPackage.Duration);
                     break;
             }
