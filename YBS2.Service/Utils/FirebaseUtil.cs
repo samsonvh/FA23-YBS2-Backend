@@ -21,6 +21,7 @@ namespace YBS2.Service.Utils
                     string imageName = id.ToString() + "-" + count;
                     Uri imageUri = await _firebaseStorageService.UploadFile(imageName, image);
                     imageURL += imageUri.ToString() + ",";
+                    count ++ ;
                 }
                 imageURL = imageURL.Remove(imageURL.Length - 1, 1);
                 return imageURL;
