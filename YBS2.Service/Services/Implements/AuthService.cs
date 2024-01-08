@@ -19,14 +19,16 @@ namespace YBS2.Service.Services.Implements
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+        private readonly IVNPayService _vnpayService;
+        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IVNPayService vNPayService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _httpContextAccessor = httpContextAccessor;
+            _vnpayService = vNPayService;
         }
 
-        public async Task<AuthResponse?> LoginWithCredentials(CredentialsInputDto credentials)
+        public async Task<object> LoginWithCredentials(CredentialsInputDto credentials)
         {
             //validate email and password
             Account? existAccount = await _unitOfWork.AccountRepository
@@ -34,55 +36,27 @@ namespace YBS2.Service.Services.Implements
                 .Include(account => account.Member)
                 .Include(account => account.Company)
                 .FirstOrDefaultAsync();
-            if (existAccount != null)
+            if (existAccount == null)
             {
-                bool checkPassword = PasswordUtils.VerifyHashedPassword(existAccount.Password, credentials.Password);
-                if (checkPassword)
-                {
-                    if (existAccount.Status == EnumAccountStatus.Ban)
-                    {
-                        dynamic errors = new ExpandoObject();
-                        errors.Unauthorized = "Your account is banned";
-                        throw new APIException(HttpStatusCode.Unauthorized, errors.Unauthorized, errors);
-                    }
-                    string accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
-                    return new AuthResponse()
-                    {
-                        AccessToken = accessToken,
-                        AccountId = existAccount.Id,
-                        Email = existAccount.Email,
-                        Role = existAccount.Role.ToUpper(),
-                        Username = existAccount.Username
-                    };
-                }
+                return null;
             }
-            return null;
-        }
-
-        public async Task<AuthResponse?> LoginWithGoogle(string idToken)
-        {
-            GoogleJsonWebSignature.Payload? payload = await JWTUtils.GetPayload(idToken, _configuration);
-            if (payload == null)
+            if (existAccount.Member != null && existAccount.Member.Status == EnumMemberStatus.Inactive)
             {
-                dynamic errors = new ExpandoObject();
-                errors.IdToken = "Invalid IdToken";
-                throw new APIException(HttpStatusCode.BadRequest, errors.IdToken,  errors);
+                dynamic result = new ExpandoObject();
+                result.MemberId = existAccount.Member.Id;
+                result.IsInactive = true;
+                return result;
             }
-
-            var existAccount = await _unitOfWork.AccountRepository
-                .Find(account => account.Email.Trim().ToUpper() == payload.Email.Trim().ToUpper())
-                .Include(account => account.Member)
-                .Include(account => account.Company)
-                .FirstOrDefaultAsync();
-            if (existAccount != null)
+            bool checkPassword = PasswordUtils.VerifyHashedPassword(existAccount.Password, credentials.Password);
+            if (checkPassword)
             {
                 if (existAccount.Status == EnumAccountStatus.Ban)
                 {
                     dynamic errors = new ExpandoObject();
-                    errors.Unauthorized = "Unauthorized";
+                    errors.Unauthorized = "Your account is banned";
                     throw new APIException(HttpStatusCode.Unauthorized, errors.Unauthorized, errors);
                 }
-                var accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
+                string accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
                 return new AuthResponse()
                 {
                     AccessToken = accessToken,
@@ -93,6 +67,52 @@ namespace YBS2.Service.Services.Implements
                 };
             }
             return null;
+
+        }
+
+        public async Task<object>LoginWithGoogle(string idToken)
+        {
+            GoogleJsonWebSignature.Payload? payload = await JWTUtils.GetPayload(idToken, _configuration);
+            if (payload == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.IdToken = "Invalid IdToken";
+                throw new APIException(HttpStatusCode.BadRequest, errors.IdToken, errors);
+            }
+
+            var existAccount = await _unitOfWork.AccountRepository
+                .Find(account => account.Email.Trim().ToUpper() == payload.Email.Trim().ToUpper())
+                .Include(account => account.Member)
+                .Include(account => account.Company)
+                .FirstOrDefaultAsync();
+            if (existAccount == null)
+            {
+                return null;
+            }
+
+            if (existAccount.Member != null && existAccount.Member.Status == EnumMemberStatus.Inactive)
+            {
+                dynamic result = new ExpandoObject();
+                result.MemberId = existAccount.Member.Id;
+                result.IsInactive = true;
+                return result;
+            }
+            if (existAccount.Status == EnumAccountStatus.Ban)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Unauthorized = "Unauthorized";
+                throw new APIException(HttpStatusCode.Unauthorized, errors.Unauthorized, errors);
+            }
+            var accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
+            return new AuthResponse()
+            {
+                AccessToken = accessToken,
+                AccountId = existAccount.Id,
+                Email = existAccount.Email,
+                Role = existAccount.Role.ToUpper(),
+                Username = existAccount.Username
+            };
+
         }
 
     }

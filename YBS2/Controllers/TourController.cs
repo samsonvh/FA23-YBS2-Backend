@@ -66,7 +66,7 @@ namespace YBS2.Controllers
         public async Task<IActionResult> Create([FromForm] TourInputDto inputDto)
         {
             ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
-            return Ok(await _tourService.Create(inputDto,claims));
+            return CreatedAtAction(nameof(Create) ,await _tourService.Create(inputDto,claims));
         }
 
         [SwaggerOperation("[Company] Update tour details according to ID")]

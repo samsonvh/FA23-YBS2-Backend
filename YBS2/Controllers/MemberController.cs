@@ -57,7 +57,7 @@ namespace YBS2.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] MemberInputDto inputDto)
         {
-            return Ok(await _memberService.Create(inputDto, HttpContext));
+            return CreatedAtAction(nameof(Create), await _memberService.Create(inputDto, HttpContext));
         }
 
         [SwaggerOperation("Update member details according to ID")]
@@ -90,6 +90,15 @@ namespace YBS2.Controllers
         public async Task<IActionResult> ActivateMember()
         {
             return Ok(await _memberService.ActivateMember(Request.Query));
+        }
+        [SwaggerOperation("[Public] Create Payment Member URL when login with inactive member account")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MemberDto))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.MEMBER_CREATE_REGISTER_PAYMENT_URL)]
+        [HttpPost]
+        public async Task<IActionResult> CreateRegisterPaymentURL([FromForm] RegisterPaymentInputDto inputDto)
+        {
+            return CreatedAtAction(nameof(CreateRegisterPaymentURL) ,await _memberService.CreateRegisterPaymentURL(inputDto, HttpContext));
         }
     }
 }

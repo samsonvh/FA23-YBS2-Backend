@@ -56,7 +56,7 @@ namespace YBS2.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] TransactionInputDto inputDto)
         {
-            return Ok(await _transactionService.Create(inputDto));
+            return CreatedAtAction(nameof(Create) ,await _transactionService.Create(inputDto));
         }
 
         [SwaggerOperation("[Public] Update transaction details according to ID")]

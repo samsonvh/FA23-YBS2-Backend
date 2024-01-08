@@ -10,8 +10,9 @@ namespace YBS2.Service.Services
 {
     public interface IMemberService : IDefaultService<MemberPageRequest, MemberListingDto, MemberDto, MemberInputDto>
     {
-        Task<MemberDto> ActivateMember(IQueryCollection collections);
+        Task<bool> ActivateMember(IQueryCollection collections);
         Task<MemberDto> Update(MemberInputDto inputDto, ClaimsPrincipal claims);
         Task<object> Create(MemberInputDto inputDto, HttpContext context);
+        Task<string> CreateRegisterPaymentURL(RegisterPaymentInputDto inputDto, HttpContext context);
     }
 }

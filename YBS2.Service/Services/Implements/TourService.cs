@@ -62,7 +62,7 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, Errors.Dock, Errors);
             }
             Yacht? existingYacht = await _unitOfWork.YachtRepository
-                .Find(yacht => yacht.Id == inputDto.YachtId)
+                .Find(yacht => yacht.Id == inputDto.YachtId && yacht.CompanyId == companyId)
                 .FirstOrDefaultAsync();
             if (existingYacht == null)
             {
@@ -74,11 +74,11 @@ namespace YBS2.Service.Services.Implements
             if (inputDto.Type == EnumTourType.In_Day)
             {
                 inputDto.DurationUnit = EnumTimeUnit.Hours;
-                inputDto.Duration = DateTime.Now.Add(inputDto.EndTime - inputDto.StartTime).Hour;
+                inputDto.Duration = (inputDto.EndTime - inputDto.StartTime).Hours;
             }
 
             List<TourDock> tourDocks = await _unitOfWork.DockRepository
-                .Find(dock => inputDto.Docks.Contains(dock.Id) && dock.Status == EnumDockStatus.Active)
+                .Find(dock => inputDto.Docks.Contains(dock.Id) && dock.Status == EnumDockStatus.Active && dock.CompanyId == companyId)
                 .Select(dock => _mapper.Map<TourDock>(dock))
                 .ToListAsync();
 
@@ -94,7 +94,6 @@ namespace YBS2.Service.Services.Implements
             tour.Status = EnumTourStatus.Active;
             tour.CompanyId = companyId;
             _unitOfWork.TourRepository.Add(tour);
-            await _unitOfWork.SaveChangesAsync();
 
             if (inputDto.ImageURLs.Count == 0)
             {
@@ -110,7 +109,6 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, Errors.UploadFile, Errors);
             }
             tour.ImageURL = imageURL;
-            _unitOfWork.TourRepository.Update(tour);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<TourDto>(tour);
         }
@@ -192,8 +190,10 @@ namespace YBS2.Service.Services.Implements
         }
 
         public async Task<TourDto?> Update(Guid id, TourInputDto inputDto)
-        {
-            Tour? existingTour = await _unitOfWork.TourRepository.GetByID(id);
+        {   
+            Tour? existingTour = await _unitOfWork.TourRepository
+                .Find(tour => tour.Id == id && tour.Status == EnumTourStatus.Active)
+                .FirstOrDefaultAsync();
             if (existingTour == null)
             {
                 dynamic Errors = new ExpandoObject();

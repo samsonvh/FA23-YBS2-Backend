@@ -28,7 +28,13 @@ namespace YBS2.Service.Services.Implements
         private SortedList<string, string> AddRegisterRequestData(MembershipPackage membershipPackage, Guid memberId, HttpContext context)
         {
             SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
-            var callBackUrl = "https://" + context.Request.Host + _configuration["PaymentCallBack:MembershipPaymentReturnUrl"];
+            string prefix = "https://";
+            if (context.Request.Host.Port == 7000 || context.Request.Host.Port == 5000 || context.Request.Host.Port == 5170)
+            {
+                prefix = "http://";
+            }
+            string callBackUrl = prefix + context.Request.Host + _configuration["PaymentCallBack:MembershipPaymentReturnUrl"];
+            
             //add basic parameter to VNPay 
             _requestData = AddRequestData("vnp_Version", _configuration["Vnpay:Version"], _requestData);
             _requestData = AddRequestData("vnp_Command", _configuration["Vnpay:Command"], _requestData);

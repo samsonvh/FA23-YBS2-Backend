@@ -56,7 +56,7 @@ namespace YBS2.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] MembershipPackageInputDto inputDto)
         {
-            return Ok(await _membershipPackageService.Create(inputDto));
+            return CreatedAtAction(nameof(Create) ,await _membershipPackageService.Create(inputDto));
         }
 
         [SwaggerOperation("[Admin] Update membership package details according to ID")]

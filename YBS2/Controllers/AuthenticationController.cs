@@ -19,25 +19,35 @@ namespace YBS2.Controllers
         }
 
         [SwaggerOperation(Summary = "Authenticate using IdToken from Google Service")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Successfully Authenticated", typeof(AuthResponse))]
+        [SwaggerResponse(StatusCodes.Status201Created, "Successfully Authenticated", typeof(AuthResponse))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid IdToken", typeof(string))]
         [Produces("application/json")]
         [Route(APIEndPoints.AUTHENTICATION_GOOGLE_V1)]
         [HttpPost]
         public async Task<IActionResult> LoginWithGoogle([FromBody] string idToken)
         {
-            return Ok(await _authService.LoginWithGoogle(idToken));
+            dynamic result = await _authService.LoginWithGoogle(idToken);
+            if (result.MemberId != null && result.IsInactive == true)
+            {
+                return Unauthorized(result);
+            }
+            return CreatedAtAction(nameof(LoginWithGoogle), result);
         }
 
         [SwaggerOperation(Summary = "Authenticate using Email & Password")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Successfully Authenticated", typeof(AuthResponse))]
+        [SwaggerResponse(StatusCodes.Status201Created, "Successfully Authenticated", typeof(AuthResponse))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid Email", typeof(string))]
         [Produces("application/json")]
         [Route(APIEndPoints.AUTHENTICATION_CREDENTIALS_V1)]
         [HttpPost]
         public async Task<IActionResult> LoginWithCredentials([FromForm] CredentialsInputDto credentials)
         {
-            return Ok(await _authService.LoginWithCredentials(credentials));
+            dynamic result = await _authService.LoginWithCredentials(credentials);
+            if (result.MemberId != null && result.IsInactive == true)
+            {
+                return Unauthorized(result);
+            }
+            return CreatedAtAction(nameof(LoginWithCredentials), result);
         }
     }
 }

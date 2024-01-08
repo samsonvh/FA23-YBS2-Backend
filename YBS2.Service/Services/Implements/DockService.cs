@@ -39,6 +39,7 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<bool> ChangeStatus(Guid id, string status, ClaimsPrincipal claims)
         {
+            status = TextUtils.Capitalize(status);
             Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
             Company? existingCompany = await _unitOfWork.CompanyRepository
                 .Find(company => company.Id == companyId && company.Account.Status == EnumAccountStatus.Active)
@@ -62,7 +63,7 @@ namespace YBS2.Service.Services.Implements
             {
                 dynamic Errors = new ExpandoObject();
                 Errors.Status = $"Status {status} Is Invalid";
-                throw new APIException(HttpStatusCode.BadRequest, Errors.Dock, Errors);
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Status, Errors);
             }
             existingDock.Status = Enum.Parse<EnumDockStatus>(status);
             _unitOfWork.DockRepository.Update(existingDock);
@@ -89,8 +90,8 @@ namespace YBS2.Service.Services.Implements
             }
             Dock dock = _mapper.Map<Dock>(inputDto);
             dock.Company = existingCompany;
+            dock.Status = EnumDockStatus.Active;
             _unitOfWork.DockRepository.Add(dock);
-            await _unitOfWork.SaveChangesAsync();
 
             if (inputDto.ImageURLs.Count == 0)
             {
@@ -106,7 +107,6 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, Errors.ImageURL, Errors);
             }
             dock.ImageURL = imageURL;
-            _unitOfWork.DockRepository.Update(dock);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<DockDto>(dock);
         }
@@ -168,9 +168,39 @@ namespace YBS2.Service.Services.Implements
             return dockDto;
         }
 
-        public Task<DockDto?> Update(Guid id, DockInputDto inputDto)
+        public async Task<DockDto?> Update(Guid id, DockInputDto inputDto)
         {
-            throw new NotImplementedException();
+            Dock? existingDock = await _unitOfWork.DockRepository
+                .Find(dock => dock.Id == id && dock.Status == EnumDockStatus.Active)
+                .FirstOrDefaultAsync();
+            if (existingDock == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Dock = "Dock Not Found.";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Dock, Errors);
+            }
+            if (inputDto.ImageURLs.Count == 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.ImageURL = "Tour must have at least 1 image.";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.ImageURL, Errors);
+            }
+            existingDock.Name = inputDto.Name;
+            existingDock.Address = inputDto.Address;
+            existingDock.Description = inputDto.Description;
+            await FirebaseUtil.DeleteFile(existingDock.ImageURL, _configuration, _firebaseStorageService);
+
+            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.ImageURLs, existingDock.Id, _firebaseStorageService);
+            if (imageURL == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.ImageURL = "Error while uploading file.";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.ImageURL, Errors);
+            }
+            existingDock.ImageURL = imageURL;
+            _unitOfWork.DockRepository.Update(existingDock);
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<DockDto>(existingDock);
         }
 
         private IQueryable<Dock> Filter(IQueryable<Dock> query, DockPageRequest pageRequest)

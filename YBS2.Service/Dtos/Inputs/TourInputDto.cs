@@ -12,6 +12,7 @@ namespace YBS2.Service.Dtos.Inputs
 {
     public class TourInputDto
     {
+        [Required]
         public Guid? YachtId { get; set; }
         [Required]
         public string Name { get; set; }

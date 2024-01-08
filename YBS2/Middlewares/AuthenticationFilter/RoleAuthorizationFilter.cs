@@ -23,7 +23,7 @@ namespace YBS2.Middlewares.AuthenticationFilter
         {
             var claimsPrincipal = JWTUtils.GetClaim(_configuration, _httpContextAccessor.HttpContext.Request.Headers["Authorization"]);
             // Retrieve the Role claim value
-            if (claimsPrincipal == null)
+            if (claimsPrincipal == null)    
             {
                 dynamic errors = new ExpandoObject();
                 errors.Unauthorized = "Unauthorized";

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,7 @@ using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Dtos.PageResponses;
 using YBS2.Service.Services;
+using YBS2.Service.Utils;
 
 namespace YBS2.Controllers
 {
@@ -24,11 +26,13 @@ namespace YBS2.Controllers
     {
         private readonly ILogger<YachtController> _logger;
         private readonly IYachtService _yachtService;
+        private readonly IConfiguration _configuration;
 
-        public YachtController(ILogger<YachtController> logger, IYachtService yachtService)
+        public YachtController(ILogger<YachtController> logger, IYachtService yachtService, IConfiguration configuration)
         {
             _logger = logger;
             _yachtService = yachtService;
+            _configuration = configuration;
         }
         [SwaggerOperation("[Company] Get list of yachts, paging information")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<YachtListingDto>))]
@@ -36,7 +40,8 @@ namespace YBS2.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] YachtPageRequest pageRequest)
         {
-            return Ok(await _yachtService.GetAll(pageRequest));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _yachtService.GetAll(pageRequest, claims));
         }
 
         [SwaggerOperation("[Company] Get details of a yacht according to ID")]
@@ -63,7 +68,7 @@ namespace YBS2.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] YachtInputDto inputDto)
         {
-            return Ok(await _yachtService.Create(inputDto));
+            return CreatedAtAction(nameof(Create) ,await _yachtService.Create(inputDto));
         }
 
         [SwaggerOperation("[Company] Update yacht details according to ID")]

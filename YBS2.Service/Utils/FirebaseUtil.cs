@@ -15,9 +15,10 @@ namespace YBS2.Service.Utils
             if (imageURLs.Count > 0)
             {
                 string imageURL = "";
+                int count = 1;
                 foreach (var image in imageURLs)
                 {
-                    int count = 1;
+                    
                     string imageName = id.ToString() + "-" + count;
                     Uri imageUri = await _firebaseStorageService.UploadFile(imageName, image);
                     imageURL += imageUri.ToString() + ",";
@@ -35,7 +36,7 @@ namespace YBS2.Service.Utils
             {
                 int lastIndexOfPrefixString = _configuration["Firebase:ImagePrefixURL"].Length;
                 int indexOfSuffix = image.IndexOf("?");
-                string imageName = image.Substring(0, lastIndexOfPrefixString).Substring(indexOfSuffix, image.Length);
+                string imageName = image.Substring(lastIndexOfPrefixString, indexOfSuffix - lastIndexOfPrefixString);
                 await _firebaseStorageService.DeleteFile(imageName);
             }
         }
