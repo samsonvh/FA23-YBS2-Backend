@@ -13,5 +13,6 @@ namespace YBS2.Service.Dtos.Details
         public string Role { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
+        public bool IsInactive { get; set; }
     }
 }

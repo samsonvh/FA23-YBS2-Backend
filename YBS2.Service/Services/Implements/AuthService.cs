@@ -40,7 +40,7 @@ namespace YBS2.Service.Services.Implements
             {
                 return null;
             }
-            if (existAccount.Member != null && existAccount.Member.Status == EnumMemberStatus.Inactive)
+            if (existAccount.Member != null && existAccount.Status == EnumAccountStatus.Inactive)
             {
                 dynamic result = new ExpandoObject();
                 result.MemberId = existAccount.Member.Id;
@@ -63,14 +63,15 @@ namespace YBS2.Service.Services.Implements
                     AccountId = existAccount.Id,
                     Email = existAccount.Email,
                     Role = existAccount.Role.ToUpper(),
-                    Username = existAccount.Username
+                    Username = existAccount.Username,
+                    IsInactive = false
                 };
             }
             return null;
 
         }
 
-        public async Task<object>LoginWithGoogle(string idToken)
+        public async Task<object> LoginWithGoogle(string idToken)
         {
             GoogleJsonWebSignature.Payload? payload = await JWTUtils.GetPayload(idToken, _configuration);
             if (payload == null)
@@ -90,7 +91,7 @@ namespace YBS2.Service.Services.Implements
                 return null;
             }
 
-            if (existAccount.Member != null && existAccount.Member.Status == EnumMemberStatus.Inactive)
+            if (existAccount.Member != null && existAccount.Status == EnumAccountStatus.Inactive)
             {
                 dynamic result = new ExpandoObject();
                 result.MemberId = existAccount.Member.Id;
@@ -110,7 +111,8 @@ namespace YBS2.Service.Services.Implements
                 AccountId = existAccount.Id,
                 Email = existAccount.Email,
                 Role = existAccount.Role.ToUpper(),
-                Username = existAccount.Username
+                Username = existAccount.Username,
+                IsInactive = false
             };
 
         }
