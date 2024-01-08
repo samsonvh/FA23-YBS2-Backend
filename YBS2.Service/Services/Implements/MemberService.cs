@@ -264,7 +264,7 @@ namespace YBS2.Service.Services.Implements
             }
         }
 
-        public async Task<MemberDto> ActivateMember(IQueryCollection collections)
+        public async Task<bool> ActivateMember(IQueryCollection collections)
         {
             VNPayRegisterResponse vnpayResponse = await _vnpayService.CallBackRegisterPayment(collections);
 
@@ -273,9 +273,7 @@ namespace YBS2.Service.Services.Implements
                 .FirstOrDefaultAsync();
             if (existingMembershipPackage == null)
             {
-                dynamic errors = new ExpandoObject();
-                errors.MembershipPackage = "Membership Package Not Found";
-                throw new APIException(HttpStatusCode.BadRequest, errors.MembershipPackage, errors);
+                return false;
             }
             Member? existingMember = await _unitOfWork.MemberRepository
                 .Find(member => member.Id == vnpayResponse.MemberId)
@@ -283,9 +281,7 @@ namespace YBS2.Service.Services.Implements
                 .FirstOrDefaultAsync();
             if (existingMember == null)
             {
-                dynamic errors = new ExpandoObject();
-                errors.Member = "Member Not Found";
-                throw new APIException(HttpStatusCode.BadRequest, errors.Member, errors);
+                return false;
             }
             Wallet wallet = new Wallet
             {
@@ -328,12 +324,42 @@ namespace YBS2.Service.Services.Implements
             transaction.Type = EnumTransactionType.Register;
             _unitOfWork.TransactionRepository.Add(transaction);
             await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<MemberDto>(existingMember);
+            return true;
         }
 
         public Task<MemberDto?> Update(Guid id, MemberInputDto inputDto)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<string> CreateRegisterPaymentURL(RegisterPaymentInputDto inputDto, HttpContext context)
+        {
+            Member? existingMember = await _unitOfWork.MemberRepository
+                .Find(member => member.Id == inputDto.MemberId)
+                .FirstOrDefaultAsync();
+            if (existingMember == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.MemberId = $"Member with ID {existingMember.Id} not found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.MemberId, errors);
+            }
+            MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
+                .Find(membershipPackage => membershipPackage.Id == inputDto.MembershipPackageId && membershipPackage.Status == EnumMembershipPackageStatus.Active)
+                .FirstOrDefaultAsync();
+            if (existingMembershipPackage == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.MembershipPackageId = $"Membership Package with ID {existingMembershipPackage.Id} not found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.MembershipPackageId, errors);
+            }
+            string paymentURL = await _vnpayService.CreateRegisterRequestURL(existingMembershipPackage.Id, existingMember.Id, context);
+            if (paymentURL == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.paymentURL = "Error while payment";
+                throw new APIException(HttpStatusCode.BadRequest, errors.PaymentURL, errors);
+            }
+            return paymentURL;
         }
     }
 }

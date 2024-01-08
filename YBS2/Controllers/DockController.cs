@@ -63,7 +63,7 @@ namespace YBS2.Controllers
         public async Task<IActionResult> Create([FromForm] DockInputDto inputDto)
         {
             ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
-            return Ok(await _dockService.Create(inputDto, claims));
+            return CreatedAtAction(nameof(Create) ,await _dockService.Create(inputDto, claims));
         }
 
         [SwaggerOperation("[Company] Update dock details according to ID")]
@@ -83,7 +83,8 @@ namespace YBS2.Controllers
         [HttpPatch]
         public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] string status)
         {
-            return Ok(await _dockService.ChangeStatus(id, status));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _dockService.ChangeStatus(id, status, claims));
 
         }
     }

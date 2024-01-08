@@ -63,7 +63,7 @@ namespace YBS2.Controllers
         public async Task<IActionResult> Create([FromBody] BookingInputDto inputDto)
         {
             ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
-            return Ok(await _bookingService.Create(inputDto, claims, HttpContext));
+            return CreatedAtAction(nameof(Create) ,await _bookingService.Create(inputDto, claims, HttpContext));
         }
 
         [SwaggerOperation("[Company|Member] Update booking details according to ID")]

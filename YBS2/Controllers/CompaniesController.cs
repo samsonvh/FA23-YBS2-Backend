@@ -50,7 +50,7 @@ namespace YBS2.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] CompanyInputDto inputDto)
         {
-            return Ok(await _companyService.Create(inputDto));
+            return CreatedAtAction(nameof(Create) ,await _companyService.Create(inputDto));
         }
 
         [SwaggerOperation("Update company details according to ID")]
