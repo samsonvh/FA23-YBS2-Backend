@@ -55,12 +55,15 @@ namespace YBS2.Service.Services.Implements
             {
                 case nameof(EnumAccountStatus.Ban):
                     existingMember.Account.Status = EnumAccountStatus.Ban;
+                    existingMember.Status = EnumMemberStatus.Ban;
                     break;
                 case nameof(EnumAccountStatus.Active):
                     existingMember.Account.Status = EnumAccountStatus.Active;
+                    existingMember.Status = EnumMemberStatus.Active;
                     break;
                 case nameof(EnumAccountStatus.Inactive):
                     existingMember.Account.Status = EnumAccountStatus.Inactive;
+                    existingMember.Status = EnumMemberStatus.Inactive;
                     break;
                 default:
                     dynamic errors = new ExpandoObject();
