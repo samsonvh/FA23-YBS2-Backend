@@ -335,10 +335,10 @@ namespace YBS2.Service.Services.Implements
             throw new NotImplementedException();
         }
 
-        public async Task<string> CreateRegisterPaymentURL(RegisterPaymentInputDto inputDto, HttpContext context)
+        public async Task<string> CreateRegisterPaymentURL(Guid id, Guid membershipPackageId, HttpContext context)
         {
             Member? existingMember = await _unitOfWork.MemberRepository
-                .Find(member => member.Id == inputDto.MemberId)
+                .Find(member => member.Id == id)
                 .FirstOrDefaultAsync();
             if (existingMember == null)
             {
@@ -347,7 +347,7 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, errors.MemberId, errors);
             }
             MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
-                .Find(membershipPackage => membershipPackage.Id == inputDto.MembershipPackageId && membershipPackage.Status == EnumMembershipPackageStatus.Active)
+                .Find(membershipPackage => membershipPackage.Id == membershipPackageId && membershipPackage.Status == EnumMembershipPackageStatus.Active)
                 .FirstOrDefaultAsync();
             if (existingMembershipPackage == null)
             {

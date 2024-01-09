@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using YBS2.Data.Enums;
+using YBS2.Middlewares.AuthenticationFilter;
 using YBS2.Service.Dtos;
 using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
@@ -22,7 +23,6 @@ namespace YBS2.Controllers
 {
     [ApiController]
     [Route(APIEndPoints.BOOKING_V1)]
-    // [RoleAuthorization(nameof(EnumRole.Company))]
     public class BookingController : ControllerBase
     {
         private readonly ILogger<BookingController> _logger;
@@ -39,9 +39,10 @@ namespace YBS2.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(DefaultPageResponse<BookingListingDto>))]
         [Produces("application/json")]
         [HttpGet]
+        [RoleAuthorization($"{nameof(EnumRole.Company)},{nameof(EnumRole.Member)}")]
         public async Task<IActionResult> GetAll([FromQuery] BookingPageRequest pageRequest)
         {
-            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
             return Ok(await _bookingService.GetAll(pageRequest, claims));
         }
 
@@ -52,8 +53,8 @@ namespace YBS2.Controllers
         [Route(APIEndPoints.BOOKING_ID_V1)]
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
-            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
-            return Ok(await _bookingService.GetDetails(id,claims));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _bookingService.GetDetails(id, claims));
         }
 
         [SwaggerOperation("[Public] Create new booking")]
@@ -62,8 +63,8 @@ namespace YBS2.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BookingInputDto inputDto)
         {
-            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
-            return CreatedAtAction(nameof(Create) ,await _bookingService.Create(inputDto, claims, HttpContext));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return CreatedAtAction(nameof(Create), await _bookingService.Create(inputDto, claims, HttpContext));
         }
 
         [SwaggerOperation("[Company|Member] Update booking details according to ID")]
@@ -81,6 +82,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.BOOKING_ID_V1)]
         [HttpPatch]
+        [RoleAuthorization($"{nameof(EnumRole.Company)}")]
         public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] string status)
         {
             return Ok(await _bookingService.ChangeStatus(id, status));
@@ -91,9 +93,20 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.BOOKING_CONFIRM)]
         [HttpGet]
-        public async Task<IActionResult> ActivateMember()
+        public async Task<IActionResult> ConfirmBooking()
         {
             return Ok(await _bookingService.ConfirmBooking(Request.Query));
+        }
+
+        [SwaggerOperation("[Public] Create Booking Payment URL when pay for Not Yet paid booking")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MemberDto))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.BOOKING_CREATE_PAYMENT_URL)]
+        [HttpPost]
+        [RoleAuthorization($"{nameof(EnumRole.Member)}")]
+        public async Task<IActionResult> CreateBookingPaymentURL([FromRoute] Guid id)
+        {
+            return CreatedAtAction(nameof(CreateBookingPaymentURL), await _bookingService.CreateBookingPaymentURL(id, HttpContext));
         }
     }
 }

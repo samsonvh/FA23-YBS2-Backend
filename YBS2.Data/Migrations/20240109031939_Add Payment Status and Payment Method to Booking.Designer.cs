@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using YBS2.Data.Context;
 
@@ -11,9 +12,10 @@ using YBS2.Data.Context;
 namespace YBS2.Data.Migrations
 {
     [DbContext(typeof(YBS2Context))]
-    partial class YBS2ContextModelSnapshot : ModelSnapshot
+    [Migration("20240109031939_Add Payment Status and Payment Method to Booking")]
+    partial class AddPaymentStatusandPaymentMethodtoBooking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -438,22 +440,22 @@ namespace YBS2.Data.Migrations
 
                     b.Property<string>("BankCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("BankTranNo")
                         .IsRequired()
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<Guid?>("BookingId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CardType")
                         .IsRequired()
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<Guid?>("MembershipRegistrationId")
                         .HasColumnType("uniqueidentifier");
@@ -476,7 +478,7 @@ namespace YBS2.Data.Migrations
 
                     b.Property<string>("VNPayCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Id");
 

@@ -19,5 +19,6 @@ namespace YBS2.Service.Services
         Task<BookingDto?> GetDetails (Guid id, ClaimsPrincipal claims);
         Task<object> Create (BookingInputDto inputDto, ClaimsPrincipal claims, HttpContext context);
         Task<BookingDto> ConfirmBooking (IQueryCollection collections);
+        Task<string> CreateBookingPaymentURL(Guid id, HttpContext context);
     }
 }
