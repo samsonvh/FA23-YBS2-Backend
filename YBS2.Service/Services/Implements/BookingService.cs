@@ -56,6 +56,7 @@ namespace YBS2.Service.Services.Implements
             }
             Booking booking = await AddPassengerInBooking(inputDto, claims, existingTour);
             booking.Status = EnumBookingStatus.Pending;
+            booking.PaymentStatus = EnumPaymentStatus.NotYet;
             booking.Tour = existingTour;
             _unitOfWork.BookingRepository.Add(booking);
             await _unitOfWork.SaveChangesAsync();
@@ -69,12 +70,14 @@ namespace YBS2.Service.Services.Implements
             bookingDto.BookingDate = booking.BookingDate;
             bookingDto.TotalAmount = booking.TotalAmount;
             bookingDto.TotalPassengers = booking.TotalPassengers;
-            bookingDto.Note = booking.Note;
+            bookingDto.Note = booking.Note; 
             bookingDto.isIncludeBooker = booking.isIncludeBooker;
             bookingDto.Type = booking.Type.ToString();
             bookingDto.Status = booking.Status.ToString();
+            bookingDto.PaymentStatus = booking.PaymentStatus.ToString();
+            bookingDto.PaymentMethod = booking.PaymentMethod.ToString();
             bookingDto.CreatedDate = booking.CreatedDate;
-            if (claims != null && booking.Type != EnumBookingType.Private_Tour)
+            if (claims != null && booking.Type != EnumBookingType.Private_Tour && booking.PaymentMethod == EnumPaymentMethod.Transfer)
             {
                 bookingDto.PaymentURL = await _vnpayService.CreateBookingRequestURL(booking.Id, context);
             }
@@ -99,6 +102,7 @@ namespace YBS2.Service.Services.Implements
                 {
                     Guid memberId = Guid.Parse(claims.FindFirstValue("MemberId"));
                     booking.MemberId = memberId;
+                    booking.PaymentMethod = inputDto.PaymentMethod;
                     if (inputDto.isIncludeBooker)
                     {
                         Member? member = await _unitOfWork.MemberRepository
@@ -119,6 +123,7 @@ namespace YBS2.Service.Services.Implements
                         };
                         passengerList.Add(memberInclude);
                     }
+
                 }
             }
             else
@@ -129,8 +134,9 @@ namespace YBS2.Service.Services.Implements
                     errors.PassengerList = "Passenger List must not be null";
                     throw new APIException(HttpStatusCode.BadRequest, errors.PassengerList, errors);
                 }
+                booking.PaymentMethod = EnumPaymentMethod.Cash;
             }
-            float totalAmount = existingTour.Price*passengerList.Count();
+            float totalAmount = existingTour.Price * passengerList.Count();
             booking.TotalPassengers = passengerList.Count();
             booking.Passengers = passengerList;
             booking.TotalAmount = totalAmount;
@@ -242,7 +248,7 @@ namespace YBS2.Service.Services.Implements
         }
 
         public async Task<BookingDto> ConfirmBooking(IQueryCollection collections)
-        {
+        {   
             VNPayBookingResponse vnpayResponse = await _vnpayService.CallBackBookingPayment(collections);
             Member? existingMember = await _unitOfWork.MemberRepository
                 .Find(member => member.Id == vnpayResponse.MemberId && member.Status == EnumMemberStatus.Active)
@@ -264,11 +270,46 @@ namespace YBS2.Service.Services.Implements
             }
             DateTime now = DateTime.UtcNow.AddHours(7);
             existingBooking.Status = EnumBookingStatus.Approved;
+            existingBooking.PaymentStatus = EnumPaymentStatus.Done;
             _unitOfWork.BookingRepository.Update(existingBooking);
             Transaction transaction = _mapper.Map<Transaction>(vnpayResponse);
+            transaction.Type = EnumTransactionType.Booking;
             _unitOfWork.TransactionRepository.Add(transaction);
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<BookingDto>(existingBooking);
+        }
+
+        public async Task<string> CreateBookingPaymentURL(Guid id, HttpContext context)
+        {
+            Booking? existingBooking = await _unitOfWork.BookingRepository
+                .Find(booking => booking.Id == id)
+                .FirstOrDefaultAsync();
+            if (existingBooking == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Booking = "Booking Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Booking, Errors);
+            }
+            if (existingBooking.Status != EnumBookingStatus.Pending || existingBooking.PaymentStatus != EnumPaymentStatus.NotYet)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Booking = "Booking is paid already";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Booking, Errors);
+            }
+            if (existingBooking.PaymentMethod == EnumPaymentMethod.Cash)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.Booking = "Payment method of booking is by cash, can not pay by transfer";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.Booking, Errors);
+            }
+            string paymentURL = await _vnpayService.CreateBookingRequestURL(id, context);
+            if (paymentURL == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.paymentURL = "Error while payment";
+                throw new APIException(HttpStatusCode.BadRequest, errors.PaymentURL, errors);
+            }
+            return paymentURL;
         }
     }
 }

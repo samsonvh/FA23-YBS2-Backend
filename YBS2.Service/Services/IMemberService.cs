@@ -13,6 +13,6 @@ namespace YBS2.Service.Services
         Task<bool> ActivateMember(IQueryCollection collections);
         Task<MemberDto> Update(MemberInputDto inputDto, ClaimsPrincipal claims);
         Task<object> Create(MemberInputDto inputDto, HttpContext context);
-        Task<string> CreateRegisterPaymentURL(RegisterPaymentInputDto inputDto, HttpContext context);
+        Task<string> CreateRegisterPaymentURL(Guid id, Guid membershipPackageId, HttpContext context);
     }
 }

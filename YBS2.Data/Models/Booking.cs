@@ -23,6 +23,8 @@ namespace YBS2.Data.Models
         public bool isIncludeBooker { get; set; }
         public EnumBookingType Type { get; set; }
         public EnumBookingStatus Status { get; set; }
+        public EnumPaymentMethod PaymentMethod { get; set; }
+        public EnumPaymentStatus PaymentStatus { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
         public ICollection<Passenger> Passengers { get; set; }
         public ICollection<Transaction>? Transactions { get; set; }

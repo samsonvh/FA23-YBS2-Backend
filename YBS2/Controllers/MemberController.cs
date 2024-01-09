@@ -91,14 +91,14 @@ namespace YBS2.Controllers
         {
             return Ok(await _memberService.ActivateMember(Request.Query));
         }
-        [SwaggerOperation("[Public] Create Payment Member URL when login with inactive member account")]
+        [SwaggerOperation("[Public] Create Register Payment URL when login with inactive member account")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MemberDto))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_CREATE_REGISTER_PAYMENT_URL)]
         [HttpPost]
-        public async Task<IActionResult> CreateRegisterPaymentURL([FromForm] RegisterPaymentInputDto inputDto)
+        public async Task<IActionResult> CreateRegisterPaymentURL([FromForm] Guid membershipPackageId, [FromRoute] Guid id)
         {
-            return CreatedAtAction(nameof(CreateRegisterPaymentURL) ,await _memberService.CreateRegisterPaymentURL(inputDto, HttpContext));
+            return CreatedAtAction(nameof(CreateRegisterPaymentURL) ,await _memberService.CreateRegisterPaymentURL(id, membershipPackageId, HttpContext));
         }
     }
 }

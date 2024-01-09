@@ -16,5 +16,7 @@ namespace YBS2.Service.Dtos.Inputs
         public List<PassengerInputDto>? Passengers { get; set; }
         [Required]
         public bool isIncludeBooker { get; set; } = true;
+        [Required]
+        public EnumPaymentMethod PaymentMethod { get; set; }
     }
 }
