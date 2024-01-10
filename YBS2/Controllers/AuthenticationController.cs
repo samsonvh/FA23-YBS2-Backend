@@ -27,7 +27,7 @@ namespace YBS2.Controllers
         public async Task<IActionResult> LoginWithGoogle([FromBody] string idToken)
         {
             dynamic result = await _authService.LoginWithGoogle(idToken);
-            if (result.IsInactive)
+            if (result != null && result.IsInactive)
             {
                 return Unauthorized(result);
             }
@@ -43,7 +43,7 @@ namespace YBS2.Controllers
         public async Task<IActionResult> LoginWithCredentials([FromForm] CredentialsInputDto credentials)
         {
             dynamic result = await _authService.LoginWithCredentials(credentials);
-            if (result.IsInactive)
+            if (result != null && result.IsInactive)
             {
                 return Unauthorized(result);
             }

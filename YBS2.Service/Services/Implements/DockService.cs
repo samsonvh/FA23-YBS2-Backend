@@ -93,13 +93,13 @@ namespace YBS2.Service.Services.Implements
             dock.Status = EnumDockStatus.Active;
             _unitOfWork.DockRepository.Add(dock);
 
-            if (inputDto.ImageURLs.Count == 0)
+            if (inputDto.Images.Count == 0)
             {
                 dynamic Errors = new ExpandoObject();
                 Errors.ImageURL = "Dock must have at least 1 image.";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.ImageURL, Errors);
             }
-            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.ImageURLs, dock.Id, _firebaseStorageService);
+            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.Images, dock.Id, _firebaseStorageService);
             if (imageURL == null)
             {
                 dynamic Errors = new ExpandoObject();
@@ -179,7 +179,7 @@ namespace YBS2.Service.Services.Implements
                 Errors.Dock = "Dock Not Found.";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.Dock, Errors);
             }
-            if (inputDto.ImageURLs.Count == 0)
+            if (inputDto.Images.Count == 0)
             {
                 dynamic Errors = new ExpandoObject();
                 Errors.ImageURL = "Tour must have at least 1 image.";
@@ -190,7 +190,7 @@ namespace YBS2.Service.Services.Implements
             existingDock.Description = inputDto.Description;
             await FirebaseUtil.DeleteFile(existingDock.ImageURL, _configuration, _firebaseStorageService);
 
-            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.ImageURLs, existingDock.Id, _firebaseStorageService);
+            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.Images, existingDock.Id, _firebaseStorageService);
             if (imageURL == null)
             {
                 dynamic Errors = new ExpandoObject();

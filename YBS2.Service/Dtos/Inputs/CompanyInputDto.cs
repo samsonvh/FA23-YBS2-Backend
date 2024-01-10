@@ -8,7 +8,7 @@ namespace YBS2.Service.Dtos.Inputs
     {
         [MinLength(2)]
         [Required]
-        public string Username { get; set; }
+        public string ShortName { get; set; }
         [Required]
         public string Email { get; set; }
         [Required]
