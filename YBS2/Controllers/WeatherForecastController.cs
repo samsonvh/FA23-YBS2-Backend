@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Timers;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
@@ -20,14 +21,11 @@ namespace YBS2.Controllers
     };
 
         private readonly ILogger<WeatherForecastController> _logger;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        private DateTime _startTime;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, IUnitOfWork unitOfWork, IMapper mapper)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {
             _logger = logger;
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
@@ -44,20 +42,14 @@ namespace YBS2.Controllers
         [HttpGet("TestAPI")]
         public async Task<IActionResult> TestAPI()
         {
-            Guid id = Guid.NewGuid();
-            Account account = new Account
-            {
-                CreatedDate = DateTime.Now,
-                Email = "",
-                Id = id,
-                Password = "0",
-                Role = "MEMBER",
-                Status = EnumAccountStatus.Active,
-                Username = ""
-            };
-            _unitOfWork.AccountRepository.Add(account);
-            await _unitOfWork.SaveChangesAsync();
+            Thread testThread = new Thread(new ThreadStart(doSth));
+            testThread.Start();
             return Ok();
+        }
+        public static void doSth ()
+        {
+            DateTime dateTime = DateTime.Now;
+            System.Console.WriteLine(dateTime.ToString());
         }
     }
 }

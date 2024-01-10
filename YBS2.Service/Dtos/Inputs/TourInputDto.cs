@@ -19,7 +19,7 @@ namespace YBS2.Service.Dtos.Inputs
         [Required]
         public float Price { get; set; }
         [Required]
-        public List<IFormFile> ImageURLs { get; set; }
+        public List<IFormFile> Images { get; set; }
         [Required]
         public int Priority { get; set; }
         [Required]

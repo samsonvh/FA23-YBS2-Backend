@@ -66,17 +66,17 @@ namespace YBS2.Service.Services.Implements
             {
                 bookingDto.MemberId = booking.MemberId;
             }
-            bookingDto.TourId = booking.TourId;
-            bookingDto.BookingDate = booking.BookingDate;
-            bookingDto.TotalAmount = booking.TotalAmount;
-            bookingDto.TotalPassengers = booking.TotalPassengers;
-            bookingDto.Note = booking.Note; 
+            bookingDto.tourId = booking.TourId;
+            bookingDto.bookingDate = booking.BookingDate;
+            bookingDto.totalAmount = booking.TotalAmount;
+            bookingDto.totalPassengers = booking.TotalPassengers;
+            bookingDto.note = booking.Note; 
             bookingDto.isIncludeBooker = booking.isIncludeBooker;
-            bookingDto.Type = booking.Type.ToString();
-            bookingDto.Status = booking.Status.ToString();
-            bookingDto.PaymentStatus = booking.PaymentStatus.ToString();
-            bookingDto.PaymentMethod = booking.PaymentMethod.ToString();
-            bookingDto.CreatedDate = booking.CreatedDate;
+            bookingDto.type = booking.Type.ToString();
+            bookingDto.status = booking.Status.ToString();
+            bookingDto.paymentStatus = booking.PaymentStatus.ToString();
+            bookingDto.paymentMethod = booking.PaymentMethod.ToString();
+            bookingDto.createdDate = booking.CreatedDate;
             if (claims != null && booking.Type != EnumBookingType.Private_Tour && booking.PaymentMethod == EnumPaymentMethod.Transfer)
             {
                 bookingDto.PaymentURL = await _vnpayService.CreateBookingRequestURL(booking.Id, context);

@@ -64,7 +64,7 @@ namespace YBS2.Service.Services.Implements
             Account account = new Account
             {
                 Email = inputDto.Email.ToLower(),
-                Username = inputDto.Username,
+                Username = inputDto.ShortName,
                 Password = PasswordUtils.HashPassword(newPassword),
                 Role = nameof(EnumRole.Company).ToUpper(),
                 Status = EnumAccountStatus.Inactive
@@ -128,7 +128,7 @@ namespace YBS2.Service.Services.Implements
         private async Task CheckExistence(CompanyInputDto inputDto)
         {
             Account? existingAccount = await _unitOfWork.AccountRepository
-                .Find(account => account.Username == inputDto.Username || account.Email == inputDto.Email)
+                .Find(account => account.Username == inputDto.ShortName || account.Email == inputDto.Email)
                 .FirstOrDefaultAsync();
             if (existingAccount != null)
             {
@@ -139,7 +139,7 @@ namespace YBS2.Service.Services.Implements
                     props.Add("Email");
                     errors.Email = new string[] { "Email is unavailable" };
                 }
-                if (existingAccount.Username == inputDto.Username)
+                if (existingAccount.Username == inputDto.ShortName)
                 {
                     props.Add("Username");
                     errors.Username = new string[] { "Username is unavailable" };

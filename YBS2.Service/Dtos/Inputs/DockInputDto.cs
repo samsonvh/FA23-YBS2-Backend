@@ -15,7 +15,7 @@ namespace YBS2.Service.Dtos.Inputs
         [Required]
         public string Address { get; set; }
         [Required]
-        public List<IFormFile> ImageURLs { get; set; }
+        public List<IFormFile> Images { get; set; }
         [Required]
         public string Description { get; set; }
     }

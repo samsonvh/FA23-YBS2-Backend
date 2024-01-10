@@ -107,19 +107,8 @@ namespace YBS2.Service.Services.Implements
             }
             string url = await _vnpayService.CreateRegisterRequestURL(inputDto.MembershipPackageId, member.Id, context);
             dynamic memberDto = new ExpandoObject();
-            memberDto.Id = member.Id;
-            memberDto.FullName = member.FullName;
-            memberDto.AvatarURL = member.AvatarURL;
-            memberDto.DOB = member.DOB;
-            memberDto.Address = member.Address;
-            memberDto.PhoneNumber = member.PhoneNumber;
-            memberDto.IdentityNumber = member.IdentityNumber;
-            memberDto.Gender = member.Gender.ToString();
-            memberDto.Nationality = member.Nationality;
-            memberDto.MemberSinceDate = member.MemberSinceDate;
-            memberDto.Status = member.Status.ToString();
-            memberDto.CreatedDate = member.CreatedDate;
-            memberDto.PaymentURL = url;
+            memberDto.id = member.Id;
+            memberDto.paymentURL = url;
             return memberDto;
         }
 

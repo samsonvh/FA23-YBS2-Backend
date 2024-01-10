@@ -43,8 +43,8 @@ namespace YBS2.Service.Services.Implements
             if (existAccount.Member != null && existAccount.Status == EnumAccountStatus.Inactive)
             {
                 dynamic result = new ExpandoObject();
-                result.MemberId = existAccount.Member.Id;
-                result.IsInactive = true;
+                result.memberId = existAccount.Member.Id;
+                result.isInactive = true;
                 return result;
             }
             bool checkPassword = PasswordUtils.VerifyHashedPassword(existAccount.Password, credentials.Password);
@@ -94,8 +94,8 @@ namespace YBS2.Service.Services.Implements
             if (existAccount.Member != null && existAccount.Status == EnumAccountStatus.Inactive)
             {
                 dynamic result = new ExpandoObject();
-                result.MemberId = existAccount.Member.Id;
-                result.IsInactive = true;
+                result.memberId = existAccount.Member.Id;
+                result.isInactive = true;
                 return result;
             }
             if (existAccount.Status == EnumAccountStatus.Ban)

@@ -21,7 +21,6 @@ namespace YBS2.Controllers
 {
     [ApiController]
     [Route(APIEndPoints.YACHT_V1)]
-    [RoleAuthorization(nameof(EnumRole.Company))]
     public class YachtController : ControllerBase
     {
         private readonly ILogger<YachtController> _logger;
@@ -66,9 +65,10 @@ namespace YBS2.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(YachtDto))]
         [Produces("application/json")]
         [HttpPost]
+        [RoleAuthorization(nameof(EnumRole.Company))]
         public async Task<IActionResult> Create([FromForm] YachtInputDto inputDto)
         {
-            return CreatedAtAction(nameof(Create) ,await _yachtService.Create(inputDto));
+            return CreatedAtAction(nameof(Create), await _yachtService.Create(inputDto));
         }
 
         [SwaggerOperation("[Company] Update yacht details according to ID")]
@@ -76,6 +76,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [HttpPut]
         [Route(APIEndPoints.YACHT_ID_V1)]
+        [RoleAuthorization(nameof(EnumRole.Company))]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] YachtInputDto inputDto)
         {
             return Ok(await _yachtService.Update(id, inputDto));
@@ -86,6 +87,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.YACHT_ID_V1)]
         [HttpPatch]
+        [RoleAuthorization(nameof(EnumRole.Company))]
         public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] string status)
         {
             return Ok(await _yachtService.ChangeStatus(id, status));
