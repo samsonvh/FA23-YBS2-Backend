@@ -32,14 +32,16 @@ namespace YBS2.Service.Services.Implements
         {
             //validate email and password
             Account? existAccount = await _unitOfWork.AccountRepository
-                .Find(account => account.Email.Trim().ToUpper() == credentials.Email.Trim().ToUpper() && account.Status == EnumAccountStatus.Active)
+                .Find(account => account.Email.Trim().ToUpper() == credentials.Email.Trim().ToUpper())
                 .Include(account => account.Member)
                 .Include(account => account.Company)
                 .Include(account => account.Member.MembershipRegistrations)
                 .FirstOrDefaultAsync();
             if (existAccount == null)
             {
-                return null;
+                dynamic errors = new ExpandoObject();
+                errors.account = "Invalid email or password";
+                throw new APIException(HttpStatusCode.BadRequest, errors.account, errors);
             }
             if (existAccount.Member != null && existAccount.Status == EnumAccountStatus.Inactive)
             {
@@ -57,10 +59,17 @@ namespace YBS2.Service.Services.Implements
                 if (existAccount.Status == EnumAccountStatus.Ban)
                 {
                     dynamic errors = new ExpandoObject();
-                    errors.Unauthorized = "Your account is banned";
-                    throw new APIException(HttpStatusCode.Unauthorized, errors.Unauthorized, errors);
+                    errors.unauthorized = "Your account is banned";
+                    throw new APIException(HttpStatusCode.Unauthorized, errors.unauthorized, errors);
+                }
+                if (existAccount.Status == EnumAccountStatus.Inactive)
+                {
+                    existAccount.Status = EnumAccountStatus.Active;
+                    _unitOfWork.AccountRepository.Update(existAccount);
+                    await _unitOfWork.SaveChangesAsync();
                 }
                 string accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
+
                 return new AuthResponse()
                 {
                     AccessToken = accessToken,
@@ -71,8 +80,12 @@ namespace YBS2.Service.Services.Implements
                     IsInActive = false
                 };
             }
-            return null;
-
+            else
+            {
+                dynamic errors = new ExpandoObject();
+                errors.account = "Invalid email or password";
+                throw new APIException(HttpStatusCode.BadRequest, errors.account, errors);
+            }
         }
 
         public async Task<AuthResponse> LoginWithGoogle(string idToken)
@@ -86,13 +99,15 @@ namespace YBS2.Service.Services.Implements
             }
 
             var existAccount = await _unitOfWork.AccountRepository
-                .Find(account => account.Email.Trim().ToUpper() == payload.Email.Trim().ToUpper() && account.Status == EnumAccountStatus.Active)
+                .Find(account => account.Email.Trim().ToUpper() == payload.Email.Trim().ToUpper())
                 .Include(account => account.Member)
                 .Include(account => account.Company)
                 .FirstOrDefaultAsync();
             if (existAccount == null)
             {
-                return null;
+                dynamic errors = new ExpandoObject();
+                errors.account = "You havent't registered yet";
+                throw new APIException(HttpStatusCode.BadRequest, errors.account, errors);
             }
 
             if (existAccount.Member != null && existAccount.Status == EnumAccountStatus.Inactive)
@@ -105,13 +120,21 @@ namespace YBS2.Service.Services.Implements
                     IsInActive = true
                 };
             }
+
             if (existAccount.Status == EnumAccountStatus.Ban)
             {
                 dynamic errors = new ExpandoObject();
-                errors.Unauthorized = "Unauthorized";
+                errors.Unauthorized = "Your account is banned";
                 throw new APIException(HttpStatusCode.Unauthorized, errors.Unauthorized, errors);
             }
+            if (existAccount.Status == EnumAccountStatus.Inactive)
+            {
+                existAccount.Status = EnumAccountStatus.Active;
+                _unitOfWork.AccountRepository.Update(existAccount);
+                await _unitOfWork.SaveChangesAsync();
+            }
             var accessToken = JWTUtils.GenerateJWTToken(existAccount, _configuration);
+
             return new AuthResponse()
             {
                 AccessToken = accessToken,

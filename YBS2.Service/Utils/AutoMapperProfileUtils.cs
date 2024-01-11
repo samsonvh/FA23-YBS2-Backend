@@ -42,7 +42,8 @@ namespace YBS2.Service.Utils
             //Yacht
             CreateMap<Yacht, YachtListingDto>();
             CreateMap<Yacht, YachtDto>();
-            CreateMap<YachtInputDto, Yacht>();
+            CreateMap<YachtInputDto, Yacht>()
+                .ForMember(yacht => yacht.ImageURL, options => options.Ignore());;
 
             //  Update Request
             CreateMap<UpdateRequestInputDto, UpdateRequest>();

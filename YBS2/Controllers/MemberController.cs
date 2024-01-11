@@ -52,7 +52,7 @@ namespace YBS2.Controllers
         }
 
         [SwaggerOperation("[Public] Create new member and return payment URL")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MemberDto))]
+        [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(CreateMemberDto))]
         [Produces("application/json")]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] MemberInputDto inputDto)

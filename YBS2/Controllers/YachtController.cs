@@ -61,7 +61,8 @@ namespace YBS2.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] YachtInputDto inputDto)
         {
-            return CreatedAtAction(nameof(Create), await _yachtService.Create(inputDto));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return CreatedAtAction(nameof(Create), await _yachtService.Create(inputDto, claims));
         }
 
         [SwaggerOperation("[Company] Update yacht details according to ID")]
