@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using YBS2.Data.Context;
 
@@ -11,9 +12,10 @@ using YBS2.Data.Context;
 namespace YBS2.Data.Migrations
 {
     [DbContext(typeof(YBS2Context))]
-    partial class YBS2ContextModelSnapshot : ModelSnapshot
+    [Migration("20240111082921_Extend ImageURL of tour,dock, yacht")]
+    partial class ExtendImageURLoftourdockyacht
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -313,26 +315,6 @@ namespace YBS2.Data.Migrations
                     b.HasIndex("MembershipPackageId");
 
                     b.ToTable("MembershipRegistration", (string)null);
-                });
-
-            modelBuilder.Entity("YBS2.Data.Models.Notitoken", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("LoggedinDevice")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("Notitoken", (string)null);
                 });
 
             modelBuilder.Entity("YBS2.Data.Models.Passenger", b =>
@@ -710,17 +692,6 @@ namespace YBS2.Data.Migrations
                     b.Navigation("MembershipPackage");
                 });
 
-            modelBuilder.Entity("YBS2.Data.Models.Notitoken", b =>
-                {
-                    b.HasOne("YBS2.Data.Models.Account", "Account")
-                        .WithMany("Notitokens")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-
             modelBuilder.Entity("YBS2.Data.Models.Passenger", b =>
                 {
                     b.HasOne("YBS2.Data.Models.Booking", "Booking")
@@ -825,8 +796,6 @@ namespace YBS2.Data.Migrations
                     b.Navigation("Company");
 
                     b.Navigation("Member");
-
-                    b.Navigation("Notitokens");
 
                     b.Navigation("UpdateRequests");
                 });

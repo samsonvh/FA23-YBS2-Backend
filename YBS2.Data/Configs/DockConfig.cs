@@ -17,7 +17,7 @@ namespace YBS2.Data.Configs
             builder.Property(dock => dock.Id).ValueGeneratedOnAdd();
             builder.Property(dock => dock.Name).HasColumnType("nvarchar(100)");
             builder.Property(dock => dock.Address).HasColumnType("nvarchar(200)");
-            builder.Property(dock => dock.ImageURL).HasColumnType("nvarchar(500)");
+            builder.Property(dock => dock.ImageURL).HasColumnType("nvarchar(max)");
             builder.Property(dock => dock.Description).HasColumnType("nvarchar(500)");
         }
     }

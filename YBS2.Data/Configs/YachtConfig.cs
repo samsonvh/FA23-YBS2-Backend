@@ -16,7 +16,7 @@ namespace YBS2.Data.Configs
             builder.HasKey(yacht => yacht.Id);
             builder.Property(yacht => yacht.Id).ValueGeneratedOnAdd();
             builder.Property(yacht => yacht.Name).HasColumnType("nvarchar(100)");
-            builder.Property(yacht => yacht.ImageURL).HasColumnType("nvarchar(500)");
+            builder.Property(yacht => yacht.ImageURL).HasColumnType("nvarchar(max)");
             builder.Property(yacht => yacht.Description).HasColumnType("nvarchar(500)");
             builder.Property(yacht => yacht.Manufacturer).HasColumnType("nvarchar(100)");
             builder.Property(yacht => yacht.LOA).HasColumnType("nvarchar(20)");

@@ -22,6 +22,7 @@ namespace YBS2.Data.Context
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<TourDock> TourDocks { get; set; }
+        public DbSet<Notitoken> Notitokens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(YBS2Context).Assembly);
