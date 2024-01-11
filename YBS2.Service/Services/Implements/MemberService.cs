@@ -80,7 +80,7 @@ namespace YBS2.Service.Services.Implements
             throw new NotImplementedException();
         }
 
-        public async Task<object> Create(MemberInputDto inputDto, HttpContext context)
+        public async Task<CreateMemberDto> Create(MemberInputDto inputDto, HttpContext context)
         {
             //validate member input field
             await CheckExistence(inputDto);
@@ -113,10 +113,11 @@ namespace YBS2.Service.Services.Implements
                 await _unitOfWork.SaveChangesAsync();
             }
             string url = await _vnpayService.CreateRegisterRequestURL(membershipRegistration.Id, context);
-            dynamic memberDto = new ExpandoObject();
-            memberDto.membershipRegistrationId = membershipRegistration.Id;
-            memberDto.paymentURL = url;
-            return memberDto;
+            return new CreateMemberDto
+            {
+                membershipRegistrationId = membershipRegistration.Id,
+                paymentURL = url
+            };
         }
 
 
@@ -178,9 +179,11 @@ namespace YBS2.Service.Services.Implements
 
                 if (inputDto.Avatar != null)
                 {
-                    string avatarName = existingMember.Id.ToString();
-                    Uri avatarUri = await _storageService.UploadFile(avatarName, inputDto.Avatar);
-                    existingMember.AvatarURL = avatarName.ToString();
+                    await FirebaseUtil.DeleteFile(existingMember.AvatarURL,_configuration,_storageService);
+                    List<IFormFile> imgList = new List<IFormFile>();
+                    imgList.Add(inputDto.Avatar);
+                    string avatarURL = await FirebaseUtil.UpLoadFile(imgList,existingMember.Id,_storageService);
+                    existingMember.AvatarURL = avatarURL;
                 }
 
                 _unitOfWork.MemberRepository.Update(existingMember);

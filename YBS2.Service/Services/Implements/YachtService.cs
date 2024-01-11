@@ -16,6 +16,7 @@ using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Dtos.PageResponses;
 using YBS2.Service.Exceptions;
+using YBS2.Service.Utils;
 
 namespace YBS2.Service.Services.Implements
 {
@@ -23,19 +24,47 @@ namespace YBS2.Service.Services.Implements
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public YachtService(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly IFirebaseStorageService _storageService;
+        public YachtService(IUnitOfWork unitOfWork, IMapper mapper, IFirebaseStorageService storageService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _storageService = storageService;
         }
         public Task<bool> ChangeStatus(Guid id, string status)
         {
             throw new NotImplementedException();
         }
 
-        public Task<YachtDto?> Create(YachtInputDto inputDto)
+        public async Task<YachtDto?> Create(YachtInputDto inputDto)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<YachtDto?> Create(YachtInputDto inputDto, ClaimsPrincipal claims)
+        {
+            Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
+            Company? existingCompany = await _unitOfWork.CompanyRepository
+                .Find(company => company.Id == companyId)
+                .FirstOrDefaultAsync();
+            if (existingCompany == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.company = "Company Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.company, Errors);
+            }
+
+            Yacht yacht = _mapper.Map<Yacht>(inputDto);
+            if (inputDto.Images.Count == 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.yacht = "Yacht must have at least 1 image.";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.yacht, Errors);
+            }
+            _unitOfWork.YachtRepository.Add(yacht);
+            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.Images,yacht.Id, _storageService);
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<YachtDto>(yacht);
         }
 
         public Task<bool> Delete(Guid id)

@@ -15,5 +15,6 @@ namespace YBS2.Service.Services
     {
         Task<DefaultPageResponse<YachtListingDto>> GetAll(YachtPageRequest pageRequest, ClaimsPrincipal claims);
         Task<YachtDto?> GetDetails(Guid id, ClaimsPrincipal claims);
+        Task<YachtDto?> Create (YachtInputDto inputDto, ClaimsPrincipal claims); 
     }
 }

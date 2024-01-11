@@ -28,7 +28,7 @@ namespace YBS2.Controllers
         {
             AuthResponse result = await _authService.LoginWithGoogle(idToken);
 
-            if (result.IsInActive)
+            if (result != null && result.IsInActive)
             {
                 return Unauthorized(result);
             }
@@ -44,7 +44,7 @@ namespace YBS2.Controllers
         public async Task<IActionResult> LoginWithCredentials([FromForm] CredentialsInputDto credentials)
         {
             AuthResponse result = await _authService.LoginWithCredentials(credentials);
-            if (result.IsInActive)
+            if (result != null && result.IsInActive)
             {
                 return Unauthorized(result);
             }

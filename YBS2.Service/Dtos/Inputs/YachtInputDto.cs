@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using YBS2.Data.Enums;
 
 namespace YBS2.Service.Dtos.Inputs
@@ -12,7 +13,7 @@ namespace YBS2.Service.Dtos.Inputs
         [Required]
         public string Name { get; set; }
         [Required]
-        public string ImageURL { get; set; }
+        public List<IFormFile> Images { get; set; }
         [Required]
         public string Description { get; set; }
         [Required]
@@ -29,7 +30,5 @@ namespace YBS2.Service.Dtos.Inputs
         public int TotalPassenger { get; set; }
         [Required]
         public int Cabin { get; set; }
-        [Required]
-        public EnumYachtStatus Status { get; set; }
     }
 }
