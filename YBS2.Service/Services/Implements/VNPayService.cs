@@ -25,7 +25,7 @@ namespace YBS2.Service.Services.Implements
             _unitOfWork = unitOfWork;
         }
 
-        private SortedList<string, string> AddRegisterRequestData(MembershipPackage membershipPackage, Guid memberId, HttpContext context)
+        private SortedList<string, string> AddRegisterRequestData(MembershipRegistration membershipRegistration, HttpContext context)
         {
             SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
             string prefix = "https://";
@@ -34,17 +34,17 @@ namespace YBS2.Service.Services.Implements
                 prefix = "http://";
             }
             string callBackUrl = prefix + context.Request.Host + _configuration["PaymentCallBack:MembershipPaymentReturnUrl"];
-            
+
             //add basic parameter to VNPay 
             _requestData = AddRequestData("vnp_Version", _configuration["Vnpay:Version"], _requestData);
             _requestData = AddRequestData("vnp_Command", _configuration["Vnpay:Command"], _requestData);
             _requestData = AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"], _requestData);
             _requestData = AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"], _requestData);
             _requestData = AddRequestData("vnp_CurrCode", "VND", _requestData);
-            _requestData = AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString() + "," + memberId.ToString(), _requestData);
-            _requestData = AddRequestData("vnp_OrderInfo", membershipPackage.Name.ToString() + "," + membershipPackage.Id, _requestData);
+            _requestData = AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString() + "," + membershipRegistration.Id.ToString(), _requestData);
+            _requestData = AddRequestData("vnp_OrderInfo", membershipRegistration.MembershipPackage.Name.ToString(), _requestData);
             _requestData = AddRequestData("vnp_OrderType", nameof(EnumTransactionType.Booking), _requestData);
-            _requestData = AddRequestData("vnp_Amount", ((int)membershipPackage.Price * 100).ToString(), _requestData);
+            _requestData = AddRequestData("vnp_Amount", ((int)membershipRegistration.MembershipPackage.Price * 100).ToString(), _requestData);
             _requestData = AddRequestData("vnp_ReturnUrl", callBackUrl, _requestData);
             _requestData = AddRequestData("vnp_IpAddr", GetIpAddress(), _requestData);
             _requestData = AddRequestData("vnp_CreateDate", DateTime.UtcNow.AddHours(7).ToString("yyyyMMddHHmmss"), _requestData);
@@ -52,19 +52,22 @@ namespace YBS2.Service.Services.Implements
             return _requestData;
         }
 
-        public async Task<string?> CreateRegisterRequestURL(Guid membershipPackageId, Guid memberId, HttpContext context)
+        public async Task<string> CreateRegisterRequestURL(Guid membershipRegistrationId, HttpContext context)
         {
             string baseUrl = _configuration["VnPay:BaseUrl"];
             string hashSecret = _configuration["VnPay:HashSecret"];
-            MembershipPackage membershipPackage = await _unitOfWork.MembershipPackageRepository
-                .GetByID(membershipPackageId);
-            if (membershipPackage == null)
+            MembershipRegistration? membershipRegistration = await _unitOfWork.MembershipRegistrationRepository
+                .Find(membershipRegistration => membershipRegistration.Id == membershipRegistrationId)
+                .Include(membershipRegistration => membershipRegistration.Member)
+                .Include(membershipRegistration => membershipRegistration.MembershipPackage)
+                .FirstOrDefaultAsync();
+            if (membershipRegistration == null)
             {
                 dynamic errors = new ExpandoObject();
-                errors.Id = $"Membership package with id {membershipPackageId} does not exist.";
+                errors.Id = $"Membership registration with id {membershipRegistrationId} does not exist.";
                 throw new APIException(HttpStatusCode.BadRequest, errors.Id, errors);
             }
-            SortedList<string, string> _requestData = AddRegisterRequestData(membershipPackage, memberId, context);
+            SortedList<string, string> _requestData = AddRegisterRequestData(membershipRegistration, context);
             var data = new StringBuilder();
 
 
@@ -103,12 +106,33 @@ namespace YBS2.Service.Services.Implements
                 }
             }
             string[] txnRef = GetResponseData("vnp_TxnRef", _responseData).Trim().Split(",");
-            string[] orderInfo = GetResponseData("vnp_OrderInfo", _responseData).Trim().Split(",");
-            Guid memberId = Guid.Parse(txnRef[1]);
-            Guid membershipPackageId = Guid.Parse(orderInfo[1]);
+            Guid membershipRegistrationId = Guid.Parse(txnRef[1]);
+            MembershipRegistration? existingMembershipRegistration = await _unitOfWork.MembershipRegistrationRepository
+                .Find(membershipRegistration => membershipRegistration.Id == membershipRegistrationId)
+                .Include(membershipRegistration => membershipRegistration.Member)
+                .Include(membershipRegistration => membershipRegistration.MembershipPackage)
+                .FirstOrDefaultAsync();
+            if (existingMembershipRegistration == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.MembershipRegistration = "Membership Registration Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.MembershipRegistration, Errors);
+            }
+            if (existingMembershipRegistration.MembershipPackage == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.MembershipPackage = "Membership Package Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.MembershipPackage, errors);
+            }
+            if (existingMembershipRegistration.Member == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.Member = "Member Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.Member, errors);
+            }
             string code = txnRef[0];
             float totalAmount = float.Parse(GetResponseData("vnp_Amount", _responseData).Trim()) / 100;
-            string name = orderInfo[0];
+            string name = GetResponseData("vnp_OrderInfo", _responseData).Trim();
             string bankCode = GetResponseData("vnp_BankCode", _responseData).Trim();
             string bankTranNo = GetResponseData("vnp_BankTranNo", _responseData).Trim();
             string cardType = GetResponseData("vnp_CardType", _responseData).Trim();
@@ -124,16 +148,6 @@ namespace YBS2.Service.Services.Implements
                 ValidateSignature(vnpSecureHash, hashSecret, _responseData); //check Signature
             bool success = true;
 
-            MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
-                .Find(membershipPackage => membershipPackage.Id == membershipPackageId && membershipPackage.Status == EnumMembershipPackageStatus.Active)
-                .FirstOrDefaultAsync();
-            if (existingMembershipPackage == null)
-            {
-                dynamic errors = new ExpandoObject();
-                errors.MembershipPackage = "Membership Package Not Found";
-                throw new APIException(HttpStatusCode.BadRequest, errors.MembershipPackage, errors);
-            }
-
             if (!checkSignature)
             {
                 dynamic errors = new ExpandoObject();
@@ -146,7 +160,7 @@ namespace YBS2.Service.Services.Implements
                 errors.Payment = "Payment Error";
                 throw new APIException(HttpStatusCode.BadRequest, errors.Payment, errors);
             }
-            if (totalAmount != existingMembershipPackage.Price)
+            if (totalAmount != existingMembershipRegistration.MembershipPackage.Price)
             {
                 dynamic errors = new ExpandoObject();
                 errors.Amount = "Invalid Amount";
@@ -155,8 +169,7 @@ namespace YBS2.Service.Services.Implements
 
             return new VNPayRegisterResponse
             {
-                MemberId = memberId,
-                MembershipPackageId = membershipPackageId,
+                MembershipRegistrationId = membershipRegistrationId,
                 Code = code,
                 TotalAmount = totalAmount,
                 BankCode = bankCode,
@@ -285,7 +298,7 @@ namespace YBS2.Service.Services.Implements
                 errors.Payment = "Payment Error";
                 throw new APIException(HttpStatusCode.BadRequest, errors.Payment, errors);
             }
-            if (totalAmount/existingBooking.TotalPassengers != existingBooking.Tour.Price)
+            if (totalAmount / existingBooking.TotalPassengers != existingBooking.Tour.Price)
             {
                 dynamic errors = new ExpandoObject();
                 errors.Amount = "Invalid Amount";

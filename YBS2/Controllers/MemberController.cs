@@ -96,9 +96,9 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_CREATE_REGISTER_PAYMENT_URL)]
         [HttpPost]
-        public async Task<IActionResult> CreateRegisterPaymentURL([FromForm] Guid membershipPackageId, [FromRoute] Guid id)
+        public async Task<IActionResult> CreateRegisterPaymentURL([FromForm] Guid membershipRegistrationId)
         {
-            return CreatedAtAction(nameof(CreateRegisterPaymentURL) ,await _memberService.CreateRegisterPaymentURL(id, membershipPackageId, HttpContext));
+            return CreatedAtAction(nameof(CreateRegisterPaymentURL) ,await _memberService.CreateRegisterPaymentURL(membershipRegistrationId, HttpContext));
         }
     }
 }

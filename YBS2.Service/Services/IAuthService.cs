@@ -5,7 +5,7 @@ namespace YBS2.Service.Services
 {
     public interface IAuthService
     {
-        Task<object> LoginWithGoogle(string idToken);
-        Task<object> LoginWithCredentials(CredentialsInputDto credentials);
+        Task<AuthResponse> LoginWithGoogle(string idToken);
+        Task<AuthResponse> LoginWithCredentials(CredentialsInputDto credentials);
     }
 }

@@ -28,13 +28,14 @@ namespace YBS2.Service.Services.Implements
             _vnpayService = vNPayService;
         }
 
-        public async Task<object> LoginWithCredentials(CredentialsInputDto credentials)
+        public async Task<AuthResponse> LoginWithCredentials(CredentialsInputDto credentials)
         {
             //validate email and password
             Account? existAccount = await _unitOfWork.AccountRepository
                 .Find(account => account.Email == credentials.Email)
                 .Include(account => account.Member)
                 .Include(account => account.Company)
+                .Include(account => account.Member.MembershipRegistrations)
                 .FirstOrDefaultAsync();
             if (existAccount == null)
             {
@@ -42,10 +43,13 @@ namespace YBS2.Service.Services.Implements
             }
             if (existAccount.Member != null && existAccount.Status == EnumAccountStatus.Inactive)
             {
-                dynamic result = new ExpandoObject();
-                result.memberId = existAccount.Member.Id;
-                result.isInactive = true;
-                return result;
+                return new AuthResponse
+                {
+                    MembershipRegistrationId = existAccount.Member.MembershipRegistrations
+                        .FirstOrDefault(membershipRegistration => membershipRegistration.Status == EnumMembershipRegistrationStatus.Inactive)
+                        .Id,
+                    IsInActive = true
+                };
             }
             bool checkPassword = PasswordUtils.VerifyHashedPassword(existAccount.Password, credentials.Password);
             if (checkPassword)
@@ -64,14 +68,14 @@ namespace YBS2.Service.Services.Implements
                     Email = existAccount.Email,
                     Role = existAccount.Role.ToUpper(),
                     Username = existAccount.Username,
-                    IsInactive = false
+                    IsInActive = false
                 };
             }
             return null;
 
         }
 
-        public async Task<object> LoginWithGoogle(string idToken)
+        public async Task<AuthResponse> LoginWithGoogle(string idToken)
         {
             GoogleJsonWebSignature.Payload? payload = await JWTUtils.GetPayload(idToken, _configuration);
             if (payload == null)
@@ -93,10 +97,13 @@ namespace YBS2.Service.Services.Implements
 
             if (existAccount.Member != null && existAccount.Status == EnumAccountStatus.Inactive)
             {
-                dynamic result = new ExpandoObject();
-                result.memberId = existAccount.Member.Id;
-                result.isInactive = true;
-                return result;
+                return new AuthResponse
+                {
+                    MembershipRegistrationId = existAccount.Member.MembershipRegistrations
+                        .FirstOrDefault(membershipRegistration => membershipRegistration.Status == EnumMembershipRegistrationStatus.Inactive)
+                        .Id,
+                    IsInActive = true
+                };
             }
             if (existAccount.Status == EnumAccountStatus.Ban)
             {
@@ -112,7 +119,7 @@ namespace YBS2.Service.Services.Implements
                 Email = existAccount.Email,
                 Role = existAccount.Role.ToUpper(),
                 Username = existAccount.Username,
-                IsInactive = false
+                IsInActive = false
             };
 
         }
