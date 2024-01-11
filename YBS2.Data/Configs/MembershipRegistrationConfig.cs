@@ -11,7 +11,8 @@ namespace YBS2.Data.Configs
             builder.ToTable("MembershipRegistration");
             builder.HasKey(membershipRegistration => membershipRegistration.Id);
             builder.Property(membershipRegistration => membershipRegistration.Id).ValueGeneratedOnAdd();
-            builder.Property(membershipRegistration => membershipRegistration.Name).HasColumnType("nvarchar(100)");
+            builder.Property(membershipRegistration => membershipRegistration.Name).HasColumnType("nvarchar(100)").IsRequired(false);
+            builder.Property(membershipRegistration => membershipRegistration.DiscountPercent).IsRequired(false);
             builder.Property(membershipRegistration => membershipRegistration.MembershipStartDate).HasColumnType("date");
             builder.Property(membershipRegistration => membershipRegistration.MembershipExpireDate).HasColumnType("date");
         }

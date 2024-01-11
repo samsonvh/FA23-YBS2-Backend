@@ -48,8 +48,8 @@ namespace YBS2.Controllers
         }
         public static void doSth ()
         {
-            DateTime dateTime = DateTime.Now;
-            System.Console.WriteLine(dateTime.ToString());
+            int count = 0;
+            System.Console.WriteLine(count);
         }
     }
 }

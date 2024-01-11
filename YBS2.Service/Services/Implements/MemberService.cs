@@ -96,6 +96,13 @@ namespace YBS2.Service.Services.Implements
             member.Account = account;
             member.Status = EnumMemberStatus.Inactive;
             _unitOfWork.MemberRepository.Add(member);
+            MembershipRegistration membershipRegistration = new MembershipRegistration
+            {
+                MemberId = member.Id,
+                MembershipPackageId = inputDto.MembershipPackageId,
+                Status = EnumMembershipRegistrationStatus.Inactive
+            };
+            _unitOfWork.MembershipRegistrationRepository.Add(membershipRegistration);
             await _unitOfWork.SaveChangesAsync();
             if (inputDto.Avatar != null)
             {
@@ -105,9 +112,9 @@ namespace YBS2.Service.Services.Implements
                 _unitOfWork.MemberRepository.Update(member);
                 await _unitOfWork.SaveChangesAsync();
             }
-            string url = await _vnpayService.CreateRegisterRequestURL(inputDto.MembershipPackageId, member.Id, context);
+            string url = await _vnpayService.CreateRegisterRequestURL(membershipRegistration.Id, context);
             dynamic memberDto = new ExpandoObject();
-            memberDto.id = member.Id;
+            memberDto.membershipRegistrationId = membershipRegistration.Id;
             memberDto.paymentURL = url;
             return memberDto;
         }
@@ -260,61 +267,62 @@ namespace YBS2.Service.Services.Implements
         {
             VNPayRegisterResponse vnpayResponse = await _vnpayService.CallBackRegisterPayment(collections);
 
-            MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
-                .Find(membershipPackage => membershipPackage.Id == vnpayResponse.MembershipPackageId && membershipPackage.Status == EnumMembershipPackageStatus.Active)
+            MembershipRegistration? existingMembershipRegistration = await _unitOfWork.MembershipRegistrationRepository
+                .Find(membershipRegistration => membershipRegistration.Id == vnpayResponse.MembershipRegistrationId && membershipRegistration.Status == EnumMembershipRegistrationStatus.Inactive)
+                .Include(membershipRegistration => membershipRegistration.Member)
+                .Include(membershipRegistration => membershipRegistration.Member.Account)
+                .Include(membershipRegistration => membershipRegistration.MembershipPackage)
                 .FirstOrDefaultAsync();
-            if (existingMembershipPackage == null)
+
+            if (existingMembershipRegistration == null)
             {
                 return false;
             }
-            Member? existingMember = await _unitOfWork.MemberRepository
-                .Find(member => member.Id == vnpayResponse.MemberId)
-                .Include(member => member.Account)
-                .FirstOrDefaultAsync();
-            if (existingMember == null)
+            if (existingMembershipRegistration.Member == null)
+            {
+                return false;
+            }
+            if (existingMembershipRegistration.Member.Account == null)
+            {
+                return false;
+            }
+            if (existingMembershipRegistration.MembershipPackage == null)
             {
                 return false;
             }
             Wallet wallet = new Wallet
             {
-                Point = existingMembershipPackage.Point
+                Point = existingMembershipRegistration.MembershipPackage.Point
             };
 
             DateTime now = DateTime.UtcNow.AddHours(7);
-            existingMember.MemberSinceDate = now;
-            existingMember.Account.Status = EnumAccountStatus.Active;
-            existingMember.Status = EnumMemberStatus.Active;
-            existingMember.Wallet = wallet;
-            _unitOfWork.MemberRepository.Update(existingMember);
+            existingMembershipRegistration.Member.MemberSinceDate = now;
+            existingMembershipRegistration.Member.Account.Status = EnumAccountStatus.Active;
+            existingMembershipRegistration.Member.Status = EnumMemberStatus.Active;
+            existingMembershipRegistration.Member.Wallet = wallet;
+            existingMembershipRegistration.Name = existingMembershipRegistration.MembershipPackage.Name;
+            existingMembershipRegistration.DiscountPercent = existingMembershipRegistration.MembershipPackage.DiscountPercent;
+            existingMembershipRegistration.MembershipStartDate = now;
+            existingMembershipRegistration.Status = EnumMembershipRegistrationStatus.Active;
 
-            MembershipRegistration membershipRegistration = new MembershipRegistration
-            {
-                Member = existingMember,
-                MembershipPackage = existingMembershipPackage,
-                MembershipStartDate = DateTime.UtcNow.AddHours(7),
-                DiscountPercent = existingMembershipPackage.DiscountPercent,
-                Name = existingMembershipPackage.Name,
-                Status = EnumMembershipRegistrationStatus.Active
-            };
-            switch (existingMembershipPackage.DurationUnit)
+
+            switch (existingMembershipRegistration.MembershipPackage.DurationUnit)
             {
                 case EnumTimeUnit.Days:
-                    membershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddDays(existingMembershipPackage.Duration);
+                    existingMembershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddDays(existingMembershipRegistration.MembershipPackage.Duration);
                     break;
                 case EnumTimeUnit.Months:
-                    membershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddMonths(existingMembershipPackage.Duration);
+                    existingMembershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddMonths(existingMembershipRegistration.MembershipPackage.Duration);
                     break;
                 case EnumTimeUnit.Years:
-                    membershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddYears(existingMembershipPackage.Duration);
+                    existingMembershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddYears(existingMembershipRegistration.MembershipPackage.Duration);
                     break;
             }
-            _unitOfWork.MembershipRegistrationRepository.Add(membershipRegistration);
-
-
             Transaction transaction = _mapper.Map<Transaction>(vnpayResponse);
-            transaction.MembershipRegistration = membershipRegistration;
             transaction.Type = EnumTransactionType.Register;
-            _unitOfWork.TransactionRepository.Add(transaction);
+            existingMembershipRegistration.Transaction = transaction;
+            _unitOfWork.MembershipRegistrationRepository.Update(existingMembershipRegistration);
+
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
@@ -324,27 +332,20 @@ namespace YBS2.Service.Services.Implements
             throw new NotImplementedException();
         }
 
-        public async Task<string> CreateRegisterPaymentURL(Guid id, Guid membershipPackageId, HttpContext context)
+        public async Task<string> CreateRegisterPaymentURL(Guid membershipRegistrationId, HttpContext context)
         {
-            Member? existingMember = await _unitOfWork.MemberRepository
-                .Find(member => member.Id == id)
+            MembershipRegistration? existingMembershipRegistration = await _unitOfWork.MembershipRegistrationRepository
+                .Find(membershipRegistration => membershipRegistration.Id == membershipRegistrationId)
+                .Include(membershipRegistration => membershipRegistration.Member)
+                .Include(membershipRegistration => membershipRegistration.MembershipPackage)
                 .FirstOrDefaultAsync();
-            if (existingMember == null)
+            if (existingMembershipRegistration == null)
             {
                 dynamic errors = new ExpandoObject();
-                errors.MemberId = $"Member with ID {existingMember.Id} not found";
+                errors.MemberId = $"Membership registration with ID {membershipRegistrationId} not found";
                 throw new APIException(HttpStatusCode.BadRequest, errors.MemberId, errors);
             }
-            MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
-                .Find(membershipPackage => membershipPackage.Id == membershipPackageId && membershipPackage.Status == EnumMembershipPackageStatus.Active)
-                .FirstOrDefaultAsync();
-            if (existingMembershipPackage == null)
-            {
-                dynamic errors = new ExpandoObject();
-                errors.MembershipPackageId = $"Membership Package with ID {existingMembershipPackage.Id} not found";
-                throw new APIException(HttpStatusCode.BadRequest, errors.MembershipPackageId, errors);
-            }
-            string paymentURL = await _vnpayService.CreateRegisterRequestURL(existingMembershipPackage.Id, existingMember.Id, context);
+            string paymentURL = await _vnpayService.CreateRegisterRequestURL(membershipRegistrationId, context);
             if (paymentURL == null)
             {
                 dynamic errors = new ExpandoObject();
