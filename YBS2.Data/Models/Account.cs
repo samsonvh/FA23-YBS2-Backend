@@ -16,5 +16,6 @@ namespace YBS2.Data.Models
         public Member? Member { get; set; }
         public EnumAccountStatus Status { get; set; }
         public ICollection<UpdateRequest>? UpdateRequests { get; set; } = null;
+        public ICollection<Notitoken>? Notitokens { get; set; } = null;
     }
 }

@@ -32,7 +32,7 @@ namespace YBS2.Service.Services.Implements
         {
             //validate email and password
             Account? existAccount = await _unitOfWork.AccountRepository
-                .Find(account => account.Email == credentials.Email)
+                .Find(account => account.Email.Trim().ToUpper() == credentials.Email.Trim().ToUpper() && account.Status == EnumAccountStatus.Active)
                 .Include(account => account.Member)
                 .Include(account => account.Company)
                 .Include(account => account.Member.MembershipRegistrations)
@@ -86,7 +86,7 @@ namespace YBS2.Service.Services.Implements
             }
 
             var existAccount = await _unitOfWork.AccountRepository
-                .Find(account => account.Email.Trim().ToUpper() == payload.Email.Trim().ToUpper())
+                .Find(account => account.Email.Trim().ToUpper() == payload.Email.Trim().ToUpper() && account.Status == EnumAccountStatus.Active)
                 .Include(account => account.Member)
                 .Include(account => account.Company)
                 .FirstOrDefaultAsync();

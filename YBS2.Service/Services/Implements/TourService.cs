@@ -178,13 +178,13 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<TourDto?> GetDetails(Guid id, ClaimsPrincipal claims)
         {
-            IQueryable<Tour> query = _unitOfWork.TourRepository.Find(tour => tour.Id == id);
+            IQueryable<Tour> query = _unitOfWork.TourRepository.Find(tour => tour.Id == id && tour.Status == EnumTourStatus.Active);
             if (claims != null)
             {
                 if (claims.FindFirstValue("CompanyId") != null)
                 {
                     Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
-                    query = query.Where(tour => tour.CompanyId == companyId);
+                    query = _unitOfWork.TourRepository.Find(tour => tour.CompanyId == companyId);
                 }
             }
             Tour? tour = await query.FirstOrDefaultAsync();
@@ -211,12 +211,20 @@ namespace YBS2.Service.Services.Implements
             }
             Tour? existingTour = await _unitOfWork.TourRepository
                 .Find(tour => tour.Id == id && tour.Status == EnumTourStatus.Active && tour.CompanyId == companyId)
+                .Include(tour => tour.Bookings)
+                .Include(tour => tour.TourDocks)
                 .FirstOrDefaultAsync();
             if (existingTour == null)
             {
                 dynamic Errors = new ExpandoObject();
                 Errors.Tour = "Tour Not Found";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.Tour, Errors);
+            }
+            if (CountNotYetStartedBooking(existingTour) > 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.tour = "Tour have booking which is not yet started";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.tour, Errors);
             }
             Yacht? existingYacht = await _unitOfWork.YachtRepository
                 .Find(yacht => yacht.Id == inputDto.YachtId && yacht.CompanyId == companyId)
@@ -344,14 +352,21 @@ namespace YBS2.Service.Services.Implements
                 Errors.company = "Company Not Found";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.company, Errors);
             }
-            Tour? exisitingTour = await _unitOfWork.TourRepository
+            Tour? existingTour = await _unitOfWork.TourRepository
                 .Find(tour => tour.Id == id && tour.CompanyId == companyId)
+                .Include(tour => tour.Bookings)
                 .FirstOrDefaultAsync();
-            if (exisitingTour == null)
+            if (existingTour == null)
             {
                 dynamic Errors = new ExpandoObject();
                 Errors.Tour = "Tour Not Found";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.Tour, Errors);
+            }
+            if (CountNotYetStartedBooking(existingTour) > 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.tour = "Tour have booking which is not yet started";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.tour, Errors);
             }
             status = TextUtils.Capitalize(status);
             if (!Enum.IsDefined(typeof(EnumTourStatus), status))
@@ -360,8 +375,8 @@ namespace YBS2.Service.Services.Implements
                 Errors.Status = $"Status {status} is invalid";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.Status, Errors);
             }
-            exisitingTour.Status = Enum.Parse<EnumTourStatus>(status);
-            _unitOfWork.TourRepository.Update(exisitingTour);
+            existingTour.Status = Enum.Parse<EnumTourStatus>(status);
+            _unitOfWork.TourRepository.Update(existingTour);
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
@@ -369,6 +384,13 @@ namespace YBS2.Service.Services.Implements
         public Task<TourDto?> Update(Guid id, TourInputDto inputDto)
         {
             throw new NotImplementedException();
+        }
+        private int CountNotYetStartedBooking(Tour tour)
+        {
+            return tour.Bookings
+                .Where(booking => booking.BookingDate.Date
+                .Add(new TimeSpan(tour.StartTime.Hours, tour.StartTime.Minutes, tour.StartTime.Seconds))
+                .CompareTo(DateTime.Now) > 0).ToList().Count();
         }
     }
 }

@@ -16,7 +16,7 @@ namespace YBS2.Data.Configs
             builder.HasKey(tour => tour.Id);
             builder.Property(tour => tour.Id).ValueGeneratedOnAdd();
             builder.Property(tour => tour.Name).HasColumnType("nvarchar(100)");
-            builder.Property(tour => tour.ImageURL).HasColumnType("nvarchar(500)");
+            builder.Property(tour => tour.ImageURL).HasColumnType("nvarchar(max)");
             builder.Property(tour => tour.Location).HasColumnType("nvarchar(100)");
             builder.Property(tour => tour.StartTime).HasColumnType("time");
             builder.Property(tour => tour.EndTime).HasColumnType("time");

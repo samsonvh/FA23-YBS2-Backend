@@ -77,7 +77,8 @@ namespace YBS2.Controllers
         [RoleAuthorization(nameof(EnumRole.Company))]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] TourInputDto inputDto)
         {
-            return Ok(await _tourService.Update(id, inputDto));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _tourService.Update(id, inputDto, claims));
         }
 
         [SwaggerOperation("[Company] Change status of tour according to ID")]

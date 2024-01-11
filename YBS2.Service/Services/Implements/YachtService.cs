@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -13,6 +15,7 @@ using YBS2.Service.Dtos.Inputs;
 using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Dtos.PageResponses;
+using YBS2.Service.Exceptions;
 
 namespace YBS2.Service.Services.Implements
 {
@@ -47,15 +50,15 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<DefaultPageResponse<YachtListingDto>> GetAll(YachtPageRequest pageRequest, ClaimsPrincipal claims)
         {
-            IQueryable<Yacht> query = _unitOfWork.YachtRepository.GetAll();
-            if (claims != null)
+            Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
+            Company? existingCompany = await _unitOfWork.CompanyRepository.Find(company => company.Id == companyId).FirstOrDefaultAsync();
+            if (existingCompany == null)
             {
-                if (claims.FindFirstValue("CompanyId") != null)
-                {
-                    Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
-                    query = query.Where(yacht => yacht.CompanyId == companyId);
-                }
+                dynamic Errors = new ExpandoObject();
+                Errors.company = "Company Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.company, Errors);
             }
+            IQueryable<Yacht> query = _unitOfWork.YachtRepository.Find(yacht => yacht.CompanyId == companyId);
 
             query = Filter(query, pageRequest);
 
@@ -90,8 +93,18 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<YachtDto?> GetDetails(Guid id, ClaimsPrincipal claims)
         {
+            Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
+            Company? existingCompany = await _unitOfWork.CompanyRepository.Find(company => company.Id == companyId).FirstOrDefaultAsync();
+            if (existingCompany == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.company = "Company Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.company, Errors);
+            }
             return _mapper.Map<YachtDto>
-            (await _unitOfWork.YachtRepository.GetByID(id));
+            (await _unitOfWork.YachtRepository
+                .Find(yacht => yacht.Id == id && yacht.CompanyId == companyId)
+                .FirstOrDefaultAsync());
         }
 
         public Task<YachtDto?> Update(Guid id, YachtInputDto inputDto)
