@@ -55,9 +55,9 @@ namespace YBS2.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(CreateMemberDto))]
         [Produces("application/json")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] MemberInputDto inputDto)
+        public async Task<IActionResult> Create([FromForm] MemberRegistration registration)
         {
-            return CreatedAtAction(nameof(Create), await _memberService.Create(inputDto, HttpContext));
+            return CreatedAtAction(nameof(Create), await _memberService.Create(registration, HttpContext));
         }
 
         [SwaggerOperation("Update member details according to ID")]

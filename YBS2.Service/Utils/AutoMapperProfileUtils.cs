@@ -29,6 +29,7 @@ namespace YBS2.Service.Utils
             CreateMap<Member, MemberDto>();
             CreateMap<MemberInputDto, Member>()
                 .ForMember(member => member.AvatarURL, options => options.Ignore());
+            CreateMap<MemberRegistration, Member>();
             CreateMap<MemberInputDto, Account>();
 
             //Dock
