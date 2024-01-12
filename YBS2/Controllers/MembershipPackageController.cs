@@ -43,7 +43,6 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBERSHIP_PACKAGES_ID_V1)]
         [HttpGet]
-        [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
             ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration,Request.Headers["Authorization"]);
