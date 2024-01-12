@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using YBS2.Data.Context;
 
@@ -11,9 +12,10 @@ using YBS2.Data.Context;
 namespace YBS2.Data.Migrations
 {
     [DbContext(typeof(YBS2Context))]
-    partial class YBS2ContextModelSnapshot : ModelSnapshot
+    [Migration("20240112125612_Add membership package id nullable in membership registration")]
+    partial class Addmembershippackageidnullableinmembershipregistration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,14 +69,11 @@ namespace YBS2.Data.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime");
 
-                    b.Property<string>("DeviceToken")
-                        .HasColumnType("nvarchar(255)");
-
                     b.Property<Guid?>("MemberId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Note")
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("int");
@@ -287,9 +286,6 @@ namespace YBS2.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("DeviceToken")
-                        .HasColumnType("nvarchar(255)");
 
                     b.Property<float?>("DiscountPercent")
                         .HasColumnType("real");

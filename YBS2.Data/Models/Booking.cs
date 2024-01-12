@@ -26,6 +26,7 @@ namespace YBS2.Data.Models
         public EnumPaymentMethod PaymentMethod { get; set; }
         public EnumPaymentStatus PaymentStatus { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
+        public string DeviceToken { get; set; }
         public ICollection<Passenger> Passengers { get; set; }
         public ICollection<Transaction>? Transactions { get; set; }
     }

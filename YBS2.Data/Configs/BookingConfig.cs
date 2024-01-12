@@ -17,8 +17,9 @@ namespace YBS2.Data.Configs
             builder.Property(booking => booking.Id).ValueGeneratedOnAdd();
             builder.Property(booking => booking.BookingDate).HasColumnType("datetime");
             builder.Property(booking => booking.TotalPassengers).HasColumnType("int");
-            builder.Property(booking => booking.Note).HasColumnType("nvarchar(50)").IsRequired(false);
+            builder.Property(booking => booking.Note).HasColumnType("nvarchar(255)").IsRequired(false);
             builder.Property(booking => booking.CreatedDate).HasColumnType("datetime");
+            builder.Property(booking => booking.DeviceToken).HasColumnType("nvarchar(255)").IsRequired(false);
         }
     }
 }

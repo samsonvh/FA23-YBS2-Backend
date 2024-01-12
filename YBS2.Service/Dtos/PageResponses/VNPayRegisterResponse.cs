@@ -8,6 +8,7 @@ namespace YBS2.Service.Dtos.PageResponses
     public class VNPayRegisterResponse
     {
         public Guid MembershipRegistrationId { get; set; }
+        public Guid MembershipPackageId { get; set; }
         public string Code {get; set;}
         public float TotalAmount { get; set; }
         public string Name { get; set; }
