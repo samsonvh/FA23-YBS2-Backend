@@ -1,3 +1,5 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +19,10 @@ using YBS2.Service.Utils;
 var builder = WebApplication.CreateBuilder(args);
 
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"./yacht-booking-system-2-firebase-adminsdk-mom0t-4843c07945.json");
-
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "yacht-booking-system-2-firebase-adminsdk-mom0t-4843c07945.json")),
+});
 //add cors
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
@@ -76,7 +81,8 @@ builder.Services.AddDbContext<YBS2Context>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUpdateRequestService, UpdateRequestService>();
-builder.Services.AddSingleton<IFirebaseStorageService>(service => new FirebaseStorageService(StorageClient.Create()));
+builder.Services.AddScoped<IFirebaseStorageService>(service => new FirebaseStorageService(StorageClient.Create()));
+builder.Services.AddSingleton<IFirebaseCMService, FirebaseCMService>();
 builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>();
 builder.Services.AddScoped<IVNPayService, VNPayService>();
 builder.Services.AddScoped<IMemberService, MemberService>();
