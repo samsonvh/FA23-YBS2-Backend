@@ -19,6 +19,7 @@ using YBS2.Service.Dtos.Listings;
 using YBS2.Service.Dtos.PageRequests;
 using YBS2.Service.Dtos.PageResponses;
 using YBS2.Service.Exceptions;
+using YBS2.Service.Utils;
 
 namespace YBS2.Service.Services.Implements
 {
@@ -33,7 +34,7 @@ namespace YBS2.Service.Services.Implements
             _mapper = mapper;
             _vnpayService = vnpayService;
         }
-        public Task<bool> ChangeStatus(Guid id, string status)
+        public async Task<bool> ChangeStatus(Guid id, string status)
         {
             throw new NotImplementedException();
         }
@@ -54,6 +55,7 @@ namespace YBS2.Service.Services.Implements
                 errors.TourId = "Tour Not Found";
                 throw new APIException(HttpStatusCode.BadRequest, errors.TourId, errors);
             }
+
             Booking booking = await AddPassengerInBooking(inputDto, claims, existingTour);
             booking.Status = EnumBookingStatus.Pending;
             booking.PaymentStatus = EnumPaymentStatus.NotYet;
@@ -70,7 +72,7 @@ namespace YBS2.Service.Services.Implements
             bookingDto.bookingDate = booking.BookingDate;
             bookingDto.totalAmount = booking.TotalAmount;
             bookingDto.totalPassengers = booking.TotalPassengers;
-            bookingDto.note = booking.Note; 
+            bookingDto.note = booking.Note;
             bookingDto.isIncludeBooker = booking.isIncludeBooker;
             bookingDto.type = booking.Type.ToString();
             bookingDto.status = booking.Status.ToString();
@@ -156,25 +158,25 @@ namespace YBS2.Service.Services.Implements
         public async Task<DefaultPageResponse<BookingListingDto>> GetAll(BookingPageRequest pageRequest, ClaimsPrincipal claims)
         {
             IQueryable<Booking> query = _unitOfWork.BookingRepository.GetAll();
-            // string role = claims.FindFirstValue(ClaimTypes.Role);
-            // if (role == nameof(EnumRole.Company))
-            // {
-            //     Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
-            //     query = query.Where(booking => booking.Tour.CompanyId == companyId);
-            // }
-            // if (role == nameof(EnumRole.Member))
-            // {
-            //     Guid memberId = Guid.Parse(claims.FindFirstValue("MemberId"));
-            //     query = query.Where(booking => booking.MemberId == memberId);
-            // }
+            string role = TextUtils.Capitalize(claims.FindFirstValue(ClaimTypes.Role));
+            if (role == nameof(EnumRole.Company))
+            {
+                Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
+                query = query.Where(booking => booking.Tour.CompanyId == companyId);
+            }
+            if (role == nameof(EnumRole.Member))
+            {
+                Guid memberId = Guid.Parse(claims.FindFirstValue("MemberId"));
+                query = query.Where(booking => booking.MemberId == memberId);
+            }
             query = Filter(query, pageRequest);
             int totalResults = await query.CountAsync();
             int pageCount = totalResults / pageRequest.PageSize + 1;
             List<BookingListingDto> list = await query
-                                                    .Skip((pageRequest.PageIndex - 1) * pageRequest.PageSize)
-                                                    .Take(pageRequest.PageSize)
-                                                    .Select(booking => _mapper.Map<BookingListingDto>(booking))
-                                                    .ToListAsync();
+                .Skip((pageRequest.PageIndex - 1) * pageRequest.PageSize)
+                .Take(pageRequest.PageSize)
+                .Select(booking => _mapper.Map<BookingListingDto>(booking))
+                .ToListAsync();
             return new DefaultPageResponse<BookingListingDto>
             {
                 Data = list,
@@ -192,34 +194,31 @@ namespace YBS2.Service.Services.Implements
 
         public async Task<BookingDto?> GetDetails(Guid id, ClaimsPrincipal claims)
         {
-            Booking? booking = await _unitOfWork.BookingRepository
-                .Find(booking => booking.Id == id)
-                .Include(booking => booking.Member)
-                .Include(booking => booking.Tour.Company)
-                .FirstOrDefaultAsync();
+            IQueryable<Booking> query = _unitOfWork.BookingRepository.Find(booking => booking.Id == id);
+            if (claims != null)
+            {
+                string role = TextUtils.Capitalize(claims.FindFirstValue(ClaimTypes.Role));
+                if (role == nameof(EnumRole.Company))
+                {
+                    Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
+                    query = query.Where(booking => booking.Tour.CompanyId == companyId);
+                }
+                else if (role == nameof(EnumRole.Member))
+                {
+                    Guid memberId = Guid.Parse(claims.FindFirstValue("MemberId"));
+                    query = query.Where(booking => booking.MemberId == memberId);
+                }
+            }
+            Booking booking = await query.FirstOrDefaultAsync();
             if (booking == null)
             {
                 return null;
             }
-            if (claims != null)
+            else if (claims == null && booking.MemberId != null)
             {
-                string role = claims.FindFirstValue(ClaimTypes.Role);
-                if (role == nameof(EnumRole.Company) && booking.Tour.Company == null)
-                {
-                    return null;
-                }
-                if (role == nameof(EnumRole.Member) && booking.Member == null)
-                {
-                    return null;
-                }
+                return null;
             }
-            else
-            {
-                if (booking.Member != null)
-                {
-                    return null;
-                }
-            }
+
 
             return _mapper.Map<BookingDto>(booking);
         }
@@ -248,7 +247,7 @@ namespace YBS2.Service.Services.Implements
         }
 
         public async Task<BookingDto> ConfirmBooking(IQueryCollection collections)
-        {   
+        {
             VNPayBookingResponse vnpayResponse = await _vnpayService.CallBackBookingPayment(collections);
             Member? existingMember = await _unitOfWork.MemberRepository
                 .Find(member => member.Id == vnpayResponse.MemberId && member.Status == EnumMemberStatus.Active)
@@ -269,7 +268,6 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, errors.Booking, errors);
             }
             DateTime now = DateTime.UtcNow.AddHours(7);
-            existingBooking.Status = EnumBookingStatus.Approved;
             existingBooking.PaymentStatus = EnumPaymentStatus.Done;
             _unitOfWork.BookingRepository.Update(existingBooking);
             Transaction transaction = _mapper.Map<Transaction>(vnpayResponse);
@@ -311,5 +309,40 @@ namespace YBS2.Service.Services.Implements
             }
             return paymentURL;
         }
+
+        public async Task<bool> ChangeStatus(Guid id, string status, ClaimsPrincipal claims)
+        {
+            Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
+            Company? existingCompany = await _unitOfWork.CompanyRepository.Find(company => company.Id == companyId).FirstOrDefaultAsync();
+            if (existingCompany == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.company = $"Company with ID {companyId} found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.company, errors);
+            }
+            Booking? existingBooking = await _unitOfWork.BookingRepository
+            .Find(booking => booking.Id == id && booking.Tour.CompanyId == companyId)
+            .FirstOrDefaultAsync();
+            if (existingBooking == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.booking = $"Booking with ID {id} found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.booking, errors);
+            }
+
+            status = TextUtils.Capitalize(status);
+            if (!Enum.IsDefined(typeof(EnumBookingStatus), status))
+            {
+                dynamic errors = new ExpandoObject();
+                errors.status = $"Status {status} is invalid";
+                throw new APIException(HttpStatusCode.BadRequest, errors.status, errors);
+            }
+            existingBooking.Status = Enum.Parse<EnumBookingStatus>(status);
+
+            _unitOfWork.BookingRepository.Update(existingBooking);
+            await _unitOfWork.SaveChangesAsync();
+            return true;
+        }
+
     }
 }

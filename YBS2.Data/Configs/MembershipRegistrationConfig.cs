@@ -15,6 +15,7 @@ namespace YBS2.Data.Configs
             builder.Property(membershipRegistration => membershipRegistration.DiscountPercent).IsRequired(false);
             builder.Property(membershipRegistration => membershipRegistration.MembershipStartDate).HasColumnType("date");
             builder.Property(membershipRegistration => membershipRegistration.MembershipExpireDate).HasColumnType("date");
+            builder.Property(membershipRegistration => membershipRegistration.DeviceToken).HasColumnType("nvarchar(255)").IsRequired(false);
         }
     }
 }

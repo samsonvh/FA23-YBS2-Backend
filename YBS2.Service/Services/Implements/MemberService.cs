@@ -84,6 +84,15 @@ namespace YBS2.Service.Services.Implements
         {
             //validate member input field
             await CheckExistence(inputDto);
+            MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
+                .Find(membershipPackage => membershipPackage.Id == inputDto.MembershipPackageId)
+                .FirstOrDefaultAsync();
+            if (existingMembershipPackage == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.membershipPackage = "Membership Package Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.membershipPackage, Errors);
+            }
             Account account = new Account
             {
                 Email = inputDto.Email.Trim().ToLower(),
@@ -99,7 +108,6 @@ namespace YBS2.Service.Services.Implements
             MembershipRegistration membershipRegistration = new MembershipRegistration
             {
                 MemberId = member.Id,
-                MembershipPackageId = inputDto.MembershipPackageId,
                 Status = EnumMembershipRegistrationStatus.Inactive
             };
             _unitOfWork.MembershipRegistrationRepository.Add(membershipRegistration);
@@ -112,7 +120,7 @@ namespace YBS2.Service.Services.Implements
                 _unitOfWork.MemberRepository.Update(member);
                 await _unitOfWork.SaveChangesAsync();
             }
-            string url = await _vnpayService.CreateRegisterRequestURL(membershipRegistration.Id, context);
+            string url = await _vnpayService.CreateRegisterRequestURL(membershipRegistration, existingMembershipPackage, context);
             return new CreateMemberDto
             {
                 membershipRegistrationId = membershipRegistration.Id,
@@ -179,10 +187,10 @@ namespace YBS2.Service.Services.Implements
 
                 if (inputDto.Avatar != null)
                 {
-                    await FirebaseUtil.DeleteFile(existingMember.AvatarURL,_configuration,_storageService);
+                    await FirebaseUtil.DeleteFile(existingMember.AvatarURL, _configuration, _storageService);
                     List<IFormFile> imgList = new List<IFormFile>();
                     imgList.Add(inputDto.Avatar);
-                    string avatarURL = await FirebaseUtil.UpLoadFile(imgList,existingMember.Id,_storageService);
+                    string avatarURL = await FirebaseUtil.UpLoadFile(imgList, existingMember.Id, _storageService);
                     existingMember.AvatarURL = avatarURL;
                 }
 
@@ -274,7 +282,6 @@ namespace YBS2.Service.Services.Implements
                 .Find(membershipRegistration => membershipRegistration.Id == vnpayResponse.MembershipRegistrationId && membershipRegistration.Status == EnumMembershipRegistrationStatus.Inactive)
                 .Include(membershipRegistration => membershipRegistration.Member)
                 .Include(membershipRegistration => membershipRegistration.Member.Account)
-                .Include(membershipRegistration => membershipRegistration.MembershipPackage)
                 .FirstOrDefaultAsync();
 
             if (existingMembershipRegistration == null)
@@ -289,16 +296,20 @@ namespace YBS2.Service.Services.Implements
             {
                 return false;
             }
-            if (existingMembershipRegistration.MembershipPackage == null)
+            MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
+                .Find(membershipPackage => membershipPackage.Id == vnpayResponse.MembershipPackageId)
+                .FirstOrDefaultAsync();
+            if (existingMembershipPackage == null)
             {
                 return false;
             }
             Wallet wallet = new Wallet
             {
-                Point = existingMembershipRegistration.MembershipPackage.Point
+                Point = existingMembershipPackage.Point
             };
 
             DateTime now = DateTime.UtcNow.AddHours(7);
+            existingMembershipRegistration.MembershipPackage = existingMembershipPackage;
             existingMembershipRegistration.Member.MemberSinceDate = now;
             existingMembershipRegistration.Member.Account.Status = EnumAccountStatus.Active;
             existingMembershipRegistration.Member.Status = EnumMemberStatus.Active;
@@ -335,25 +346,39 @@ namespace YBS2.Service.Services.Implements
             throw new NotImplementedException();
         }
 
-        public async Task<string> CreateRegisterPaymentURL(Guid membershipRegistrationId, HttpContext context)
+        public async Task<string> CreateRegisterPaymentURL(CreateRegisterPaymentURLInputDto inputDto, HttpContext context)
         {
             MembershipRegistration? existingMembershipRegistration = await _unitOfWork.MembershipRegistrationRepository
-                .Find(membershipRegistration => membershipRegistration.Id == membershipRegistrationId)
+                .Find(membershipRegistration => membershipRegistration.Id == inputDto.MembershipRegistrationId)
                 .Include(membershipRegistration => membershipRegistration.Member)
-                .Include(membershipRegistration => membershipRegistration.MembershipPackage)
                 .FirstOrDefaultAsync();
             if (existingMembershipRegistration == null)
             {
                 dynamic errors = new ExpandoObject();
-                errors.MemberId = $"Membership registration with ID {membershipRegistrationId} not found";
-                throw new APIException(HttpStatusCode.BadRequest, errors.MemberId, errors);
+                errors.membershipRegistration = $"Membership registration with ID {inputDto.MembershipRegistrationId} not found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.membershipRegistration, errors);
             }
-            string paymentURL = await _vnpayService.CreateRegisterRequestURL(membershipRegistrationId, context);
+            if (existingMembershipRegistration.Member == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.member = "Member Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.member, errors);
+            }
+            MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
+                .Find(membershipPackage => membershipPackage.Id == inputDto.MembershipPackageId)
+                .FirstOrDefaultAsync();
+            if (existingMembershipPackage == null)
+            {
+                dynamic errors = new ExpandoObject();
+                errors.membershipPackage = $"Membership Package with ID {inputDto.MembershipPackageId} not found";
+                throw new APIException(HttpStatusCode.BadRequest, errors.membershipPackage, errors);
+            }
+            string paymentURL = await _vnpayService.CreateRegisterRequestURL(existingMembershipRegistration,existingMembershipPackage, context);
             if (paymentURL == null)
             {
                 dynamic errors = new ExpandoObject();
                 errors.paymentURL = "Error while payment";
-                throw new APIException(HttpStatusCode.BadRequest, errors.PaymentURL, errors);
+                throw new APIException(HttpStatusCode.BadRequest, errors.paymentURL, errors);
             }
             return paymentURL;
         }

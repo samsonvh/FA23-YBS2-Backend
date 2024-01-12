@@ -83,7 +83,7 @@ namespace YBS2.Controllers
 
         }
         [SwaggerOperation("[Public] Activate member when payment for register successfully")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(MemberDto))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_ACTIVATE_V1)]
         [HttpGet]
@@ -92,13 +92,13 @@ namespace YBS2.Controllers
             return Ok(await _memberService.ActivateMember(Request.Query));
         }
         [SwaggerOperation("[Public] Create Register Payment URL when login with inactive member account")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MemberDto))]
+        [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(string))]
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBER_CREATE_REGISTER_PAYMENT_URL)]
         [HttpPost]
-        public async Task<IActionResult> CreateRegisterPaymentURL([FromForm] Guid membershipRegistrationId)
+        public async Task<IActionResult> CreateRegisterPaymentURL([FromForm] CreateRegisterPaymentURLInputDto inputDto)
         {
-            return CreatedAtAction(nameof(CreateRegisterPaymentURL) ,await _memberService.CreateRegisterPaymentURL(membershipRegistrationId, HttpContext));
+            return CreatedAtAction(nameof(CreateRegisterPaymentURL) ,await _memberService.CreateRegisterPaymentURL(inputDto, HttpContext));
         }
     }
 }

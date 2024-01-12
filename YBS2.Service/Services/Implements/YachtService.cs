@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using YBS.Service.Utils;
+using YBS2.Data.Enums;
 using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
 using YBS2.Service.Dtos;
@@ -61,8 +62,11 @@ namespace YBS2.Service.Services.Implements
                 Errors.yacht = "Yacht must have at least 1 image.";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.yacht, Errors);
             }
+            yacht.CompanyId = companyId;
+            yacht.Status = EnumYachtStatus.Available;
             _unitOfWork.YachtRepository.Add(yacht);
-            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.Images,yacht.Id, _storageService);
+            string imageURL = await FirebaseUtil.UpLoadFile(inputDto.Images, yacht.Id, _storageService);
+            yacht.ImageURL = imageURL;
             await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<YachtDto>(yacht);
         }
@@ -130,10 +134,17 @@ namespace YBS2.Service.Services.Implements
                 Errors.company = "Company Not Found";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.company, Errors);
             }
-            return _mapper.Map<YachtDto>
-            (await _unitOfWork.YachtRepository
+            
+            Yacht? existingYacht = await _unitOfWork.YachtRepository
                 .Find(yacht => yacht.Id == id && yacht.CompanyId == companyId)
-                .FirstOrDefaultAsync());
+                .FirstOrDefaultAsync();
+            YachtDto yachtDto = _mapper.Map<YachtDto>(existingYacht);
+            if (existingYacht == null)
+            {
+                return null;
+            }
+            yachtDto.ImageURL = existingYacht.ImageURL.Split(",");
+            return yachtDto;
         }
 
         public Task<YachtDto?> Update(Guid id, YachtInputDto inputDto)
