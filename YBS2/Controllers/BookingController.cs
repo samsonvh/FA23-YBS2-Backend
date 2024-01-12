@@ -67,15 +67,7 @@ namespace YBS2.Controllers
             return CreatedAtAction(nameof(Create), await _bookingService.Create(inputDto, claims, HttpContext));
         }
 
-        [SwaggerOperation("[Company|Member] Update booking details according to ID")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(BookingDto))]
-        [Produces("application/json")]
-        [HttpPut]
-        [Route(APIEndPoints.BOOKING_ID_V1)]
-        public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] BookingInputDto inputDto)
-        {
-            return Ok(await _bookingService.Update(id, inputDto));
-        }
+
 
         [SwaggerOperation("[Company] Change status of booking according to ID")]
         [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
@@ -85,7 +77,8 @@ namespace YBS2.Controllers
         [RoleAuthorization($"{nameof(EnumRole.Company)}")]
         public async Task<IActionResult> ChangeStatus([FromRoute] Guid id, [FromBody] string status)
         {
-            return Ok(await _bookingService.ChangeStatus(id, status));
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _bookingService.ChangeStatus(id, status, claims));
 
         }
         [SwaggerOperation("[Public] System confirm booking after user make an payment")]
@@ -98,7 +91,7 @@ namespace YBS2.Controllers
             return Ok(await _bookingService.ConfirmBooking(Request.Query));
         }
 
-        [SwaggerOperation("[Public] Create Booking Payment URL when pay for Not Yet paid booking")]
+        [SwaggerOperation("[Public] Create Booking Payment URL when member pay for Not Yet paid booking")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MemberDto))]
         [Produces("application/json")]
         [Route(APIEndPoints.BOOKING_CREATE_PAYMENT_URL)]

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using YBS2.Data.Models;
 using YBS2.Service.Dtos;
 using YBS2.Service.Dtos.Details;
 using YBS2.Service.Dtos.Inputs;
@@ -20,5 +21,6 @@ namespace YBS2.Service.Services
         Task<object> Create (BookingInputDto inputDto, ClaimsPrincipal claims, HttpContext context);
         Task<BookingDto> ConfirmBooking (IQueryCollection collections);
         Task<string> CreateBookingPaymentURL(Guid id, HttpContext context);
+        Task<bool> ChangeStatus(Guid id, string status, ClaimsPrincipal claims);
     }
 }

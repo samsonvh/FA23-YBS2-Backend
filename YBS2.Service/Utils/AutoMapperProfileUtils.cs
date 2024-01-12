@@ -41,7 +41,8 @@ namespace YBS2.Service.Utils
                 .ForMember(tourDock => tourDock.DockId, options => options.MapFrom(dock => dock.Id));
             //Yacht
             CreateMap<Yacht, YachtListingDto>();
-            CreateMap<Yacht, YachtDto>();
+            CreateMap<Yacht, YachtDto>()
+                .ForMember(yacht => yacht.ImageURL, options => options.Ignore());
             CreateMap<YachtInputDto, Yacht>()
                 .ForMember(yacht => yacht.ImageURL, options => options.Ignore());;
 
@@ -72,6 +73,8 @@ namespace YBS2.Service.Utils
 
             //Passenger
             CreateMap<PassengerInputDto, Passenger>();
+            CreateMap<Passenger, PassengerDto>();
+            CreateMap<Passenger, PassengerListingDto>();
 
             //Transaction 
             CreateMap<Transaction, TransactionListingDto>();

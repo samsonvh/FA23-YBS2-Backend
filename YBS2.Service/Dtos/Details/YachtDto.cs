@@ -9,7 +9,7 @@ namespace YBS2.Service.Dtos
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string ImageURL { get; set; }
+        public string[] ImageURL { get; set; }
         public string Description { get; set; }
         public string Manufacturer { get; set; }
         public string LOA { get; set; }

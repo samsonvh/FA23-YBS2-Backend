@@ -69,7 +69,7 @@ namespace YBS2.Service.Services.Implements
                 dynamic Errors = new ExpandoObject();
                 Errors.YachtId = $"Yacht with Id {inputDto.YachtId} does not exist.";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.YachtId, Errors);
-            }
+            }   
 
             if (inputDto.Type == EnumTourType.In_Day)
             {
