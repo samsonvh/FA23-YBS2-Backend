@@ -53,6 +53,7 @@ namespace YBS2.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(MembershipPackageDto))]
         [Produces("application/json")]
         [HttpPost]
+        [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> Create([FromForm] MembershipPackageInputDto inputDto)
         {
             return CreatedAtAction(nameof(Create) ,await _membershipPackageService.Create(inputDto));
@@ -63,7 +64,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [Route(APIEndPoints.MEMBERSHIP_PACKAGES_ID_V1)]
         [HttpPut]
-        [RoleAuthorization(nameof(EnumRole.Member))]
+        [RoleAuthorization(nameof(EnumRole.Admin))]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] MembershipPackageInputDto inputDto)
         {
             return Ok(await _membershipPackageService.Update(id, inputDto));
