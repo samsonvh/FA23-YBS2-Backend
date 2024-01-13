@@ -2,7 +2,8 @@ namespace YBS2.Data.Enums
 {
     public enum EnumYachtStatus
     {
-        Pending = 0,
-        Available = 1
+        Unavailale = 0,
+        Available = 1,
+        Pending = 2
     }
 }

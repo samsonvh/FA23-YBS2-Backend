@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -56,7 +57,30 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, errors.TourId, errors);
             }
 
+            List<Booking> bookingList = await _unitOfWork.BookingRepository
+                .Find(booking => booking.BookingDate.Date.Equals(inputDto.BookingDate.Date) && booking.TourId == existingTour.Id && booking.Status == EnumBookingStatus.Approved)
+                .ToListAsync();
+            if (bookingList.FindAll(booking => booking.Type == EnumBookingType.Private_Tour).Count > 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.privateTour = $"This tour already have private booking in date: {inputDto.BookingDate.Date.ToString("MM/dd/yyyy")}";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.privateTour, Errors);
+            }
+
+
             Booking booking = await AddPassengerInBooking(inputDto, claims, existingTour);
+            List<Booking> publicBookingList = bookingList.FindAll(booking => booking.Type == EnumBookingType.Group_Tour);
+            int count = booking.TotalPassengers;
+            foreach (Booking previousBooking in publicBookingList)
+            {
+                count += previousBooking.TotalPassengers;
+            }
+            if (count > existingTour.MaximumGuest)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.outOfSeat = $"This tour is out of seat in date: {inputDto.BookingDate.Date.ToString("MM/dd/yyyy")}";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.outOfSeat, Errors);
+            }
             booking.Status = EnumBookingStatus.Pending;
             booking.PaymentStatus = EnumPaymentStatus.NotYet;
             booking.Tour = existingTour;
@@ -343,6 +367,7 @@ namespace YBS2.Service.Services.Implements
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
+
 
     }
 }
