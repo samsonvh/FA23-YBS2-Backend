@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(MyAllowSpecificOrigins, builder =>
     {
-        builder.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:8081", "http://192.168.4:8081")
+        builder.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:8081", "http://192.168.4:8081", "https://ybs2-member-prod.vercel.app")
                 .AllowAnyMethod()
                 .AllowAnyHeader();
     });
