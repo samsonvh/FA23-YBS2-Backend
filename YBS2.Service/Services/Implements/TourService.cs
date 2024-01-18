@@ -216,7 +216,7 @@ namespace YBS2.Service.Services.Implements
                 if (role == nameof(EnumRole.Company))
                 {
                     Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
-                    query = _unitOfWork.TourRepository.Find(tour => tour.CompanyId == companyId);
+                    query = _unitOfWork.TourRepository.Find(tour => tour.CompanyId == companyId && tour.Id == id);
                 }
                 else if (role == nameof(EnumRole.Member))
                 {

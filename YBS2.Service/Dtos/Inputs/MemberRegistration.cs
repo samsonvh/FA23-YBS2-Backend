@@ -13,8 +13,7 @@ namespace YBS2.Service.Dtos.Inputs
     {
         [Required]
         public Guid MembershipPackageId { get; set; }
-        [Required]
-        public string DeviceToken { get; set; }
+        public string? DeviceToken { get; set; }
         [Required]
         public string Username { get; set; }
         [Required]
