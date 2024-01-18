@@ -27,13 +27,15 @@ namespace YBS2.Service.Services.Implements
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
         private readonly IFirebaseStorageService _storageService;
+        private readonly IFirebaseCMService _cloudMessagingService;
         private readonly IVNPayService _vnpayService;
-        public MemberService(IUnitOfWork unitOfWork, IConfiguration configuration, IMapper mapper, IFirebaseStorageService storageService, IVNPayService vnpayService)
+        public MemberService(IUnitOfWork unitOfWork, IConfiguration configuration, IMapper mapper, IFirebaseStorageService storageService, IFirebaseCMService cloudMessagingService, IVNPayService vnpayService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _mapper = mapper;
             _storageService = storageService;
+            _cloudMessagingService = cloudMessagingService;
             _vnpayService = vnpayService;
         }
         public async Task<bool> ChangeStatus(Guid id, string status)
@@ -80,12 +82,12 @@ namespace YBS2.Service.Services.Implements
             throw new NotImplementedException();
         }
 
-        public async Task<CreateMemberDto> Create(MemberInputDto inputDto, HttpContext context)
+        public async Task<CreateMemberDto> Create(MemberRegistration registration, HttpContext context)
         {
             //validate member input field
-            await CheckExistence(inputDto);
+            await CheckExistence(null, registration);
             MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
-                .Find(membershipPackage => membershipPackage.Id == inputDto.MembershipPackageId)
+                .Find(membershipPackage => membershipPackage.Id == registration.MembershipPackageId)
                 .FirstOrDefaultAsync();
             if (existingMembershipPackage == null)
             {
@@ -95,27 +97,28 @@ namespace YBS2.Service.Services.Implements
             }
             Account account = new Account
             {
-                Email = inputDto.Email.Trim().ToLower(),
-                Username = inputDto.Username.Trim().ToLower(),
-                Password = PasswordUtils.HashPassword(inputDto.Password),
+                Email = registration.Email.Trim().ToLower(),
+                Username = registration.Username.Trim().ToLower(),
+                Password = PasswordUtils.HashPassword(registration.Password),
                 Role = nameof(EnumRole.Member).ToUpper(),
                 Status = EnumAccountStatus.Inactive
             };
-            Member member = _mapper.Map<Member>(inputDto);
+            Member member = _mapper.Map<Member>(registration);
             member.Account = account;
             member.Status = EnumMemberStatus.Inactive;
             _unitOfWork.MemberRepository.Add(member);
             MembershipRegistration membershipRegistration = new MembershipRegistration
             {
                 MemberId = member.Id,
+                DeviceToken = registration.DeviceToken,
                 Status = EnumMembershipRegistrationStatus.Inactive
             };
             _unitOfWork.MembershipRegistrationRepository.Add(membershipRegistration);
             await _unitOfWork.SaveChangesAsync();
-            if (inputDto.Avatar != null)
+            if (registration.Avatar != null)
             {
                 string avatarName = member.Id.ToString();
-                Uri avatarUri = await _storageService.UploadFile(avatarName, inputDto.Avatar);
+                Uri avatarUri = await _storageService.UploadFile(avatarName, registration.Avatar);
                 member.AvatarURL = avatarUri.ToString();
                 _unitOfWork.MemberRepository.Update(member);
                 await _unitOfWork.SaveChangesAsync();
@@ -227,50 +230,56 @@ namespace YBS2.Service.Services.Implements
                     : query.OrderByDescending(member => member.Id);
             return query;
         }
-        private async Task CheckExistence(MemberInputDto inputDto)
+        private async Task CheckExistence(MemberInputDto? inputDto, MemberRegistration? registration)
         {
-            string username = inputDto.Username.ToLower();
-            string email = inputDto.Email.ToLower();
-            Account? existingAccount = await _unitOfWork.AccountRepository
-                .Find(account => account.Username == username || account.Email == email)
-                .FirstOrDefaultAsync();
             List<string> props = new List<string>();
-            if (existingAccount != null)
+            if (registration != null)
             {
-                dynamic errors = new ExpandoObject();
-                string message = " is unavailable";
-                if (existingAccount.Email == email)
+                string username = registration.Username.ToLower();
+                string email = registration.Email.ToLower();
+                Account? existingAccount = await _unitOfWork.AccountRepository
+                    .Find(account => account.Username == username || account.Email == email)
+                    .FirstOrDefaultAsync();
+                if (existingAccount != null)
                 {
-                    props.Add("Email");
-                    errors.Email = "Email" + message;
+                    dynamic errors = new ExpandoObject();
+                    string message = " is unavailable";
+                    if (existingAccount.Email == email)
+                    {
+                        props.Add("Email");
+                        errors.Email = "Email" + message;
+                    }
+                    if (existingAccount.Username == username)
+                    {
+                        props.Add("Username");
+                        errors.Username = "Username" + message;
+                    }
+                    message = string.Join(",", props) + message;
+                    throw new APIException(HttpStatusCode.BadRequest, message, errors);
                 }
-                if (existingAccount.Username == username)
-                {
-                    props.Add("Username");
-                    errors.Username = "Username" + message;
-                }
-                message = string.Join(",", props) + message;
-                throw new APIException(HttpStatusCode.BadRequest, message, errors);
             }
-            Member? existingMember = await _unitOfWork.MemberRepository
-                .Find(member => member.PhoneNumber == inputDto.PhoneNumber || member.IdentityNumber == inputDto.IdentityNumber)
-                .FirstOrDefaultAsync();
-            if (existingMember != null)
+            if (inputDto != null)
             {
-                dynamic errors = new ExpandoObject();
-                string message = " is unavailable";
-                if (existingMember.PhoneNumber == inputDto.PhoneNumber)
+                Member? existingMember = await _unitOfWork.MemberRepository
+                    .Find(member => member.PhoneNumber == inputDto.PhoneNumber || member.IdentityNumber == inputDto.IdentityNumber)
+                    .FirstOrDefaultAsync();
+                if (existingMember != null)
                 {
-                    props.Add("PhoneNumber");
-                    errors.PhoneNumber = "PhoneNumber" + message;
+                    dynamic errors = new ExpandoObject();
+                    string message = " is unavailable";
+                    if (existingMember.PhoneNumber == inputDto.PhoneNumber)
+                    {
+                        props.Add("PhoneNumber");
+                        errors.PhoneNumber = "PhoneNumber" + message;
+                    }
+                    if (existingMember.IdentityNumber == inputDto.IdentityNumber)
+                    {
+                        props.Add("IdentityNumber");
+                        errors.IdentityNumber = "IdentityNumber" + message;
+                    }
+                    message = string.Join(",", props) + message;
+                    throw new APIException(HttpStatusCode.BadRequest, message, errors);
                 }
-                if (existingMember.IdentityNumber == inputDto.IdentityNumber)
-                {
-                    props.Add("IdentityNumber");
-                    errors.IdentityNumber = "IdentityNumber" + message;
-                }
-                message = string.Join(",", props) + message;
-                throw new APIException(HttpStatusCode.BadRequest, message, errors);
             }
         }
 
@@ -338,6 +347,14 @@ namespace YBS2.Service.Services.Implements
             _unitOfWork.MembershipRegistrationRepository.Update(existingMembershipRegistration);
 
             await _unitOfWork.SaveChangesAsync();
+
+            FCMMessageRequest notiRequest = new FCMMessageRequest
+            {
+                Title = existingMembershipRegistration.Id.ToString(),
+                Body = "true",
+                DeviceToken = existingMembershipRegistration.DeviceToken
+            };
+            await _cloudMessagingService.SendTransactionNotification(notiRequest);
             return true;
         }
 
@@ -373,7 +390,7 @@ namespace YBS2.Service.Services.Implements
                 errors.membershipPackage = $"Membership Package with ID {inputDto.MembershipPackageId} not found";
                 throw new APIException(HttpStatusCode.BadRequest, errors.membershipPackage, errors);
             }
-            string paymentURL = await _vnpayService.CreateRegisterRequestURL(existingMembershipRegistration,existingMembershipPackage, context);
+            string paymentURL = await _vnpayService.CreateRegisterRequestURL(existingMembershipRegistration, existingMembershipPackage, context);
             if (paymentURL == null)
             {
                 dynamic errors = new ExpandoObject();
