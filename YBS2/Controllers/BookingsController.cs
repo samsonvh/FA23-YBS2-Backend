@@ -23,13 +23,13 @@ namespace YBS2.Controllers
 {
     [ApiController]
     [Route(APIEndPoints.BOOKING_V1)]
-    public class BookingController : ControllerBase
+    public class BookingsController : ControllerBase
     {
-        private readonly ILogger<BookingController> _logger;
+        private readonly ILogger<BookingsController> _logger;
         private readonly IBookingService _bookingService;
         private readonly IConfiguration _configuration;
 
-        public BookingController(ILogger<BookingController> logger, IBookingService bookingService, IConfiguration configuration)
+        public BookingsController(ILogger<BookingsController> logger, IBookingService bookingService, IConfiguration configuration)
         {
             _logger = logger;
             _bookingService = bookingService;

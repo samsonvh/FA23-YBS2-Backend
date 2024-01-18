@@ -25,10 +25,12 @@ namespace YBS2.Service.Dtos.Inputs
         [Required]
         public string DRAFT { get; set; }
         [Required]
-        public int TotalCrew { get; set; }
+        public int TotalCrews { get; set; }
         [Required]
-        public int TotalPassenger { get; set; }
+        public int TotalPassengers { get; set; }
         [Required]
         public int Cabin { get; set; }
+        [Required]
+        public EnumYachtType Type { get; set; }
     }
 }

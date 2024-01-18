@@ -92,6 +92,7 @@ builder.Services.AddScoped<IMembershipPackageService, MembershipPackageService>(
 builder.Services.AddScoped<ITourService, TourService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<ITourActivityService, TourActivityService>();
 builder.Services.AddHttpContextAccessor();
 
 //Add Authentication

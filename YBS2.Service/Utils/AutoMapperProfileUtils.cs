@@ -16,7 +16,8 @@ namespace YBS2.Service.Utils
             CreateMap<Account, AccountDto>();
 
             //  Company
-            CreateMap<CompanyInputDto, Company>();
+            CreateMap<CompanyInputDto, Company>()
+                .ForPath(company => company.Account.Username, options => options.MapFrom(companyInputDto => companyInputDto.ShortName));
             CreateMap<Company, CompanyDto>()
                 .ForMember(companyDto => companyDto.Username, options => options.MapFrom(company => company.Account.Username))
                 .ForMember(companyDto => companyDto.Email, options => options.MapFrom(company => company.Account.Email))
@@ -40,6 +41,7 @@ namespace YBS2.Service.Utils
             CreateMap<Dock, TourDock>()
                 .ForMember(tourDock => tourDock.Id, options => options.Ignore())
                 .ForMember(tourDock => tourDock.DockId, options => options.MapFrom(dock => dock.Id));
+
             //Yacht
             CreateMap<Yacht, YachtListingDto>();
             CreateMap<Yacht, YachtDto>()
@@ -81,9 +83,20 @@ namespace YBS2.Service.Utils
             CreateMap<Transaction, TransactionListingDto>();
             CreateMap<Transaction, TransactionDto>();
             CreateMap<TransactionInputDto, Transaction>();
+
             //VNPayResponse 
             CreateMap<VNPayRegisterResponse,Transaction>();
             CreateMap<VNPayBookingResponse,Transaction>();
+
+            //TourActivity
+            CreateMap<TourActivityInputDto, TourActivity>();
+            CreateMap<TourActivity, TourActivityDto>();
+            CreateMap<TourActivity, TourActivityListingDto>();
+
+            //BookingActivity
+            CreateMap<TourActivity,BookingActivity>()
+                .ForMember(bookingActivity => bookingActivity.Id, options => options.Ignore())
+                .ForMember(bookingActivity => bookingActivity.BookingId, options => options.Ignore());
         }
 
         private static string MapDefaultStatus(Enum status)

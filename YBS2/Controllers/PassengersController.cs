@@ -23,13 +23,13 @@ using YBS2.Service.Utils;
 namespace YBS2.Controllers
 {
     [ApiController]
-    public class PassengerController : ControllerBase
+    public class PassengersController : ControllerBase
     {
-        private readonly ILogger<PassengerController> _logger;
+        private readonly ILogger<PassengersController> _logger;
         private readonly IPassengerService _passengerService;
         private readonly IConfiguration _configuration;
 
-        public PassengerController(ILogger<PassengerController> logger, PassengerService passengerService, IConfiguration configuration)
+        public PassengersController(ILogger<PassengersController> logger, PassengerService passengerService, IConfiguration configuration)
         {
             _logger = logger;
             _passengerService = passengerService;

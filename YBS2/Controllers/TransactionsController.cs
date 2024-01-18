@@ -17,13 +17,13 @@ namespace YBS2.Controllers
 {
     [Route(APIEndPoints.TRANSACTION_V1)]
     [ApiController]
-    public class TransactionController : ControllerBase
+    public class TransactionsController : ControllerBase
     {
-        private readonly ILogger<TransactionController> _logger;
+        private readonly ILogger<TransactionsController> _logger;
         private readonly ITransactionService _transactionService;
         private readonly IConfiguration _configuration;
 
-        public TransactionController(ILogger<TransactionController> logger, ITransactionService transactionService, IConfiguration configuration)
+        public TransactionsController(ILogger<TransactionsController> logger, ITransactionService transactionService, IConfiguration configuration)
         {
             _logger = logger;
             _transactionService = transactionService;

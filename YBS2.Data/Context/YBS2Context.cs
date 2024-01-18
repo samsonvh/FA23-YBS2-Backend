@@ -23,6 +23,12 @@ namespace YBS2.Data.Context
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<TourDock> TourDocks { get; set; }
         public DbSet<Notitoken> Notitokens { get; set; }
+        public DbSet<TourActivity> TourActivities { get; set; }
+        public DbSet<BookingActivity> BookingActivities { get; set; }
+        public DbSet<ServicePackage> ServicePackages { get; set; }
+        public DbSet<Service> Services { get; set; }
+        public DbSet<ServicePackageItem> ServicePackageItems { get; set; }
+        public DbSet<TourServicePackage> TourServicePackages { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(YBS2Context).Assembly);

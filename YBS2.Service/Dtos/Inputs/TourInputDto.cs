@@ -24,7 +24,7 @@ namespace YBS2.Service.Dtos.Inputs
         public int Priority { get; set; }
         [Required]
         public string Location { get; set; }
-        [Required]
+        [Required]  
         [JsonConverter(typeof(JSonConverterTimeSpan))]
         public TimeSpan StartTime { get; set; }
         [Required]
@@ -37,5 +37,6 @@ namespace YBS2.Service.Dtos.Inputs
         [Required]
         public string Description { get; set; }
         public List<Guid> Docks { get; set; }
+        public string Activities { get; set; }
     }
 }

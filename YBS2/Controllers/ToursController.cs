@@ -23,14 +23,14 @@ namespace YBS2.Controllers
 {
     [ApiController]
     [Route(APIEndPoints.TOUR_V1)]
-    
-    public class TourController : ControllerBase
+
+    public class ToursController : ControllerBase
     {
-        private readonly ILogger<TourController> _logger;
+        private readonly ILogger<ToursController> _logger;
         private readonly ITourService _tourService;
         private readonly IConfiguration _configuration;
 
-        public TourController(ILogger<TourController> logger, ITourService tourService, IConfiguration configuration)
+        public ToursController(ILogger<ToursController> logger, ITourService tourService, IConfiguration configuration)
         {
             _logger = logger;
             _tourService = tourService;
@@ -51,7 +51,7 @@ namespace YBS2.Controllers
         [Produces("application/json")]
         [HttpGet]
         [Route(APIEndPoints.TOUR_ID_V1)]
-        
+
         public async Task<IActionResult> GetDetails([FromRoute] Guid id)
         {
             ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
@@ -61,8 +61,8 @@ namespace YBS2.Controllers
         [SwaggerOperation("[Company] Create new tour")]
         [SwaggerResponse(StatusCodes.Status201Created, "Success", typeof(TourDto))]
         [Produces("application/json")]
-        [HttpPost]
-        [RoleAuthorization(nameof(EnumRole.Company))]
+        [HttpPost]  
+        // [RoleAuthorization(nameof(EnumRole.Company))]
         public async Task<IActionResult> Create([FromForm] TourInputDto inputDto)
         {
             ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);

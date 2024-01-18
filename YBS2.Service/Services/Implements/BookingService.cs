@@ -49,6 +49,7 @@ namespace YBS2.Service.Services.Implements
         {
             Tour? existingTour = await _unitOfWork.TourRepository
                 .Find(tour => tour.Id == inputDto.TourId && tour.Status == EnumTourStatus.Active && tour.Yacht != null)
+                .Include(tour => tour.TourActivities)
                 .FirstOrDefaultAsync();
             if (existingTour == null)
             {
@@ -57,19 +58,21 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, errors.TourId, errors);
             }
 
-            List<Booking> bookingList = await _unitOfWork.BookingRepository
+            List<Booking> approvedBookingList = await _unitOfWork.BookingRepository
                 .Find(booking => booking.BookingDate.Date.Equals(inputDto.BookingDate.Date) && booking.TourId == existingTour.Id && booking.Status == EnumBookingStatus.Approved)
                 .ToListAsync();
-            if (bookingList.FindAll(booking => booking.Type == EnumBookingType.Private_Tour).Count > 0)
+            if (approvedBookingList.FindAll(booking => booking.Type == EnumBookingType.Private_Tour).Count > 0)
             {
                 dynamic Errors = new ExpandoObject();
                 Errors.privateTour = $"This tour already have private booking in date: {inputDto.BookingDate.Date.ToString("MM/dd/yyyy")}";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.privateTour, Errors);
             }
 
+            List<BookingActivity> bookingActivities = _mapper.Map<List<BookingActivity>>(existingTour.TourActivities);
 
             Booking booking = await AddPassengerInBooking(inputDto, claims, existingTour);
-            List<Booking> publicBookingList = bookingList.FindAll(booking => booking.Type == EnumBookingType.Group_Tour);
+            List<Booking> publicBookingList = approvedBookingList.FindAll(booking => booking.Type == EnumBookingType.Group_Tour);
+            booking.BookingActivities = bookingActivities;
             int count = booking.TotalPassengers;
             foreach (Booking previousBooking in publicBookingList)
             {
@@ -82,16 +85,70 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, Errors.outOfSeat, Errors);
             }
             booking.Status = EnumBookingStatus.Pending;
-            booking.PaymentStatus = EnumPaymentStatus.NotYet;
+
+
             booking.Tour = existingTour;
+            booking.TourName = existingTour.Name;
+            booking.Location = existingTour.Location;
+            booking.StartTime = existingTour.StartTime;
+            booking.EndTime = existingTour.EndTime;
+            booking.Duration = existingTour.Duration;
+            booking.DurationUnit = existingTour.DurationUnit;
+            booking.TourType = existingTour.Type;
             _unitOfWork.BookingRepository.Add(booking);
             await _unitOfWork.SaveChangesAsync();
             dynamic bookingDto = new ExpandoObject();
             bookingDto.Id = booking.Id;
             if (booking.MemberId != null)
             {
+                Member? member = await _unitOfWork.MemberRepository
+                    .Find(member => member.Id == booking.MemberId)
+                    .Include(member => member.Wallet)
+                    .Include(member => member.MembershipRegistrations)
+                    .FirstOrDefaultAsync();
+                if (member == null)
+                {
+                    dynamic Errors = new ExpandoObject();
+                    Errors.member = "Member Not Found";
+                    throw new APIException(HttpStatusCode.BadRequest, Errors.member, Errors);
+                }
+                MembershipRegistration membershipRegistration = member.MembershipRegistrations
+                    .FirstOrDefault(membershipRegistration => membershipRegistration.Status == EnumMembershipRegistrationStatus.Active);
+                booking.TotalAmount = (float)(booking.TotalAmount - booking.TotalAmount * membershipRegistration.DiscountPercent / 100);
                 bookingDto.MemberId = booking.MemberId;
+                if (inputDto.PaymentMethod == EnumPaymentMethod.Point)
+                {
+                    float pointExchange = booking.TotalAmount / 1000;
+                    booking.PaymentStatus = EnumPaymentStatus.Done;
+                    Transaction transaction = new Transaction
+                    {
+                        Name = existingTour.Name,
+                        TotalAmount = booking.TotalAmount,
+                        Point = pointExchange,
+                        PaymentDate = DateTime.UtcNow.AddHours(7),
+                        Success = true,
+                        Type = EnumTransactionType.Booking
+                    };
+                    _unitOfWork.TransactionRepository.Add(transaction);
+
+                    
+                    booking.Point = pointExchange;
+                    if (pointExchange > member.Wallet.Point)
+                    {
+                        dynamic Errors = new ExpandoObject();
+                        Errors.wallet = "Not enough point for payment";
+                        throw new APIException(HttpStatusCode.BadRequest, Errors.wallet, Errors);
+                    }
+                    member.Wallet.Point = (int)(member.Wallet.Point - pointExchange);
+                    _unitOfWork.MemberRepository.Update(member);
+                    bookingDto.Point = booking.Point;
+                }
             }
+            else
+            {
+                booking.PaymentStatus = EnumPaymentStatus.NotYet;
+            }
+
             bookingDto.tourId = booking.TourId;
             bookingDto.bookingDate = booking.BookingDate;
             bookingDto.totalAmount = booking.TotalAmount;
@@ -305,6 +362,7 @@ namespace YBS2.Service.Services.Implements
         {
             Booking? existingBooking = await _unitOfWork.BookingRepository
                 .Find(booking => booking.Id == id)
+                .Include(booking => booking.Transactions)
                 .FirstOrDefaultAsync();
             if (existingBooking == null)
             {
@@ -362,7 +420,10 @@ namespace YBS2.Service.Services.Implements
                 throw new APIException(HttpStatusCode.BadRequest, errors.status, errors);
             }
             existingBooking.Status = Enum.Parse<EnumBookingStatus>(status);
+            if (existingBooking.PaymentMethod == EnumPaymentMethod.Point && existingBooking.Status == EnumBookingStatus.Declined)
+            {
 
+            }
             _unitOfWork.BookingRepository.Update(existingBooking);
             await _unitOfWork.SaveChangesAsync();
             return true;

@@ -16,14 +16,15 @@ namespace YBS2.Data.Models
         public Guid? BookingId { get; set; }
         [ForeignKey("BookingId")]
         public Booking? Booking { get; set; }
-        public string Code { get; set; }
+        public string? Code { get; set; }
         public string Name { get; set; }
         public float TotalAmount { get; set; }
-        public string BankCode { get; set; }
-        public string BankTranNo { get; set; }
-        public string CardType { get; set; }
+        public float? Point { get; set; }
+        public string? BankCode { get; set; }
+        public string? BankTranNo { get; set; }
+        public string? CardType { get; set; }
         public DateTime PaymentDate { get; set; }
-        public string VNPayCode { get; set; }
+        public string? VNPayCode { get; set; }
         public bool Success { get; set; }
         public EnumTransactionType Type { get; set; }
     }

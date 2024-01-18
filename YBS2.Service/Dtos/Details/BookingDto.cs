@@ -9,13 +9,26 @@ namespace YBS2.Service.Dtos.Details
     public class BookingDto
     {
         public Guid Id { get; set; }
+        public Guid? MemberId { get; set; }
+        public Guid TourId { get; set; }
         public DateTime BookingDate { get; set; }
         public float TotalAmount { get; set; }
+        public float? Point { get; set; }
+        public string TourName { get; set; }
+        public string Location { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public int Duration { get; set; }
+        public EnumTimeUnit DurationUnit { get; set; }
+        public EnumTourType TourType { get; set; }
         public int TotalPassengers { get; set; }
         public string Note { get; set; }
         public bool isIncludeBooker { get; set; }
-        public EnumBookingType Type { get; set; }
-        public EnumBookingStatus Status { get; set; }
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow.AddHours(7);
+        public string Type { get; set; }
+        public string Status { get; set; }
+        public string PaymentMethod { get; set; }
+        public string PaymentStatus { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public string DeviceToken { get; set; }
     }
 }

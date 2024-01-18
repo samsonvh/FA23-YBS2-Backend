@@ -15,9 +15,10 @@ namespace YBS2.Service.Dtos
         public string LOA { get; set; }
         public string BEAM { get; set; }
         public string DRAFT { get; set; }
-        public int TotalCrew { get; set; }
+        public int TotalCrews { get; set; }
         public int TotalPassengers { get; set; }
         public int Cabin { get; set; }
         public string Status { get; set; }
+        public string Type { get; set; }
     }
 }

@@ -17,13 +17,13 @@ namespace YBS2.Controllers
 {
     [Route(APIEndPoints.MEMBER_V1)]
     [ApiController]
-    public class MemberController : ControllerBase
+    public class MembersController : ControllerBase
     {
-        private readonly ILogger<MemberController> _logger;
+        private readonly ILogger<MembersController> _logger;
         private readonly IMemberService _memberService;
         private readonly IConfiguration _configuration;
 
-        public MemberController(ILogger<MemberController> logger, IMemberService memberService, IConfiguration configuration)
+        public MembersController(ILogger<MembersController> logger, IMemberService memberService, IConfiguration configuration)
         {
             _logger = logger;
             _memberService = memberService;

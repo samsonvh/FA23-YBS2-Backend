@@ -22,13 +22,13 @@ namespace YBS2.Controllers
     [ApiController]
     [Route(APIEndPoints.YACHT_V1)]
     [RoleAuthorization(nameof(EnumRole.Company))]
-    public class YachtController : ControllerBase
+    public class YachtsController : ControllerBase
     {
-        private readonly ILogger<YachtController> _logger;
+        private readonly ILogger<YachtsController> _logger;
         private readonly IYachtService _yachtService;
         private readonly IConfiguration _configuration;
 
-        public YachtController(ILogger<YachtController> logger, IYachtService yachtService, IConfiguration configuration)
+        public YachtsController(ILogger<YachtsController> logger, IYachtService yachtService, IConfiguration configuration)
         {
             _logger = logger;
             _yachtService = yachtService;

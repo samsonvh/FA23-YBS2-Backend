@@ -59,5 +59,11 @@ namespace YBS2
         public const string PASSENGER_V1_ID = PASSENGER_V1 + "/{id}";
         public const string PASSENGER_OF_BOOKING_V1 = BOOKING_ID_V1 + "/passengers";
         public const string PASSENGER_OF_BOOKING_ID_V1 = PASSENGER_OF_BOOKING_V1 + "/{passengerId}";
+
+        //TourActivity
+        public const string ACTIVITY_V1 = API_VERSION_V1 + "/tour-activities";
+        public const string ACTIVITY_ID_V1 = ACTIVITY_V1 + "/{id}";
+        public const string ACTIVITY_OF_TOUR_V1 = TOUR_ID_V1 + "/tour-activities";
+        public const string ACTIVITY_OF_TOUR_ID_V1 = ACTIVITY_OF_TOUR_V1 + "/{tourActivityId}";
     }
 }

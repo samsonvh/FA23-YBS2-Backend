@@ -108,7 +108,9 @@ namespace YBS2.Service.Services.Implements
             }
             dock.ImageURL = imageURL;
             await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<DockDto>(dock);
+            DockDto dockDto = _mapper.Map<DockDto>(dock);
+            dockDto.ImageURLs = imageURL.Split(",");
+            return dockDto;
         }
 
         public Task<bool> Delete(Guid id)
@@ -200,7 +202,9 @@ namespace YBS2.Service.Services.Implements
             existingDock.ImageURL = imageURL;
             _unitOfWork.DockRepository.Update(existingDock);
             await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<DockDto>(existingDock);
+            DockDto dockDto = _mapper.Map<DockDto>(existingDock);
+            dockDto.ImageURLs = imageURL.Split(",");
+            return dockDto;
         }
 
         private IQueryable<Dock> Filter(IQueryable<Dock> query, DockPageRequest pageRequest)
