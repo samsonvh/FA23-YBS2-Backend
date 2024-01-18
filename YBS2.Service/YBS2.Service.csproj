@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
+      <!-- <PackageReference Include="Google.Apis.FirebaseRealtimeDatabase.v1beta" Version="1.66.0.2911" /> -->
+      <PackageReference Include="Google.Apis.FirebaseRealtimeDatabase.v1beta" Version="1.63.0.2911" />
       <ProjectReference Include="..\YBS2.Data\YBS2.Data.csproj" />
       <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
       <PackageReference Include="FirebaseAdmin" Version="2.4.0" />

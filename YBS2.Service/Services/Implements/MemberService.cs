@@ -348,13 +348,13 @@ namespace YBS2.Service.Services.Implements
 
             await _unitOfWork.SaveChangesAsync();
 
-            FCMMessageRequest notiRequest = new FCMMessageRequest
-            {
-                Title = existingMembershipRegistration.Id.ToString(),
-                Body = "true",
-                DeviceToken = existingMembershipRegistration.DeviceToken
-            };
-            await _cloudMessagingService.SendTransactionNotification(notiRequest);
+            // FCMMessageRequest notiRequest = new FCMMessageRequest
+            // {
+            //     Title = existingMembershipRegistration.Id.ToString(),
+            //     Body = "true",
+            //     DeviceToken = existingMembershipRegistration.DeviceToken
+            // };
+            // await _cloudMessagingService.SendTransactionNotification(notiRequest);
             return true;
         }
 
