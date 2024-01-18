@@ -20,10 +20,11 @@ namespace YBS2.Data.Models
         public string LOA { get; set; }
         public string BEAM { get; set; }
         public string DRAFT { get; set; }
-        public int TotalCrew { get; set; }
-        public int TotalPassenger { get; set; }
+        public int TotalCrews { get; set; }
+        public int TotalPassengers { get; set; }
         public int Cabin { get; set; }
         public EnumYachtStatus Status { get; set; }
+        public EnumYachtType Type { get; set; }
         public ICollection<Tour>? Tours { get; set; } = null;
     }
 }

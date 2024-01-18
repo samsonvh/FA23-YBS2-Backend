@@ -60,7 +60,7 @@ namespace YBS2.Service.Services.Implements
         {
             await CheckExistence(inputDto);
 
-            string newPassword = "password";
+            string newPassword = TextUtils.GenerateRandomString(10);
             Account account = new Account
             {
                 Email = inputDto.Email.ToLower(),

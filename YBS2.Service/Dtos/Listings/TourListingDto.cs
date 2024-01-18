@@ -10,6 +10,8 @@ namespace YBS2.Service.Dtos.Listings
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string ImageURL { get; set; }
+        public float Price { get; set; }
+        public float? DiscountPrice { get; set; }
         public int Priority { get; set; }
         public string Location { get; set; }
         public TimeSpan StartTime { get; set; }

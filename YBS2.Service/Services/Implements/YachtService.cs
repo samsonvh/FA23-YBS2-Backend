@@ -68,7 +68,9 @@ namespace YBS2.Service.Services.Implements
             string imageURL = await FirebaseUtil.UpLoadFile(inputDto.Images, yacht.Id, _storageService);
             yacht.ImageURL = imageURL;
             await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<YachtDto>(yacht);
+            YachtDto yachtDto = _mapper.Map<YachtDto>(yacht);
+            yachtDto.ImageURL = imageURL.Split(",");
+            return yachtDto;
         }
 
         public Task<bool> Delete(Guid id)
@@ -161,12 +163,12 @@ namespace YBS2.Service.Services.Implements
 
             if (pageRequest.MinPassengers >= 0 && pageRequest.MaxPassengers > pageRequest.MinPassengers)
             {
-                query = query.Where(yacht => yacht.TotalPassenger >= pageRequest.MinPassengers && yacht.TotalPassenger <= pageRequest.MaxPassengers);
+                query = query.Where(yacht => yacht.TotalPassengers >= pageRequest.MinPassengers && yacht.TotalPassengers <= pageRequest.MaxPassengers);
             }
 
             if (pageRequest.MinCrew >= 0 && pageRequest.MaxCrew > pageRequest.MinCrew)
             {
-                query = query.Where(yacht => yacht.TotalCrew >= pageRequest.MinCrew && yacht.TotalCrew <= pageRequest.MaxCrew);
+                query = query.Where(yacht => yacht.TotalCrews >= pageRequest.MinCrew && yacht.TotalCrews <= pageRequest.MaxCrew);
             }
 
             if (pageRequest.MinCabin >= 0 && pageRequest.MaxCabin > pageRequest.MinCabin)

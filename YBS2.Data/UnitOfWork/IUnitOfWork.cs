@@ -17,6 +17,11 @@ namespace YBS2.Data.UnitOfWork
         IGenericRepositoty<Booking> BookingRepository { get; }
         IGenericRepositoty<Transaction> TransactionRepository { get; }
         IGenericRepositoty<Wallet> WalletRepository { get; }
+        IGenericRepositoty<TourActivity> TourActivityRepository { get; }
+        IGenericRepositoty<BookingActivity> BookingActivityRepository { get; }
+        IGenericRepositoty<Service> ServiceRepository { get; }
+        IGenericRepositoty<ServicePackage> ServicePackageRepository { get; }
+        IGenericRepositoty<ServicePackageItem> ServicePackageItemRepository { get; }
         Task<int> SaveChangesAsync();
     }
 }

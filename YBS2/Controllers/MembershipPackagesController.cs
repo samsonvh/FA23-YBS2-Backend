@@ -15,13 +15,13 @@ namespace YBS2.Controllers
 {
     [Route(APIEndPoints.MEMBERSHIP_PACKAGES_V1)]
     [ApiController]
-    public class MembershipPackageController : ControllerBase
+    public class MembershipPackagesController : ControllerBase
     {
-        private readonly ILogger<MembershipPackageController> _logger;
+        private readonly ILogger<MembershipPackagesController> _logger;
         private readonly IMembershipPackageService _membershipPackageService;
         private readonly IConfiguration _configuration;
 
-        public MembershipPackageController(ILogger<MembershipPackageController> logger, IMembershipPackageService membershipPackageService, IConfiguration configuration)
+        public MembershipPackagesController(ILogger<MembershipPackagesController> logger, IMembershipPackageService membershipPackageService, IConfiguration configuration)
         {
             _logger = logger;
             _membershipPackageService = membershipPackageService;

@@ -20,6 +20,11 @@ namespace YBS2.Data.UnitOfWork.Implement
         private readonly IGenericRepositoty<Booking> _bookingRepository;
         private readonly IGenericRepositoty<Transaction> _transactionRepository;
         private readonly IGenericRepositoty<Wallet> _walletRepository;
+        private readonly IGenericRepositoty<TourActivity> _tourActivityRepository;
+        private readonly IGenericRepositoty<BookingActivity> _bookingActivityRepository;
+        private readonly IGenericRepositoty<Service> _serviceRepository;
+        private readonly IGenericRepositoty<ServicePackage> _servicePackageRepository;
+        private readonly IGenericRepositoty<ServicePackageItem> _servicePackageItemRepository;
         public UnitOfWork(YBS2Context context)
         {
             _context = context;
@@ -165,6 +170,66 @@ namespace YBS2.Data.UnitOfWork.Implement
                     return _walletRepository;
                 }
                 return new GenericRepository<Wallet>(_context);
+            }
+        }
+
+        public IGenericRepositoty<TourActivity> TourActivityRepository
+        {
+            get
+            {
+                if (_tourActivityRepository is not null)
+                {
+                    return _tourActivityRepository;
+                }
+                return new GenericRepository<TourActivity>(_context);
+            }
+        }
+
+        public IGenericRepositoty<BookingActivity> BookingActivityRepository
+        {
+            get
+            {
+                if (_bookingActivityRepository is not null)
+                {
+                    return _bookingActivityRepository;
+                }
+                return new GenericRepository<BookingActivity>(_context);
+            }
+        }
+
+        public IGenericRepositoty<Service> ServiceRepository
+        {
+            get
+            {
+                if (_serviceRepository is not null)
+                {
+                    return _serviceRepository;
+                }
+                return new GenericRepository<Service>(_context);
+            }
+        }
+
+        public IGenericRepositoty<ServicePackage> ServicePackageRepository
+        {
+            get
+            {
+                if (_servicePackageRepository is not null)
+                {
+                    return _servicePackageRepository;
+                }
+                return new GenericRepository<ServicePackage>(_context);
+            }
+        }
+
+        public IGenericRepositoty<ServicePackageItem> ServicePackageItemRepository
+        {
+            get
+            {
+                if (_servicePackageItemRepository is not null)
+                {
+                    return _servicePackageItemRepository;
+                }
+                return new GenericRepository<ServicePackageItem>(_context);
             }
         }
 

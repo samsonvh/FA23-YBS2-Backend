@@ -2,6 +2,6 @@ namespace YBS2.Data.Enums
 {
     public enum EnumPaymentMethod
     {
-        Cash = 0, Transfer = 1
+        Cash = 0, Transfer = 1, Point = 2
     }
 }

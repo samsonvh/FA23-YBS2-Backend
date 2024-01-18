@@ -10,8 +10,8 @@ namespace YBS2.Service.Dtos.PageRequests
     {
         public DateTime? MinDate { get; set; }
         public DateTime? MaxDate { get; set; }
-        public int? MinPassenger { get; set; }
-        public int? MaxPassenger { get; set; }
+        // public int? MinPassenger { get; set; }
+        // public int? MaxPassenger { get; set; }
         public EnumTransactionType? Type { get; set; }
     }
 }

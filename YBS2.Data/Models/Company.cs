@@ -21,5 +21,6 @@ namespace YBS2.Data.Models
         public ICollection<Dock> Docks { get; set; } 
         public ICollection<Tour> Tours { get; set; } 
         public ICollection<Yacht> Yachts { get; set; }
+        public ICollection<ServicePackage>? ServicePackages { get; set; }
     }
 }

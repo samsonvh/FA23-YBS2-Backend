@@ -32,5 +32,7 @@ namespace YBS2.Data.Models
         public EnumTourStatus Status { get; set; }
         public ICollection<Booking>? Bookings { get; set; }
         public ICollection<TourDock> TourDocks { get; set; }
+        public ICollection<TourActivity> TourActivities { get; set; }
+        public ICollection<TourServicePackage>? TourServicePackages { get; set; }
     }
 }

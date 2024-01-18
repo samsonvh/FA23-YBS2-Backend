@@ -18,6 +18,14 @@ namespace YBS2.Data.Models
         public Tour Tour { get; set; }
         public DateTime BookingDate { get; set; }
         public float TotalAmount { get; set; }
+        public float? Point { get; set; }
+        public string TourName { get; set; }
+        public string Location { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public int Duration { get; set; }
+        public EnumTimeUnit DurationUnit { get; set; }
+        public EnumTourType TourType { get; set; }
         public int TotalPassengers { get; set; }
         public string Note { get; set; }
         public bool isIncludeBooker { get; set; }
@@ -29,5 +37,6 @@ namespace YBS2.Data.Models
         public string DeviceToken { get; set; }
         public ICollection<Passenger> Passengers { get; set; }
         public ICollection<Transaction>? Transactions { get; set; }
+        public ICollection<BookingActivity>? BookingActivities { get; set; }
     }
 }

@@ -70,17 +70,36 @@ namespace YBS2.Data.Migrations
                     b.Property<string>("DeviceToken")
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DurationUnit")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<Guid?>("MemberId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Note")
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("int");
 
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("int");
+
+                    b.Property<float?>("Point")
+                        .HasColumnType("real");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -93,6 +112,13 @@ namespace YBS2.Data.Migrations
 
                     b.Property<Guid>("TourId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TourName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("TourType")
+                        .HasColumnType("int");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
@@ -107,6 +133,42 @@ namespace YBS2.Data.Migrations
                     b.HasIndex("TourId");
 
                     b.ToTable("Booking", (string)null);
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.BookingActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("BookingActivity", (string)null);
                 });
 
             modelBuilder.Entity("YBS2.Data.Models.Company", b =>
@@ -370,7 +432,29 @@ namespace YBS2.Data.Migrations
                     b.ToTable("Passenger", (string)null);
                 });
 
-            modelBuilder.Entity("YBS2.Data.Models.Tour", b =>
+            modelBuilder.Entity("YBS2.Data.Models.Service", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Service", (string)null);
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.ServicePackage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -382,6 +466,57 @@ namespace YBS2.Data.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<float>("Price")
+                        .HasColumnType("real");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable("ServicePackage", (string)null);
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.ServicePackageItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ServicePackageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.HasIndex("ServicePackageId");
+
+                    b.ToTable("ServicePackageItem", (string)null);
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.Tour", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Duration")
                         .HasColumnType("int");
@@ -434,6 +569,42 @@ namespace YBS2.Data.Migrations
                     b.ToTable("Tour", (string)null);
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.TourActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TourId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TourId");
+
+                    b.ToTable("TourActivity", (string)null);
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.TourDock", b =>
                 {
                     b.Property<Guid>("Id")
@@ -455,6 +626,27 @@ namespace YBS2.Data.Migrations
                     b.ToTable("TourDock", (string)null);
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.TourServicePackage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ServicePackageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TourId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServicePackageId");
+
+                    b.HasIndex("TourId");
+
+                    b.ToTable("TourServicePackage", (string)null);
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -462,22 +654,18 @@ namespace YBS2.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("BankCode")
-                        .IsRequired()
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("BankTranNo")
-                        .IsRequired()
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<Guid?>("BookingId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CardType")
-                        .IsRequired()
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Code")
-                        .IsRequired()
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<Guid?>("MembershipRegistrationId")
@@ -490,6 +678,9 @@ namespace YBS2.Data.Migrations
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<float?>("Point")
+                        .HasColumnType("real");
+
                     b.Property<bool>("Success")
                         .HasColumnType("bit");
 
@@ -500,7 +691,6 @@ namespace YBS2.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("VNPayCode")
-                        .IsRequired()
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
@@ -634,10 +824,13 @@ namespace YBS2.Data.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalCrew")
+                    b.Property<int>("TotalCrews")
                         .HasColumnType("int");
 
-                    b.Property<int>("TotalPassenger")
+                    b.Property<int>("TotalPassengers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -662,6 +855,17 @@ namespace YBS2.Data.Migrations
                     b.Navigation("Member");
 
                     b.Navigation("Tour");
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.BookingActivity", b =>
+                {
+                    b.HasOne("YBS2.Data.Models.Booking", "Booking")
+                        .WithMany("BookingActivities")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("YBS2.Data.Models.Company", b =>
@@ -736,6 +940,36 @@ namespace YBS2.Data.Migrations
                     b.Navigation("Booking");
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.ServicePackage", b =>
+                {
+                    b.HasOne("YBS2.Data.Models.Company", "Company")
+                        .WithMany("ServicePackages")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.ServicePackageItem", b =>
+                {
+                    b.HasOne("YBS2.Data.Models.Service", "Service")
+                        .WithMany("ServicePackageItems")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("YBS2.Data.Models.ServicePackage", "ServicePackage")
+                        .WithMany("ServicePackageItems")
+                        .HasForeignKey("ServicePackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+
+                    b.Navigation("ServicePackage");
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.Tour", b =>
                 {
                     b.HasOne("YBS2.Data.Models.Company", "Company")
@@ -753,6 +987,17 @@ namespace YBS2.Data.Migrations
                     b.Navigation("Yacht");
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.TourActivity", b =>
+                {
+                    b.HasOne("YBS2.Data.Models.Tour", "Tour")
+                        .WithMany("TourActivities")
+                        .HasForeignKey("TourId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tour");
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.TourDock", b =>
                 {
                     b.HasOne("YBS2.Data.Models.Dock", "Dock")
@@ -766,6 +1011,21 @@ namespace YBS2.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Dock");
+
+                    b.Navigation("Tour");
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.TourServicePackage", b =>
+                {
+                    b.HasOne("YBS2.Data.Models.ServicePackage", "ServicePackage")
+                        .WithMany("TourServicePackages")
+                        .HasForeignKey("ServicePackageId");
+
+                    b.HasOne("YBS2.Data.Models.Tour", "Tour")
+                        .WithMany("TourServicePackages")
+                        .HasForeignKey("TourId");
+
+                    b.Navigation("ServicePackage");
 
                     b.Navigation("Tour");
                 });
@@ -837,6 +1097,8 @@ namespace YBS2.Data.Migrations
 
             modelBuilder.Entity("YBS2.Data.Models.Booking", b =>
                 {
+                    b.Navigation("BookingActivities");
+
                     b.Navigation("Passengers");
 
                     b.Navigation("Transactions");
@@ -845,6 +1107,8 @@ namespace YBS2.Data.Migrations
             modelBuilder.Entity("YBS2.Data.Models.Company", b =>
                 {
                     b.Navigation("Docks");
+
+                    b.Navigation("ServicePackages");
 
                     b.Navigation("Tours");
 
@@ -878,11 +1142,27 @@ namespace YBS2.Data.Migrations
                     b.Navigation("Transaction");
                 });
 
+            modelBuilder.Entity("YBS2.Data.Models.Service", b =>
+                {
+                    b.Navigation("ServicePackageItems");
+                });
+
+            modelBuilder.Entity("YBS2.Data.Models.ServicePackage", b =>
+                {
+                    b.Navigation("ServicePackageItems");
+
+                    b.Navigation("TourServicePackages");
+                });
+
             modelBuilder.Entity("YBS2.Data.Models.Tour", b =>
                 {
                     b.Navigation("Bookings");
 
+                    b.Navigation("TourActivities");
+
                     b.Navigation("TourDocks");
+
+                    b.Navigation("TourServicePackages");
                 });
 
             modelBuilder.Entity("YBS2.Data.Models.Yacht", b =>

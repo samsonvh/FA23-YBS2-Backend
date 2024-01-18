@@ -8,6 +8,7 @@ using YBS2.Data.Models;
 using YBS2.Data.UnitOfWork;
 using YBS2.Service.Dtos.Details;
 using YBS2.Service.Exceptions;
+using YBS2.Service.Utils;
 
 namespace YBS2.Controllers
 {
@@ -39,17 +40,11 @@ namespace YBS2.Controllers
             })
             .ToArray();
         }
-        [HttpGet("TestAPI")]
-        public async Task<IActionResult> TestAPI()
+        [HttpPost("GenPass")]
+        public IActionResult GenPass (string password)
         {
-            Thread testThread = new Thread(new ThreadStart(doSth));
-            testThread.Start();
-            return Ok();
-        }
-        public static void doSth ()
-        {
-            int count = 0;
-            System.Console.WriteLine(count);
+            string a = PasswordUtils.HashPassword(password);
+            return Ok(a);
         }
     }
 }

@@ -10,6 +10,8 @@ using Humanizer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using YBS.Service.Utils;
 using YBS2.Data.Enums;
 using YBS2.Data.Models;
@@ -52,14 +54,14 @@ namespace YBS2.Service.Services.Implements
             if (existingCompany == null)
             {
                 dynamic Errors = new ExpandoObject();
-                Errors.Company = "Company Not Found";
-                throw new APIException(HttpStatusCode.BadRequest, Errors.Company, Errors);
+                Errors.company = "Company Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.company, Errors);
             }
             if (inputDto.Docks.Count == 0)
             {
                 dynamic Errors = new ExpandoObject();
-                Errors.Dock = "Tour must have at least 1 dock.";
-                throw new APIException(HttpStatusCode.BadRequest, Errors.Dock, Errors);
+                Errors.dock = "Tour must have at least 1 dock.";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.dock, Errors);
             }
             Yacht? existingYacht = await _unitOfWork.YachtRepository
                 .Find(yacht => yacht.Id == inputDto.YachtId && yacht.CompanyId == companyId)
@@ -69,7 +71,7 @@ namespace YBS2.Service.Services.Implements
                 dynamic Errors = new ExpandoObject();
                 Errors.YachtId = $"Yacht with Id {inputDto.YachtId} does not exist.";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.YachtId, Errors);
-            }   
+            }
 
             if (inputDto.Type == EnumTourType.In_Day)
             {
@@ -96,9 +98,18 @@ namespace YBS2.Service.Services.Implements
                 Errors.Dock = "Error while adding docks";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.Dock, Errors);
             }
+            List<TourActivityInputDto>? tourActivitiesInputDtos = JsonConvert.DeserializeObject<List<TourActivityInputDto>>(inputDto.Activities);
+            if (tourActivitiesInputDtos.Count == 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.tourActivities = "List activity of tour is null";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.tourActivities, Errors);
+            }
+            List<TourActivity> tourActivities = _mapper.Map<List<TourActivity>>(tourActivitiesInputDtos);
             Tour tour = _mapper.Map<Tour>(inputDto);
+            tour.TourActivities = tourActivities;
             tour.TourDocks = tourDocks;
-            tour.MaximumGuest = existingYacht.TotalPassenger;
+            tour.MaximumGuest = existingYacht.TotalPassengers;
             tour.Status = EnumTourStatus.Active;
             tour.CompanyId = companyId;
             _unitOfWork.TourRepository.Add(tour);
@@ -118,7 +129,9 @@ namespace YBS2.Service.Services.Implements
             }
             tour.ImageURL = imageURL;
             await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<TourDto>(tour);
+            TourDto tourDto = _mapper.Map<TourDto>(tour);
+            tourDto.ImageURLs = imageURL.Split(",");
+            return tourDto;
         }
 
         public Task<TourDto?> Create(TourInputDto inputDto)
@@ -139,12 +152,24 @@ namespace YBS2.Service.Services.Implements
         public async Task<DefaultPageResponse<TourListingDto>> GetAll(TourPageRequest pageRequest, ClaimsPrincipal claims)
         {
             IQueryable<Tour> query = _unitOfWork.TourRepository.Find(tour => tour.Status == EnumTourStatus.Active);
+            MembershipRegistration? membershipRegistration = null;
             if (claims != null)
             {
-                if (claims.FindFirstValue("CompanyId") != null)
+                string role = TextUtils.Capitalize(claims.FindFirstValue(ClaimTypes.Role));
+                if (role == nameof(EnumRole.Company))
                 {
                     Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
                     query = _unitOfWork.TourRepository.Find(tour => tour.CompanyId == companyId);
+                }
+                else if (role == nameof(EnumRole.Member))
+                {
+                    Guid memberId = Guid.Parse(claims.FindFirstValue("MemberId"));
+                    Member? member = await _unitOfWork.MemberRepository
+                        .Find(member => member.Id == memberId)
+                        .Include(member => member.MembershipRegistrations)
+                        .FirstOrDefaultAsync();
+                    membershipRegistration = member.MembershipRegistrations
+                    .FirstOrDefault(membershipRegistration => membershipRegistration.Status == EnumMembershipRegistrationStatus.Active);
                 }
             }
             query = Filter(query, pageRequest);
@@ -153,11 +178,16 @@ namespace YBS2.Service.Services.Implements
                 .Skip((pageRequest.PageIndex - 1) * pageRequest.PageSize)
                 .Take(pageRequest.PageSize)
                 .ToListAsync();
+
             List<TourListingDto> resultList = new List<TourListingDto>();
             foreach (Tour tour in list)
             {
                 TourListingDto tourListingDto = _mapper.Map<TourListingDto>(tour);
                 tourListingDto.ImageURL = tour.ImageURL.Split(',')[0];
+                if (membershipRegistration != null)
+                {
+                    tourListingDto.DiscountPrice = (float)(tour.Price - tour.Price * membershipRegistration.DiscountPercent / 100);
+                }
                 resultList.Add(tourListingDto);
             }
             int totalResults = await query.CountAsync();
@@ -179,12 +209,24 @@ namespace YBS2.Service.Services.Implements
         public async Task<TourDto?> GetDetails(Guid id, ClaimsPrincipal claims)
         {
             IQueryable<Tour> query = _unitOfWork.TourRepository.Find(tour => tour.Id == id && tour.Status == EnumTourStatus.Active);
+            MembershipRegistration? membershipRegistration = null;
             if (claims != null)
             {
-                if (claims.FindFirstValue("CompanyId") != null)
+                string role = TextUtils.Capitalize(claims.FindFirstValue(ClaimTypes.Role));
+                if (role == nameof(EnumRole.Company))
                 {
                     Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
                     query = _unitOfWork.TourRepository.Find(tour => tour.CompanyId == companyId);
+                }
+                else if (role == nameof(EnumRole.Member))
+                {
+                    Guid memberId = Guid.Parse(claims.FindFirstValue("MemberId"));
+                    Member? member = await _unitOfWork.MemberRepository
+                        .Find(member => member.Id == memberId)
+                        .Include(member => member.MembershipRegistrations)
+                        .FirstOrDefaultAsync();
+                    membershipRegistration = member.MembershipRegistrations
+                    .FirstOrDefault(membershipRegistration => membershipRegistration.Status == EnumMembershipRegistrationStatus.Active);
                 }
             }
             Tour? tour = await query.FirstOrDefaultAsync();
@@ -193,6 +235,10 @@ namespace YBS2.Service.Services.Implements
                 return null;
             }
             TourDto tourDto = _mapper.Map<TourDto>(tour);
+            if (membershipRegistration != null)
+            {
+                tourDto.DiscountPrice = (float)(tour.Price - tour.Price * membershipRegistration.DiscountPercent / 100);
+            }
             tourDto.ImageURLs = tour.ImageURL.Split(',');
             return tourDto;
         }
@@ -213,6 +259,7 @@ namespace YBS2.Service.Services.Implements
                 .Find(tour => tour.Id == id && tour.Status == EnumTourStatus.Active && tour.CompanyId == companyId)
                 .Include(tour => tour.Bookings)
                 .Include(tour => tour.TourDocks)
+                .Include(tour => tour.TourActivities)
                 .FirstOrDefaultAsync();
             if (existingTour == null)
             {
@@ -285,7 +332,15 @@ namespace YBS2.Service.Services.Implements
                 Errors.ImageURL = "Tour must have at least 1 image.";
                 throw new APIException(HttpStatusCode.BadRequest, Errors.ImageURL, Errors);
             }
-            await FirebaseUtil.DeleteFile(existingTour.ImageURL, _configuration, _firebaseStorageService);
+            List<TourActivityInputDto>? tourActivitiesInputDtos = JsonConvert.DeserializeObject<List<TourActivityInputDto>>(inputDto.Activities);
+            if (tourActivitiesInputDtos.Count == 0)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.tourActivities = "List activity of tour is null";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.tourActivities, Errors);
+            }
+            List<TourActivity> tourActivities = _mapper.Map<List<TourActivity>>(tourActivitiesInputDtos);
+            // await FirebaseUtil.DeleteFile(existingTour.ImageURL, _configuration, _firebaseStorageService);
 
             string imageURL = await FirebaseUtil.UpLoadFile(inputDto.Images, existingTour.Id, _firebaseStorageService);
             if (imageURL == null)
@@ -305,12 +360,15 @@ namespace YBS2.Service.Services.Implements
             existingTour.EndTime = inputDto.EndTime;
             existingTour.Duration = (int)inputDto.Duration;
             existingTour.DurationUnit = (EnumTimeUnit)inputDto.DurationUnit;
-            existingTour.MaximumGuest = existingYacht.TotalPassenger;
+            existingTour.MaximumGuest = existingYacht.TotalPassengers;
             existingTour.Type = inputDto.Type;
             existingTour.Description = inputDto.Description;
+            existingTour.TourActivities = tourActivities;
             _unitOfWork.TourRepository.Update(existingTour);
             await _unitOfWork.SaveChangesAsync();
-            return _mapper.Map<TourDto>(existingTour);
+            TourDto tourDto = _mapper.Map<TourDto>(existingTour);
+            tourDto.ImageURLs = imageURL.Split(",");
+            return tourDto;
         }
 
         private IQueryable<Tour> Filter(IQueryable<Tour> query, TourPageRequest pageRequest)

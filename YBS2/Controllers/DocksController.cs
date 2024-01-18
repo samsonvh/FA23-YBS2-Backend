@@ -23,13 +23,13 @@ namespace YBS2.Controllers
     [ApiController]
     [Route(APIEndPoints.DOCK_V1)]
     [RoleAuthorization(nameof(EnumRole.Company))]
-    public class DockController : ControllerBase
+    public class DocksController : ControllerBase
     {
-        private readonly ILogger<DockController> _logger;
+        private readonly ILogger<DocksController> _logger;
         private readonly IDockService _dockService;
         private readonly IConfiguration _configuration;
 
-        public DockController(ILogger<DockController> logger, IDockService dockService, IConfiguration configuration)
+        public DocksController(ILogger<DocksController> logger, IDockService dockService, IConfiguration configuration)
         {
             _logger = logger;
             _dockService = dockService;
