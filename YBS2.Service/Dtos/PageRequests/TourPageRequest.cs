@@ -14,6 +14,8 @@ namespace YBS2.Service.Dtos.PageRequests
         public string? Location { get; set; }
         public int MinGuest { get; set; }
         public int MaxGuest { get; set; }
+        public DateTime? StartBookingDate { get; set; }
+        public DateTime? EndBookingDate { get; set; }
         public EnumTourType? Type { get; set; }
         public EnumTourStatus? Status { get; set; }
     }

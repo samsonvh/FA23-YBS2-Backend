@@ -153,9 +153,10 @@ namespace YBS2.Service.Services.Implements
         {
             IQueryable<Tour> query = _unitOfWork.TourRepository.Find(tour => tour.Status == EnumTourStatus.Active);
             MembershipRegistration? membershipRegistration = null;
+            string role = null;
             if (claims != null)
             {
-                string role = TextUtils.Capitalize(claims.FindFirstValue(ClaimTypes.Role));
+                role = TextUtils.Capitalize(claims.FindFirstValue(ClaimTypes.Role));
                 if (role == nameof(EnumRole.Company))
                 {
                     Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
@@ -177,7 +178,49 @@ namespace YBS2.Service.Services.Implements
             List<Tour> list = await query
                 .Skip((pageRequest.PageIndex - 1) * pageRequest.PageSize)
                 .Take(pageRequest.PageSize)
+                .Include(tour => tour.Bookings)
                 .ToListAsync();
+
+            if (pageRequest.StartBookingDate.HasValue && pageRequest.EndBookingDate.HasValue && pageRequest.EndBookingDate?.Date.CompareTo(pageRequest.StartBookingDate?.Date) >= 0)
+            {
+                List<Tour> removedList = new List<Tour>();
+                foreach (Tour tour in list)
+                {
+                    if (role == nameof(EnumRole.Member))
+                    {
+                        Booking? privateApprovedBooking = tour.Bookings
+                        .FirstOrDefault(
+                            booking => booking.Status == EnumBookingStatus.Approved &&
+                            booking.Type == EnumBookingType.Private_Tour &&
+                            booking.BookingDate.Date.CompareTo(pageRequest.StartBookingDate?.Date) >= 0 &&
+                            booking.BookingDate.Date.CompareTo(pageRequest.EndBookingDate?.Date) <= 0);
+                        List<Booking> listPublicBooking = tour.Bookings
+                            .Where(booking => booking.Status == EnumBookingStatus.Approved &&
+                            booking.Type == EnumBookingType.Group_Tour &&
+                                booking.BookingDate.Date.CompareTo(pageRequest.StartBookingDate?.Date) >= 0 &&
+                                booking.BookingDate.Date.CompareTo(pageRequest.EndBookingDate?.Date) <= 0)
+                            .ToList();
+                        int realTotalPassenger = 0;
+                        listPublicBooking.ForEach(
+                            publicBooking =>
+                            {
+                                realTotalPassenger += publicBooking.TotalPassengers;
+                            });
+                        if (privateApprovedBooking != null || realTotalPassenger >= tour.MaximumGuest)
+                        {
+                            removedList.Add(tour);
+                        }
+                    }
+
+                }
+                if (removedList.Count > 0)
+                {
+                    removedList.ForEach(tour =>
+                    {
+                        list.Remove(tour);
+                    });
+                }
+            }
 
             List<TourListingDto> resultList = new List<TourListingDto>();
             foreach (Tour tour in list)
@@ -392,7 +435,6 @@ namespace YBS2.Service.Services.Implements
             {
                 query = query.Where(tour => tour.MaximumGuest >= pageRequest.MinGuest && tour.MaximumGuest <= pageRequest.MaxGuest);
             }
-
             query = query.SortBy(pageRequest.OrderBy, pageRequest.IsDescending);
 
             return query;

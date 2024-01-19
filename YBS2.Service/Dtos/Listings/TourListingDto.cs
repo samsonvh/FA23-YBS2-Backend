@@ -12,6 +12,8 @@ namespace YBS2.Service.Dtos.Listings
         public string ImageURL { get; set; }
         public float Price { get; set; }
         public float? DiscountPrice { get; set; }
+        public int Duration { get; set; }
+        public int DurationUnit { get; set; }
         public int Priority { get; set; }
         public string Location { get; set; }
         public TimeSpan StartTime { get; set; }

@@ -34,7 +34,11 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader();
     });
 });
-
+builder.Services.AddHttpClient("Firebase", client =>
+        {
+            client.BaseAddress = new Uri("https://yacht-booking-system-2.firebaseio.com/");
+            // Add any headers or configurations needed for Firebase
+        });
 // Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -51,10 +55,10 @@ builder.Services.AddSwaggerGen(options =>
         BearerFormat = "JWT"
     });
     options.MapType<TimeSpan>(() => new OpenApiSchema
-	{
-		Type = "string",
-		Example = new OpenApiString("HH:mm:ss")
-	});
+    {
+        Type = "string",
+        Example = new OpenApiString("HH:mm:ss")
+    });
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -94,7 +98,6 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ITourActivityService, TourActivityService>();
 builder.Services.AddHttpContextAccessor();
-
 //Add Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
