@@ -13,12 +13,12 @@ namespace YBS2.Data.Models
         public Guid? MembershipPackageId { get; set; }
         [ForeignKey("MembershipPackageId")]
         public MembershipPackage? MembershipPackage { get; set; }
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public float? DiscountPercent { get; set; }
         public Transaction? Transaction { get; set; }
         public DateTime? MembershipStartDate { get; set; }
         public DateTime? MembershipExpireDate { get; set; }
-        public string DeviceToken { get; set; }
+        public string? DeviceToken { get; set; }
         public EnumMembershipRegistrationStatus Status { get; set; }
     }
 }

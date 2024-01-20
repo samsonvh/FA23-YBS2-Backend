@@ -100,5 +100,16 @@ namespace YBS2.Controllers
         {
             return CreatedAtAction(nameof(CreateRegisterPaymentURL) ,await _memberService.CreateRegisterPaymentURL(inputDto, HttpContext));
         }
+        [SwaggerOperation("Extend Membership")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(MemberDto))]
+        [Produces("application/json")]
+        [HttpPut]
+        [Route(APIEndPoints.MEMBER_EXTEND)]
+        [RoleAuthorization(nameof(EnumRole.Member))]
+        public async Task<IActionResult> ExtendMembership([FromForm] Guid membershipPackageId)
+        {
+            ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
+            return Ok(await _memberService.CreateExtendMembershipRequestURL(claims, membershipPackageId, HttpContext));
+        }
     }
 }

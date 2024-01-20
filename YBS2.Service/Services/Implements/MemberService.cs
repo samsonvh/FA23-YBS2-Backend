@@ -399,5 +399,32 @@ namespace YBS2.Service.Services.Implements
             }
             return paymentURL;
         }
+
+        public async Task<string> CreateExtendMembershipRequestURL(ClaimsPrincipal claims, Guid membershipPackageId, HttpContext context)
+        {
+            Guid memberId = Guid.Parse(claims.FindFirstValue("MemberId"));
+            Member? member = await _unitOfWork.MemberRepository
+                .Find(member => member.Id == memberId)
+                .FirstOrDefaultAsync();
+            MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
+                .Find(membershipPackage => membershipPackage.Id == membershipPackageId && membershipPackage.Status == EnumMembershipPackageStatus.Active)
+                .FirstOrDefaultAsync();
+            if (existingMembershipPackage == null)
+            {
+                dynamic Errors = new ExpandoObject();
+                Errors.membershipPackage = "Membership Package Not Found";
+                throw new APIException(HttpStatusCode.BadRequest, Errors.membershipPackage,Errors);
+            } 
+            MembershipRegistration membershipRegistration = new MembershipRegistration
+            {
+                MemberId = memberId,
+                Status = EnumMembershipRegistrationStatus.Inactive
+
+            };
+            _unitOfWork.MembershipRegistrationRepository.Add(membershipRegistration);
+            await _unitOfWork.SaveChangesAsync();
+            string paymentURL = await _vnpayService.CreateExtendMembershipRequestURL(member, existingMembershipPackage, context);
+            return paymentURL;
+        }
     }
 }

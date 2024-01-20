@@ -17,5 +17,10 @@ namespace YBS2.Data.Models
         public DateTime DOB { get; set; }
         public EnumGender Gender { get; set; }
         public string IdentityNumber { get; set; }
+        public string Email { get; set; }
+        public string Address { get; set; }
+        public string PhoneNumber { get; set; }
+        public string SpecialRequest { get; set; }
+        public bool IsLeader { get; set; }
     }
 }
