@@ -15,7 +15,11 @@ namespace YBS2.Service.Dtos.Inputs
         public DateTime DOB { get; set; }
         [Required]
         public EnumGender Gender { get; set; }
+        public string? IdentityNumber { get; set; }
         [Required]
-        public string IdentityNumber { get; set; }
+        public string PhoneNumber { get; set; }
+        public string SpecialRequest { get; set; }
+        [Required]
+        public bool IsLeader { get; set; }
     }
 }

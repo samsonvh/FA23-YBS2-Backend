@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.FirebaseRealtimeDatabase.v1beta;
+using Google.Apis.FirebaseRealtimeDatabase.v1beta.Data;
 using Google.Apis.Services;
 using Microsoft.Extensions.Configuration;
 
@@ -30,13 +32,18 @@ namespace YBS2.Service.Services.Implements
         }
         public async Task<string> GetData(string key, Guid id)
         {
+            string databaseUrl = "https://<your-firebase-project>.firebasedatabase.app";
+
+            // Replace with the path to your service account credentials JSON file
+            string credentialsPath = "<path-to-service-account-credentials.json>";
+
+            // Create a new Firebase Realtime Database client
             var service = new FirebaseRealtimeDatabaseService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = _credential,
-                ApplicationName = _appName
+                ApplicationName = "YourAppName"
             });
             // var getRequest = service.Get(databaseUrl + "users/1.json");
-            // return response;
             return "";
         }
 

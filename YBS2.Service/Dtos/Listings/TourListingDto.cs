@@ -18,6 +18,7 @@ namespace YBS2.Service.Dtos.Listings
         public string Location { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
+        public string Type { get; set; }
         public string Status { get; set; }
     }
 }

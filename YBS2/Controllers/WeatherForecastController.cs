@@ -43,8 +43,10 @@ namespace YBS2.Controllers
         [HttpPost("GenPass")]
         public IActionResult GenPass (string password)
         {
-            string a = PasswordUtils.HashPassword(password);
-            return Ok(a);
+            // string a = PasswordUtils.HashPassword(password);
+            // return Ok(a);
+            
+            return Ok();
         }
     }
 }

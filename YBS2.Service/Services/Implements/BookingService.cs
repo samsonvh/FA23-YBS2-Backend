@@ -131,7 +131,7 @@ namespace YBS2.Service.Services.Implements
                     };
                     _unitOfWork.TransactionRepository.Add(transaction);
 
-                    
+
                     booking.Point = pointExchange;
                     if (pointExchange > member.Wallet.Point)
                     {
@@ -170,19 +170,22 @@ namespace YBS2.Service.Services.Implements
         private async Task<Booking> AddPassengerInBooking(BookingInputDto inputDto, ClaimsPrincipal claims, Tour existingTour)
         {
             Booking booking = _mapper.Map<Booking>(inputDto);
+
             int totalPassengers = 0;
             List<Passenger> passengerList = _mapper.Map<List<Passenger>>(inputDto.Passengers);
+
             if (claims != null)
             {
-                if (!inputDto.isIncludeBooker && passengerList.Count == 0)
-                {
-                    dynamic errors = new ExpandoObject();
-                    errors.PassengerList = "Passenger List must not be null";
-                    throw new APIException(HttpStatusCode.BadRequest, errors.PassengerList, errors);
-                }
+
                 string role = claims.FindFirstValue(ClaimTypes.Role);
                 if (role == nameof(EnumRole.Member))
                 {
+                    if (!inputDto.isIncludeBooker && inputDto.Passengers.Count == 0)
+                    {
+                        dynamic errors = new ExpandoObject();
+                        errors.passengerList = "Passenger List must not be null";
+                        throw new APIException(HttpStatusCode.BadRequest, errors.passengerList, errors);
+                    }
                     Guid memberId = Guid.Parse(claims.FindFirstValue("MemberId"));
                     booking.MemberId = memberId;
                     booking.PaymentMethod = inputDto.PaymentMethod;
@@ -190,6 +193,7 @@ namespace YBS2.Service.Services.Implements
                     {
                         Member? member = await _unitOfWork.MemberRepository
                             .Find(member => member.Id == memberId && member.Account.Status == EnumAccountStatus.Active)
+                            .Include(member => member.Account)
                             .FirstOrDefaultAsync();
                         if (member == null)
                         {
@@ -202,7 +206,10 @@ namespace YBS2.Service.Services.Implements
                             DOB = member.DOB,
                             FullName = member.FullName,
                             Gender = member.Gender,
-                            IdentityNumber = member.IdentityNumber
+                            IdentityNumber = member.IdentityNumber,
+                            IsLeader = true,
+                            Email = member.Account.Email,
+                            Address = member.Address
                         };
                         passengerList.Add(memberInclude);
                     }
@@ -214,9 +221,32 @@ namespace YBS2.Service.Services.Implements
                 if (passengerList.Count == 0)
                 {
                     dynamic errors = new ExpandoObject();
-                    errors.PassengerList = "Passenger List must not be null";
-                    throw new APIException(HttpStatusCode.BadRequest, errors.PassengerList, errors);
+                    errors.passengerList = "Passenger List must not be null";
+                    throw new APIException(HttpStatusCode.BadRequest, errors.passengerList, errors);
                 }
+                if (inputDto.Email == null)
+                {
+                    dynamic errors = new ExpandoObject();
+                    errors.email = "Email must not be null";
+                    throw new APIException(HttpStatusCode.BadRequest, errors.email, errors);
+                }
+                if (inputDto.Address == null)
+                {
+                    dynamic errors = new ExpandoObject();
+                    errors.address = "Address must not be null";
+                    throw new APIException(HttpStatusCode.BadRequest, errors.address, errors);
+                }
+                Passenger leader = passengerList.Find(passenger => passenger.IsLeader);
+                if (leader == null)
+                {
+                    dynamic errors = new ExpandoObject();
+                    errors.leader = "Leader must not be null";
+                    throw new APIException(HttpStatusCode.BadRequest, errors.leader, errors);
+                }
+                passengerList.Remove(leader);
+                leader.Email = inputDto.Email;
+                leader.Address = inputDto.Address;
+                passengerList.Add(leader);
                 booking.PaymentMethod = EnumPaymentMethod.Cash;
             }
             float totalAmount = existingTour.Price * passengerList.Count();
