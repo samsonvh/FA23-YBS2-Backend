@@ -18,7 +18,6 @@ namespace YBS2.Service.Dtos.Inputs
         public string? IdentityNumber { get; set; }
         [Required]
         public string PhoneNumber { get; set; }
-        public string SpecialRequest { get; set; }
         [Required]
         public bool IsLeader { get; set; }
     }

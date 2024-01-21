@@ -9,7 +9,10 @@ namespace YBS2.Service.Dtos.Details
     public class BookingDto
     {
         public Guid Id { get; set; }
-        public Guid? MemberId { get; set; }
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
+        public string SpecialRequest { get; set; }
         public Guid TourId { get; set; }
         public DateTime BookingDate { get; set; }
         public float TotalAmount { get; set; }

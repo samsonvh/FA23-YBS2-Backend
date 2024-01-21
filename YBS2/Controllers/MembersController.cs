@@ -109,7 +109,16 @@ namespace YBS2.Controllers
         public async Task<IActionResult> ExtendMembership([FromForm] Guid membershipPackageId)
         {
             ClaimsPrincipal claims = JWTUtils.GetClaim(_configuration, Request.Headers["Authorization"]);
-            return Ok(await _memberService.CreateExtendMembershipRequestURL(claims, membershipPackageId, HttpContext));
+            return Ok(await _memberService.ExtendMembership(claims, membershipPackageId, HttpContext));
+        }
+        [SwaggerOperation("[Public] Activate extend membership for member when payment for extend membership package successfully")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(bool))]
+        [Produces("application/json")]
+        [Route(APIEndPoints.MEMBER_ACTIVATE_EXTEND)]
+        [HttpGet]
+        public async Task<IActionResult> ActivateExtendMember()
+        {
+            return Ok(await _memberService.ActivateExtendMember(Request.Query));
         }
     }
 }

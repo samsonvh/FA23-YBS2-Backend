@@ -316,7 +316,7 @@ namespace YBS2.Service.Services.Implements
             };
         }
 
-        private SortedList<string, string> AddExtendMembershipRequestData(MembershipPackage membershipPackage, Member member, HttpContext context)
+        private SortedList<string, string> AddExtendMembershipRequestData(MembershipPackage membershipPackage, MembershipRegistration membershipRegistration, HttpContext context)
         {
             SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
             var callBackUrl = "https://" + context.Request.Host + _configuration["PaymentCallBack:ExtendMembershipReturnURL"];
@@ -326,7 +326,7 @@ namespace YBS2.Service.Services.Implements
             _requestData = AddRequestData("vnp_TmnCode", _configuration["Vnpay:TmnCode"], _requestData);
             _requestData = AddRequestData("vnp_Locale", _configuration["Vnpay:Locale"], _requestData);
             _requestData = AddRequestData("vnp_CurrCode", "VND", _requestData);
-            _requestData = AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString() + "," + member.Id.ToString(), _requestData);
+            _requestData = AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString() + "," + membershipRegistration.Id.ToString(), _requestData);
             _requestData = AddRequestData("vnp_OrderInfo", membershipPackage.Name.ToString() + "," + membershipPackage.Id.ToString(), _requestData);
             _requestData = AddRequestData("vnp_OrderType", nameof(EnumTransactionType.Extend_Membership), _requestData);
             _requestData = AddRequestData("vnp_Amount", ((int)membershipPackage.Price * 100).ToString(), _requestData);
@@ -337,11 +337,11 @@ namespace YBS2.Service.Services.Implements
             return _requestData;
         }
 
-        public async Task<string> CreateExtendMembershipRequestURL(Member member, MembershipPackage membershipPackage, HttpContext context)
+        public async Task<string> CreateExtendMembershipRequestURL(MembershipRegistration membershipRegistration, MembershipPackage membershipPackage, HttpContext context)
         {
             string baseUrl = _configuration["VnPay:BaseUrl"];
             string hashSecret = _configuration["VnPay:HashSecret"];
-            SortedList<string, string> _requestData = AddExtendMembershipRequestData(membershipPackage, member, context);
+            SortedList<string, string> _requestData = AddExtendMembershipRequestData(membershipPackage, membershipRegistration, context);
             var data = new StringBuilder();
 
 
@@ -381,7 +381,7 @@ namespace YBS2.Service.Services.Implements
             }
             string[] txnRef = GetResponseData("vnp_TxnRef", _responseData).Trim().Split(",");
             string[] orderInfo = GetResponseData("vnp_OrderInfo", _responseData).Trim().Split(",");
-            Guid memberId = Guid.Parse(txnRef[1]);
+            Guid membershipRegistrationId = Guid.Parse(txnRef[1]);
             Guid membershipPackageId = Guid.Parse(orderInfo[1]);
             string code = txnRef[0];
             float totalAmount = float.Parse(GetResponseData("vnp_Amount", _responseData).Trim()) / 100;
@@ -409,6 +409,16 @@ namespace YBS2.Service.Services.Implements
                 errors.membershipPackage = "Membership Package Not Found";
                 throw new APIException(HttpStatusCode.BadRequest, errors.membershipPackage, errors);
             }
+            // MembershipRegistration? existingMembershipRegistration = await _unitOfWork.MembershipRegistrationRepository
+            //     .Find(membershipPackageRegistration => membershipPackageRegistration.Id == membershipRegistrationId)
+            //     .Include(membershipRegistration => membershipRegistration.Member)
+            //     .FirstOrDefaultAsync();
+            // if (existingMembershipPackage == null)
+            // {
+            //     dynamic errors = new ExpandoObject();
+            //     errors.membershipPackage = "Membership Package Not Found";
+            //     throw new APIException(HttpStatusCode.BadRequest, errors.membershipPackage, errors);
+            // }
             if (!checkSignature)
             {
                 dynamic errors = new ExpandoObject();
@@ -430,7 +440,7 @@ namespace YBS2.Service.Services.Implements
             return new VNPayExtendMembershipResponse
             {
                 MembershipPackageId = membershipPackageId,
-                MemberId = memberId,
+                MembershipRegistrationId = membershipRegistrationId,
                 Code = code,
                 TotalAmount = totalAmount,
                 BankCode = bankCode,

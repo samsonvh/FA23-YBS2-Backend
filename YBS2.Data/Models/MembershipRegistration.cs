@@ -18,7 +18,7 @@ namespace YBS2.Data.Models
         public Transaction? Transaction { get; set; }
         public DateTime? MembershipStartDate { get; set; }
         public DateTime? MembershipExpireDate { get; set; }
-        public string? DeviceToken { get; set; }
+        public string DeviceToken { get; set; }
         public EnumMembershipRegistrationStatus Status { get; set; }
     }
 }

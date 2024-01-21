@@ -20,7 +20,6 @@ namespace YBS2.Data.Configs
             builder.Property(passenger => passenger.IdentityNumber).HasColumnType("nvarchar(20)").IsRequired(false);
             builder.Property(passenger => passenger.Email).HasColumnType("nvarchar(100)").IsRequired(false);
             builder.Property(passenger => passenger.Address).HasColumnType("nvarchar(200)").IsRequired(false);
-            builder.Property(passenger => passenger.SpecialRequest).HasColumnType("nvarchar(500)").IsRequired(false);
         }
     }
 }

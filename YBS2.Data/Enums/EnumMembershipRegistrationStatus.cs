@@ -5,5 +5,6 @@ namespace YBS2.Data.Enums
         Inactive = 0,
         Active = 1,
         Payment_Fail = 2,
+        Expire = 3,
     }
 }

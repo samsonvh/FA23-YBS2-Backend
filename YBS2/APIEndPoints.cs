@@ -25,6 +25,7 @@ namespace YBS2
         public const string MEMBER_ACTIVATE_V1 = MEMBER_V1 + "/activate";
         public const string MEMBER_CREATE_REGISTER_PAYMENT_URL = MEMBER_V1 + "/create-payment-url";
         public const string MEMBER_EXTEND = MEMBER_V1 + "/extend-membership";
+        public const string MEMBER_ACTIVATE_EXTEND = MEMBER_V1 + "/activate-extend-membership";
 
         //  Update Requests
         public const string UPDATE_REQUESTS_V1 = API_VERSION_V1 + "/update-requests";
