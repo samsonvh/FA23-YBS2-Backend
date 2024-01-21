@@ -104,6 +104,7 @@ namespace YBS2.Service.Services.Implements
                 Member? member = await _unitOfWork.MemberRepository
                     .Find(member => member.Id == booking.MemberId)
                     .Include(member => member.Wallet)
+                    .Include(member => member.Account)
                     .Include(member => member.MembershipRegistrations)
                     .FirstOrDefaultAsync();
                 if (member == null)
@@ -115,7 +116,11 @@ namespace YBS2.Service.Services.Implements
                 MembershipRegistration membershipRegistration = member.MembershipRegistrations
                     .FirstOrDefault(membershipRegistration => membershipRegistration.Status == EnumMembershipRegistrationStatus.Active);
                 booking.TotalAmount = (float)(booking.TotalAmount - booking.TotalAmount * membershipRegistration.DiscountPercent / 100);
-                bookingDto.MemberId = booking.MemberId;
+                bookingDto.memberId = booking.MemberId;
+                bookingDto.name = member.FullName;
+                bookingDto.phoneNumber = member.PhoneNumber;
+                bookingDto.email = member.Account.Email;
+
                 if (inputDto.PaymentMethod == EnumPaymentMethod.Point)
                 {
                     float pointExchange = booking.TotalAmount / 1000;
@@ -146,12 +151,18 @@ namespace YBS2.Service.Services.Implements
             }
             else
             {
+                PassengerInputDto leader = inputDto.Passengers.First(passenger => passenger.IsLeader);
+                bookingDto.name = leader.FullName;
+                bookingDto.phoneNumber = leader.PhoneNumber;
+                bookingDto.email = inputDto.Email;
+                bookingDto.specialRequest = inputDto.SpecialRequest;
                 booking.PaymentStatus = EnumPaymentStatus.NotYet;
             }
 
             bookingDto.tourId = booking.TourId;
             bookingDto.bookingDate = booking.BookingDate;
             bookingDto.totalAmount = booking.TotalAmount;
+
             bookingDto.totalPassengers = booking.TotalPassengers;
             bookingDto.note = booking.Note;
             bookingDto.isIncludeBooker = booking.isIncludeBooker;

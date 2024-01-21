@@ -11,7 +11,7 @@ namespace YBS2.Service.Services
         Task<VNPayRegisterResponse> CallBackRegisterPayment(IQueryCollection collections);
         Task<string> CreateBookingRequestURL(Guid bookingId, HttpContext context);
         Task<VNPayBookingResponse> CallBackBookingPayment(IQueryCollection collections);
-        Task<string> CreateExtendMembershipRequestURL(Member member, MembershipPackage membershipPackage, HttpContext context);
+        Task<string> CreateExtendMembershipRequestURL(MembershipRegistration membershipRegistration, MembershipPackage membershipPackage, HttpContext context);
         Task<VNPayExtendMembershipResponse> CallBackExtendMembership(IQueryCollection collections);
     }
 }

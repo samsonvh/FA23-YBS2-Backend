@@ -15,6 +15,7 @@ namespace YBS2.Service.Dtos.Inputs
         public EnumBookingType Type { get; set; }
         public string? Email { get; set; }
         public string? Address { get; set; }
+        public string? SpecialRequest { get; set; }
         public List<PassengerInputDto>? Passengers { get; set; }
         [Required]
         public bool isIncludeBooker { get; set; } = true;

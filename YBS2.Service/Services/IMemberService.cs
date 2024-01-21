@@ -14,6 +14,7 @@ namespace YBS2.Service.Services
         Task<MemberDto> Update(MemberInputDto inputDto, ClaimsPrincipal claims);
         Task<CreateMemberDto> Create(MemberRegistration registration, HttpContext context);
         Task<string> CreateRegisterPaymentURL(CreateRegisterPaymentURLInputDto inputDto, HttpContext context);
-        Task<string> CreateExtendMembershipRequestURL(ClaimsPrincipal claims, Guid membershipPackageId, HttpContext context);
+        Task<CreateMemberDto> ExtendMembership(ClaimsPrincipal claims, Guid membershipPackageId, HttpContext context);
+        Task<bool> ActivateExtendMember(IQueryCollection collections);
     }
 }

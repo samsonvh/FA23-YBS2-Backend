@@ -348,13 +348,6 @@ namespace YBS2.Service.Services.Implements
 
             await _unitOfWork.SaveChangesAsync();
 
-            // FCMMessageRequest notiRequest = new FCMMessageRequest
-            // {
-            //     Title = existingMembershipRegistration.Id.ToString(),
-            //     Body = "true",
-            //     DeviceToken = existingMembershipRegistration.DeviceToken
-            // };
-            // await _cloudMessagingService.SendTransactionNotification(notiRequest);
             return true;
         }
 
@@ -400,7 +393,7 @@ namespace YBS2.Service.Services.Implements
             return paymentURL;
         }
 
-        public async Task<string> CreateExtendMembershipRequestURL(ClaimsPrincipal claims, Guid membershipPackageId, HttpContext context)
+        public async Task<CreateMemberDto> ExtendMembership(ClaimsPrincipal claims, Guid membershipPackageId, HttpContext context)
         {
             Guid memberId = Guid.Parse(claims.FindFirstValue("MemberId"));
             Member? member = await _unitOfWork.MemberRepository
@@ -413,8 +406,8 @@ namespace YBS2.Service.Services.Implements
             {
                 dynamic Errors = new ExpandoObject();
                 Errors.membershipPackage = "Membership Package Not Found";
-                throw new APIException(HttpStatusCode.BadRequest, Errors.membershipPackage,Errors);
-            } 
+                throw new APIException(HttpStatusCode.BadRequest, Errors.membershipPackage, Errors);
+            }
             MembershipRegistration membershipRegistration = new MembershipRegistration
             {
                 MemberId = memberId,
@@ -423,8 +416,98 @@ namespace YBS2.Service.Services.Implements
             };
             _unitOfWork.MembershipRegistrationRepository.Add(membershipRegistration);
             await _unitOfWork.SaveChangesAsync();
-            string paymentURL = await _vnpayService.CreateExtendMembershipRequestURL(member, existingMembershipPackage, context);
-            return paymentURL;
+            string paymentURL = await _vnpayService.CreateExtendMembershipRequestURL(membershipRegistration, existingMembershipPackage, context);
+            return new CreateMemberDto
+            {
+                membershipRegistrationId = membershipRegistration.Id,
+                paymentURL = paymentURL
+            };
+        }
+
+        public async Task<bool> ActivateExtendMember(IQueryCollection collections)
+        {
+            VNPayExtendMembershipResponse vnpayResponse = await _vnpayService.CallBackExtendMembership(collections);
+
+            MembershipRegistration? existingMembershipRegistration = await _unitOfWork.MembershipRegistrationRepository
+                .Find(membershipRegistration => membershipRegistration.Id == vnpayResponse.MembershipRegistrationId && membershipRegistration.Status == EnumMembershipRegistrationStatus.Inactive)
+                .Include(membershipRegistration => membershipRegistration.Member)
+                .Include(membershipRegistration => membershipRegistration.Member.Wallet)
+                .Include(membershipRegistration => membershipRegistration.Member.Account)
+                .FirstOrDefaultAsync();
+
+            if (existingMembershipRegistration == null)
+            {
+                return false;
+            }
+            if (existingMembershipRegistration.Member == null)
+            {
+                return false;
+            }
+            if (existingMembershipRegistration.Member.Account == null)
+            {
+                return false;
+            }
+            MembershipPackage? existingMembershipPackage = await _unitOfWork.MembershipPackageRepository
+                .Find(membershipPackage => membershipPackage.Id == vnpayResponse.MembershipPackageId)
+                .FirstOrDefaultAsync();
+            if (existingMembershipPackage == null)
+            {
+                return false;
+            }
+            existingMembershipRegistration.Member.Wallet.Point += existingMembershipPackage.Point;
+
+
+            DateTime now = DateTime.UtcNow.AddHours(7);
+            existingMembershipRegistration.MembershipPackage = existingMembershipPackage;
+            existingMembershipRegistration.Member.Account.Status = EnumAccountStatus.Active;
+            existingMembershipRegistration.Member.Status = EnumMemberStatus.Active;
+            existingMembershipRegistration.Name = existingMembershipRegistration.MembershipPackage.Name;
+            existingMembershipRegistration.DiscountPercent = existingMembershipRegistration.MembershipPackage.DiscountPercent;
+            existingMembershipRegistration.MembershipStartDate = now;
+            existingMembershipRegistration.Status = EnumMembershipRegistrationStatus.Active;
+
+            switch (existingMembershipRegistration.MembershipPackage.DurationUnit)
+            {
+                case EnumTimeUnit.Days:
+                    existingMembershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddDays(existingMembershipRegistration.MembershipPackage.Duration);
+                    break;
+                case EnumTimeUnit.Months:
+                    existingMembershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddMonths(existingMembershipRegistration.MembershipPackage.Duration);
+                    break;
+                case EnumTimeUnit.Years:
+                    existingMembershipRegistration.MembershipExpireDate = DateTime.UtcNow.AddHours(7).AddYears(existingMembershipRegistration.MembershipPackage.Duration);
+                    break;
+            }
+            MembershipRegistration? activeMembershipRegistration = await _unitOfWork.MembershipRegistrationRepository
+                .Find(membershipRegistration => membershipRegistration.Status == EnumMembershipRegistrationStatus.Active)
+                .FirstOrDefaultAsync();
+
+            if (activeMembershipRegistration != null)
+            {
+                activeMembershipRegistration.Status = EnumMembershipRegistrationStatus.Expire;
+                _unitOfWork.MembershipRegistrationRepository.Update(activeMembershipRegistration);
+                int remainingDate = (int)(activeMembershipRegistration.MembershipExpireDate?.Subtract(DateTime.UtcNow.AddHours(7)).Days);
+                if (remainingDate > 0)
+                {
+                    existingMembershipRegistration.MembershipExpireDate = existingMembershipRegistration.MembershipExpireDate?.AddDays(remainingDate);
+                }
+
+            }
+            Transaction transaction = _mapper.Map<Transaction>(vnpayResponse);
+            transaction.Type = EnumTransactionType.Register;
+            existingMembershipRegistration.Transaction = transaction;
+            _unitOfWork.MembershipRegistrationRepository.Update(existingMembershipRegistration);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            // FCMMessageRequest notiRequest = new FCMMessageRequest
+            // {
+            //     Title = existingMembershipRegistration.Id.ToString(),
+            //     Body = "true",
+            //     DeviceToken = existingMembershipRegistration.DeviceToken
+            // };
+            // await _cloudMessagingService.SendTransactionNotification(notiRequest);
+            return true;
         }
     }
 }

@@ -87,6 +87,8 @@ namespace YBS2.Service.Utils
             //VNPayResponse 
             CreateMap<VNPayRegisterResponse,Transaction>();
             CreateMap<VNPayBookingResponse,Transaction>();
+            CreateMap<VNPayExtendMembershipResponse,Transaction>();
+            
 
             //TourActivity
             CreateMap<TourActivityInputDto, TourActivity>();

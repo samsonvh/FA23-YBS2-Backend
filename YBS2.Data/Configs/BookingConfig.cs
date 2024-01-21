@@ -23,7 +23,8 @@ namespace YBS2.Data.Configs
             builder.Property(booking => booking.TourName).HasColumnType("nvarchar(100)");
             builder.Property(booking => booking.Location).HasColumnType("nvarchar(100)");
             builder.Property(booking => booking.StartTime).HasColumnType("time");
-            builder.Property(booking => booking.EndTime).HasColumnType("time");  
+            builder.Property(booking => booking.EndTime).HasColumnType("time");
+            builder.Property(passenger => passenger.SpecialRequest).HasColumnType("nvarchar(500)").IsRequired(false);  
         }
     }
 }
