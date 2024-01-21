@@ -317,9 +317,10 @@ namespace YBS2.Service.Services.Implements
         public async Task<BookingDto?> GetDetails(Guid id, ClaimsPrincipal claims)
         {
             IQueryable<Booking> query = _unitOfWork.BookingRepository.Find(booking => booking.Id == id);
+            string role = null;
             if (claims != null)
             {
-                string role = TextUtils.Capitalize(claims.FindFirstValue(ClaimTypes.Role));
+                role = TextUtils.Capitalize(claims.FindFirstValue(ClaimTypes.Role));
                 if (role == nameof(EnumRole.Company))
                 {
                     Guid companyId = Guid.Parse(claims.FindFirstValue("CompanyId"));
@@ -331,7 +332,11 @@ namespace YBS2.Service.Services.Implements
                     query = query.Where(booking => booking.MemberId == memberId);
                 }
             }
-            Booking booking = await query.FirstOrDefaultAsync();
+            Booking booking = await query
+                .Include(booking => booking.Member)
+                .Include(booking => booking.Member.Account)
+                .Include(booking => booking.Passengers)
+                .FirstOrDefaultAsync();
             if (booking == null)
             {
                 return null;
@@ -341,8 +346,22 @@ namespace YBS2.Service.Services.Implements
                 return null;
             }
 
-
-            return _mapper.Map<BookingDto>(booking);
+            BookingDto bookingDto =  _mapper.Map<BookingDto>(booking);
+            if (booking.MemberId != null)
+            {
+                bookingDto.FullName = booking.Member.FullName;
+                bookingDto.Email = booking.Member.Account.Email;
+                bookingDto.PhoneNumber = booking.Member.PhoneNumber;
+            }
+            else
+            {
+                Passenger leader = booking.Passengers.First(passenger => passenger.IsLeader);
+                bookingDto.Email = leader.Email;
+                bookingDto.FullName = leader.FullName;
+                bookingDto.PhoneNumber = leader.PhoneNumber;
+                bookingDto.SpecialRequest = booking.SpecialRequest;
+            }
+            return bookingDto;
         }
 
         public Task<BookingDto?> Update(Guid id, BookingInputDto inputDto)
